@@ -27,7 +27,7 @@ déposé à côté de l'application, sur le même hébergement statique.
   ┌─ chaque lundi, GitHub Actions ────────────────────────┐
   │                                                       │
   │  1. collecte      flux RSS de la presse mode          │
-  │                   API Reddit (forums vêtement)        │
+  │                   (Vogue, Hypebeast, WWD, WhoWhatWear)│
   │                        │                              │
   │  2. synthèse      appel à l'API Claude :              │
   │                   prose éditoriale → règles chiffrées │
@@ -48,7 +48,7 @@ Ce que cela donne :
 |---|---|
 | Serveur à maintenir | aucun |
 | Coût d'hébergement | 0 € — GitHub Actions est gratuit sur dépôt public |
-| Coût de l'API Claude | quelques centimes par semaine |
+| Coût de l'API Claude | **≈ 0,16 $ par passage, soit ≈ 8 $ par an** (mesuré, voir section 7) |
 | Fonctionne hors ligne | oui, sur la dernière version téléchargée |
 | Auditable | `tendances.json` est versionné dans git : chaque révision hebdomadaire est lisible et réversible |
 
@@ -58,12 +58,14 @@ Ce que cela donne :
 
 ### Gratuites et légitimes — le socle
 
-- **Flux RSS de la presse mode.** Vogue, Business of Fashion, Hypebeast, Who
-  What Wear, WWD. Un flux RSS est publié *pour* être consommé par des
-  programmes : aucune ambiguïté juridique.
-- **API Reddit.** Forums vêtement et style. API officielle, palier gratuit
-  suffisant pour une collecte hebdomadaire. Signal utile : ce dont les gens
-  parlent, pas ce que les marques poussent.
+- **Flux RSS de la presse mode.** Vogue, Hypebeast, Who What Wear, WWD. Un
+  flux RSS est publié *pour* être consommé par des programmes : aucune
+  ambiguïté juridique. **Mesuré le 14 août 2026 : les quatre répondent, pour
+  90 articles par passage.**
+- **Reddit — écarté après essai.** Les points d'accès JSON publics répondent
+  désormais `403` sans jeton OAuth. Les rebrancher demanderait de créer une
+  application Reddit et d'en déposer les identifiants en secrets GitHub ;
+  reporté tant que les flux de presse suffisent.
 
 ### Signal marchand — la meilleure approximation
 
@@ -102,7 +104,7 @@ projeter sur ce vocabulaire. Le résultat attendu :
 ```json
 {
   "revision": "2026-08-17",
-  "sources": ["vogue.com/rss", "reddit.com/r/…"],
+  "sources": ["Vogue", "Hypebeast", "WWD"],
   "resume": "Volumes larges en bas, hauts ajustés. Bordeaux et…",
   "regles": [
     { "type": "silhouette", "haut": "ajuste", "bas": "ample", "poids": 1.8,
@@ -115,9 +117,9 @@ projeter sur ce vocabulaire. Le résultat attendu :
 }
 ```
 
-L'application remplace alors son corpus figé — l'actuelle *révision août
-2026* — par ce fichier, et applique les mêmes mécanismes de notation. Le code
-du moteur ne change presque pas : seule la table des règles devient mobile.
+L'application charge ce fichier et lui applique les mêmes mécanismes de
+notation que ses règles de composition. Le moteur n'a presque pas changé :
+seule la table des règles est devenue mobile.
 
 ### Ce que le vocabulaire actuel ne sait pas dire
 
@@ -144,15 +146,51 @@ Les deux ne doivent pas se disputer le même terrain.
 
 | Élément | Qui | Coût |
 |---|---|---|
-| Clé d'API Anthropic, déposée en secret GitHub | toi | quelques centimes par mois |
-| Compte Reddit développeur (facultatif) | toi | gratuit |
+| Clé d'API Anthropic, déposée en secret GitHub | toi | ≈ 0,67 $ par mois (section 7) |
 | Compte affilié Awin (facultatif) | toi | gratuit |
 | Script de collecte et de synthèse | moi | — |
 | Tâche programmée GitHub Actions | moi | gratuit |
 | Chargement et cache dans l'application | moi | — |
 | Curseur classique ↔ tendance | moi | — |
 
-## 7. Ce qui restera vrai malgré tout
+## 7. Ce que ça coûte, et pourquoi
+
+Mesuré sur une collecte réelle du 14 août 2026 : **90 articles, 22 786
+caractères, environ 6 200 jetons d'entrée.**
+
+| Poste | Volume | Tarif Claude Opus 5 | Coût |
+|---|---|---|---|
+| Téléchargement des flux | 90 articles | — | **0 $** |
+| Entrée (la collecte envoyée au modèle) | ≈ 6 200 jetons | 5 $ / million | ≈ 0,03 $ |
+| Sortie (les règles, plus le raisonnement) | ≈ 5 000 jetons | 25 $ / million | ≈ 0,13 $ |
+| **Total par passage** | | | **≈ 0,16 $** |
+
+Soit **≈ 0,67 $ par mois** et **≈ 8 $ par an**.
+
+### Le coût ne suit pas les flux téléchargés
+
+C'est le point contre-intuitif. Télécharger les flux ne coûte rien — c'est du
+HTTP ordinaire. Et le texte collecté ne représente que **20 % de la facture** :
+les 80 % restants sont ce que le modèle *produit*, essentiellement sa propre
+réflexion avant d'écrire les règles, dont le volume est à peu près constant.
+
+Conséquence : doubler le nombre de sources ferait passer un passage de 0,16 $ à
+0,19 $. Ajouter des flux est donc presque gratuit ; c'est la fréquence des
+passages qui compte.
+
+### Les leviers, si le coût devenait un sujet
+
+| Levier | Effet |
+|---|---|
+| Passer `effort` de `high` à `medium` dans `synthese.mjs` | agit sur les 80 % — la baisse la plus efficace |
+| Espacer à un passage tous les quinze jours | divise la facture par deux |
+| Utiliser Claude Sonnet 5 plutôt qu'Opus 5 | environ 40 % moins cher, au prix d'une lecture moins fine |
+| Réduire `PLAFOND` ou `EXTRAIT` dans `collecte.mjs` | agit sur les 20 % — effet marginal |
+
+À ce niveau de dépense, aucun de ces réglages ne se justifie ; ils sont
+documentés pour le jour où la chaîne grossirait.
+
+## 8. Ce qui restera vrai malgré tout
 
 Une chaîne hebdomadaire donne une tendance **datée à la semaine**, dérivée de
 sources généralistes. Ce n'est pas la lecture d'un styliste qui te connaît, et

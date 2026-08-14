@@ -15,11 +15,12 @@ const FLUX = [
   { nom: "WWD",            url: "https://wwd.com/feed/" },
 ];
 
-const REDDIT = [
-  "https://www.reddit.com/r/malefashionadvice/top.json?t=week&limit=25",
-  "https://www.reddit.com/r/femalefashionadvice/top.json?t=week&limit=25",
-  "https://www.reddit.com/r/streetwear/top.json?t=week&limit=25",
-];
+/* Reddit a fermé ses points d'accès JSON publics : ils répondent 403 sans
+   jeton OAuth, et depuis une machine d'intégration continue à coup sûr.
+   Rebrancher cette source suppose de créer une application Reddit et de
+   déposer ses identifiants en secrets — pas fait tant que ça n'apporte pas
+   assez au regard des flux de presse. */
+const REDDIT = [];
 
 const UA = "dressing-tendances/1.0 (collecte hebdomadaire, usage personnel)";
 const PLAFOND = 30;   // articles retenus par source
