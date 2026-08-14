@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dressing",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["outils/serveur-local.mjs"],
+      "port": 8137
+    }
+  ]
+}

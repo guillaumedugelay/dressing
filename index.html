@@ -337,6 +337,12 @@
       <div id="stats"></div>
     </div>
     <div class="bloc">
+      <span class="legende">Classique ou tendance</span>
+      <p id="texte-tendances" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
+      <div class="curseur" id="choix-tendance"></div>
+    </div>
+
+    <div class="bloc">
       <span class="legende">Ce que tu ne portes plus</span>
       <div id="oubliees"></div>
     </div>
@@ -544,12 +550,13 @@ const DB = {
   base: null,
   ouvrir() {
     return new Promise((ok, ko) => {
-      const r = indexedDB.open("dressing", 1);
+      const r = indexedDB.open("dressing", 2);
       r.onupgradeneeded = () => {
         const d = r.result;
         if (!d.objectStoreNames.contains("pieces")) d.createObjectStore("pieces", { keyPath: "id" });
         if (!d.objectStoreNames.contains("tenues")) d.createObjectStore("tenues", { keyPath: "id" });
         if (!d.objectStoreNames.contains("avis"))   d.createObjectStore("avis",   { keyPath: "paire" });
+        if (!d.objectStoreNames.contains("reglages")) d.createObjectStore("reglages", { keyPath: "cle" });
       };
       r.onsuccess = () => { DB.base = r.result; ok(); };
       r.onerror = () => ko(r.error);
@@ -558,6 +565,12 @@ const DB = {
   tout(magasin) {
     return new Promise((ok, ko) => {
       const r = DB.base.transaction(magasin).objectStore(magasin).getAll();
+      r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
+    });
+  },
+  prendre(magasin, cle) {
+    return new Promise((ok, ko) => {
+      const r = DB.base.transaction(magasin).objectStore(magasin).get(cle);
       r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
     });
   },
@@ -590,6 +603,7 @@ const saisonCourante = () =>
 const etat = {
   pieces: [], tenues: [], avis: [],
   meteo: "soleil", temp: "doux", activite: "travail", saison: saisonCourante(),
+  poidsTendance: 1,
   filtre: "tout", vue: "jour",
   propositions: [], ecartees: new Set(),
 };
@@ -694,12 +708,10 @@ const noteRotation = (piece) => penaliteRecence(piece) + bonusOubli(piece);
 const familleDe = (couleur) =>
   Object.keys(FAMILLES).find((f) => FAMILLES[f].includes(couleur));
 
-/* ═══════════ Règles de style ═══════════
-   L'application n'a aucun accès au réseau : elle ne lit pas les tendances,
-   elle applique un corpus de règles écrit à la main et daté. À réviser en
-   republiant l'application, jamais en cours d'utilisation. */
-
-const STYLE_REVISION = "août 2026";
+/* ═══════════ Composition ═══════════
+   Des principes durables, indépendants de la saison et de la mode : ils
+   restent vrais quoi que dise la presse. Les tendances du moment sont un
+   terme séparé, chargé depuis tendances.json (voir plus bas). */
 
 function noteStyle(pieces) {
   const detail = [];
@@ -743,6 +755,67 @@ function noteStyle(pieces) {
   if (pieces.some((p) => p.categorie === "accessoire")) bonus += 0.3;
 
   return { bonus, detail };
+}
+
+/* ═══════════ Tendances ═══════════
+   Un corpus de règles chiffrées, régénéré chaque semaine hors de l'application
+   et déposé à côté d'elle. L'application le télécharge au lancement puis le
+   garde : elle continue de fonctionner hors ligne sur la dernière version
+   connue, et à défaut de tout sur celle qui est écrite ici. */
+
+const TENDANCES_SECOURS = {
+  revision: "—",
+  origine: "aucune",
+  resume: "Aucune tendance chargée : le moteur s'en tient aux règles de composition.",
+  regles: [],
+};
+
+let TENDANCES = TENDANCES_SECOURS;
+
+async function chargerTendances() {
+  try {
+    const r = await fetch(`tendances.json?v=${Date.now()}`, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) throw new Error(String(r.status));
+    const corpus = await r.json();
+    if (!Array.isArray(corpus.regles)) throw new Error("format inattendu");
+    TENDANCES = corpus;
+    await DB.poser("reglages", { cle: "tendances", valeur: corpus });
+    return;
+  } catch { /* hors ligne, ou fichier absent : on se rabat sur le cache */ }
+
+  const garde = await DB.prendre("reglages", "tendances");
+  if (garde) TENDANCES = garde.valeur;
+}
+
+/* Chaque règle est indépendante ; leur somme est bornée pour qu'aucune saison
+   ne puisse à elle seule dicter une tenue. */
+function noteTendances(pieces) {
+  if (!TENDANCES.regles.length || !etat.poidsTendance) return { bonus: 0, detail: [] };
+
+  const couleurs = new Set(pieces.flatMap((p) => p.couleurs || []));
+  const de = (c) => pieces.find((p) => p.categorie === c);
+  const coupe = (p) => (p && p.coupe) || "droit";
+  const haut = de("haut") || de("robe"), bas = de("bas");
+
+  let brut = 0;
+  const retenues = [];
+  for (const r of TENDANCES.regles) {
+    let touche = false;
+    if (r.type === "silhouette") touche = haut && bas && coupe(haut) === r.haut && coupe(bas) === r.bas;
+    else if (r.type === "couleur") touche = couleurs.has(r.valeur);
+    else if (r.type === "association") touche = (r.couleurs || []).every((c) => couleurs.has(c));
+    else if (r.type === "categorie") {
+      const p = de(r.valeur);
+      touche = !!p && (!r.coupe || coupe(p) === r.coupe);
+    }
+    if (!touche) continue;
+    brut += r.poids;
+    if (r.poids > 0) retenues.push({ note: r.note, poids: r.poids });
+  }
+
+  const bonus = Math.max(-3, Math.min(3, brut)) * etat.poidsTendance;
+  const meilleure = retenues.sort((a, b) => b.poids - a.poids)[0];
+  return { bonus, detail: bonus >= 0.8 && meilleure ? [meilleure.note] : [] };
 }
 
 function chaleurTenue(pieces) {
@@ -822,6 +895,13 @@ function noterTenue(pieces, affinites) {
   const style = noteStyle(pieces);
   score += style.bonus;
   detail.push(...style.detail);
+
+  /* La tendance est un ingrédient de plus, pas le chef d'orchestre : comme le
+     style appris et le bonus d'oubli, elle s'éteint dès que la tenue s'éloigne
+     de l'occasion. Aucune saison ne fera porter un short au bureau. */
+  const tendance = noteTendances(pieces);
+  score += tendance.bonus >= 0 ? tendance.bonus * credibilite : tendance.bonus;
+  detail.push(...tendance.detail);
 
   return { score, detail };
 }
@@ -964,7 +1044,9 @@ function rendreJour() {
       Montre-moi autre chose
     </button>
     <p style="font-size:11.5px;color:var(--texte-doux);text-align:center;margin:10px 0 0">
-      Règles de style — révision ${STYLE_REVISION}
+      ${TENDANCES.regles.length
+        ? `Tendances du ${echapper(TENDANCES.revision)}${etat.poidsTendance ? "" : " — ignorées"}`
+        : "Règles de composition seules"}
     </p>`;
 
   $("#btn-autre").onclick = () => lancer(true);
@@ -1065,6 +1147,7 @@ function rendreJournal() {
         ? `<div class="stat"><span style="color:var(--texte-doux)">et ${oubliees.length - 15} autres</span><b></b></div>` : "")
     : `<div class="vide">Rien ne dort au fond du placard.</div>`;
 
+  rendreTendances();
   rendreExemple();
 }
 
@@ -1246,6 +1329,33 @@ async function importer(fichier) {
   toast("Sauvegarde restaurée");
 }
 
+/* ═══════════ Réglage des tendances ═══════════ */
+
+const NIVEAUX_TENDANCE = [
+  { nom: "Ignorer",   poids: 0 },
+  { nom: "Un peu",    poids: 0.5 },
+  { nom: "Suivre",    poids: 1 },
+  { nom: "Franchement", poids: 2 },
+];
+
+function rendreTendances() {
+  const dernier = TENDANCES.regles.length
+    ? `Corpus du ${TENDANCES.revision}, ${TENDANCES.regles.length} règles. ${TENDANCES.resume}`
+    : "Aucun corpus chargé pour l'instant — le moteur s'en tient aux règles de composition.";
+  const provenance = TENDANCES.origine === "redigee-a-la-main"
+    ? " Ces règles sont écrites à la main, pas relevées sur internet."
+    : "";
+  $("#texte-tendances").textContent = dernier + provenance;
+
+  curseur($("#choix-tendance"), NIVEAUX_TENDANCE.map((n) => n.nom),
+    NIVEAUX_TENDANCE.findIndex((n) => n.poids === etat.poidsTendance),
+    async (i) => {
+      etat.poidsTendance = NIVEAUX_TENDANCE[i].poids;
+      await DB.poser("reglages", { cle: "poidsTendance", valeur: etat.poidsTendance });
+      etat.propositions = [];
+    });
+}
+
 /* ═══════════ Garde-robe d'exemple ═══════════ */
 
 const exemplePresent = () => etat.pieces.some((p) => p.id.startsWith("demo-"));
@@ -1306,11 +1416,16 @@ async function charger() {
   etat.pieces = await DB.tout("pieces");
   etat.tenues = await DB.tout("tenues");
   etat.avis = await DB.tout("avis");
+  const poids = await DB.prendre("reglages", "poidsTendance");
+  if (poids) etat.poidsTendance = poids.valeur;
 }
 
 async function demarrer() {
   await DB.ouvrir();
   await charger();
+  /* Le corpus arrive du réseau ou du cache ; l'application ne l'attend pas
+     pour s'afficher, elle se rafraîchit quand il est là. */
+  chargerTendances().then(() => { if (etat.vue === "journal") rendreTendances(); });
 
   $("#onglets").innerHTML = ONGLETS.map((o) => `
     <button data-id="${o.id}" aria-pressed="${o.id === etat.vue}">

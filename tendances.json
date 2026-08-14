@@ -1,0 +1,59 @@
+{
+  "revision": "2026-08-17",
+  "origine": "redigee-a-la-main",
+  "sources": [],
+  "resume": "Volumes larges en bas, hauts près du corps. Les bruns et les beiges dominent la rentrée ; le marine reste la valeur sûre. La chaussure habillée relève une tenue simple.",
+  "regles": [
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "ample",
+      "poids": 1.8,
+      "note": "la proportion de la saison"
+    },
+    {
+      "type": "silhouette",
+      "haut": "ample",
+      "bas": "ajuste",
+      "poids": 0.9,
+      "note": "l'inverse marche aussi"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1.2,
+      "note": "les bruns dominent la rentrée"
+    },
+    {
+      "type": "couleur",
+      "valeur": "beige",
+      "poids": 0.9,
+      "note": "les tons sable montent"
+    },
+    {
+      "type": "association",
+      "couleurs": ["marine", "marron"],
+      "poids": 1.0,
+      "note": "marine et brun, l'accord de la saison"
+    },
+    {
+      "type": "association",
+      "couleurs": ["denim", "blanc"],
+      "poids": 0.6,
+      "note": "denim et blanc, indémodable"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "coupe": "ample",
+      "poids": 0.8,
+      "note": "le manteau se porte large"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": -0.6,
+      "note": "en retrait cette saison"
+    }
+  ]
+}

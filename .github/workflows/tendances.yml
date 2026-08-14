@@ -1,0 +1,62 @@
+name: Tendances
+
+# Régénère tendances.json chaque lundi matin. Sans le secret ANTHROPIC_API_KEY,
+# la synthèse est sautée et le fichier reste inchangé — la chaîne peut donc être
+# installée avant que la clé n'existe.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Vérifier la présence de la clé
+        id: cle
+        run: |
+          if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "presente=oui" >> "$GITHUB_OUTPUT"
+          else
+            echo "presente=non" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY absent — synthèse sautée, tendances.json inchangé."
+          fi
+
+      - name: Collecter les sources
+        if: steps.cle.outputs.presente == 'oui'
+        run: node outils/collecte.mjs > corpus.json
+
+      - name: Installer le SDK
+        if: steps.cle.outputs.presente == 'oui'
+        run: npm install --no-save @anthropic-ai/sdk
+
+      - name: Synthétiser les tendances
+        if: steps.cle.outputs.presente == 'oui'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node outils/synthese.mjs < corpus.json > tendances.nouveau.json
+
+      - name: Publier si le résultat a changé
+        if: steps.cle.outputs.presente == 'oui'
+        run: |
+          rm -f corpus.json
+          mv tendances.nouveau.json tendances.json
+          if git diff --quiet -- tendances.json; then
+            echo "Aucun changement cette semaine."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tendances.json
+          git commit -m "Tendances de la semaine du $(date -u +%Y-%m-%d)"
+          git push

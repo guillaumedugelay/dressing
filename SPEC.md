@@ -147,17 +147,12 @@ activités, ce qui permet d'essayer les suggestions avant d'avoir photographié
 quoi que ce soit. Le retrait ne touche pas aux pièces personnelles ; il
 supprime aussi les tenues du journal qui contenaient une pièce d'exemple.
 
-## 6. Les tendances, et ce que l'application ne peut pas faire
+## 6. Composition et tendances
 
-L'application n'a **aucun accès au réseau**. Elle ne consulte ni défilés, ni
-magazines, ni réseaux sociaux, et ne peut donc pas connaître les tendances du
-moment. Aucune astuce ne contourne cela sans serveur.
+Deux termes distincts, et il faut les garder distincts.
 
-Ce qui est implémenté à la place est un **corpus de règles de style écrit à la
-main et daté** — actuellement *révision août 2026*, affichée sous les
-propositions pour que la distinction reste visible à l'usage. Ces règles
-encodent des principes de composition durables plutôt que des microtendances
-saisonnières :
+**La composition** est un jeu de principes durables, écrits dans le code et
+indépendants de la saison :
 
 | Règle | Effet |
 |---|---|
@@ -167,8 +162,30 @@ saisonnières :
 | Ancrage par la chaussure | +0,4 si la chaussure est au moins aussi habillée que le reste ; −0,8 si elle le tire nettement vers le bas |
 | Accessoire | +0,3 — un accessoire signe une tenue ; la composition n'en autorise qu'un |
 
-Réviser ces règles suppose de modifier le code et de republier. C'est un acte
-éditorial conscient, pas une mise à jour automatique.
+**Les tendances** sont un corpus mobile, chargé depuis `tendances.json` et
+régénéré chaque semaine hors de l'application (voir [TENDANCES.md](TENDANCES.md)
+pour la chaîne complète). L'application le télécharge au lancement, le range
+dans IndexedDB, et continue de fonctionner hors ligne sur la dernière version
+connue.
+
+Quatre formes de règle, toutes exprimées dans le vocabulaire fermé de
+l'application — 14 couleurs, 3 coupes, 7 catégories :
+
+| Forme | Ce qu'elle dit |
+|---|---|
+| `silhouette` | une combinaison de coupes haut/bas qui fonctionne |
+| `couleur` | une couleur qui monte, ou qui reflue si le poids est négatif |
+| `association` | deux couleurs qui s'accordent cette saison |
+| `categorie` | une catégorie mise en avant, éventuellement dans une coupe précise |
+
+La somme des règles est bornée à ±3, puis multipliée par le réglage
+**classique ↔ tendance** du Journal — de 0 (ignorer) à 2 (suivre franchement).
+La date du corpus est rappelée sous les propositions, et l'application indique
+si les règles ont été relevées automatiquement ou écrites à la main.
+
+Enfin, le bonus de tendance obéit à la règle qui gouverne tous les bonus : il
+s'éteint à mesure que la tenue s'éloigne de l'occasion. Aucune saison ne fera
+porter un short au bureau.
 
 ## 7. Tenir la charge à 500 pièces
 
