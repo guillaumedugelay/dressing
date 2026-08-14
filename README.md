@@ -25,13 +25,21 @@ produit un fichier JSON de sauvegarde, à faire après chaque grosse saisie.
 
 ## Comment les tenues sont choisies
 
-Six critères notés puis additionnés : adéquation à la température, au registre
-de l'activité et à la météo ; harmonie des couleurs ; cohérence saisonnière ;
-habitudes apprises ; et une pénalité sur ce qui a été porté récemment.
+Les pièces hors saison sont d'abord écartées, puis chaque tenue candidate est
+notée : température, registre de l'activité, météo, harmonie des couleurs,
+cohérence saisonnière, habitudes apprises, rotation de la garde-robe et
+règles de style contemporaines.
 
 Les habitudes viennent du bouton *Je porte ça* et des avis 👍/👎. Elles ne
 peuvent que départager des tenues déjà adaptées à l'occasion — jamais imposer
-un polo-baskets un jour de travail.
+un polo-baskets un jour de travail. Le bonus qui remonte les pièces oubliées
+obéit à la même limite.
+
+**Sur les tendances.** L'application n'a aucun accès au réseau : elle ne peut
+pas connaître les tendances du moment. Ce qu'elle applique est un corpus de
+règles de composition écrit à la main et daté — silhouette, camaïeu, accent
+unique, ancrage par la chaussure — dont la révision est affichée sous les
+propositions. Le rafraîchir suppose de republier l'application.
 
 Le détail des règles et des pondérations est dans [SPEC.md](SPEC.md).
 

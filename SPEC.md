@@ -29,6 +29,8 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `chaleur` | 1 (léger) → 5 (très chaud) | adéquation à la température |
 | `formalite` | 1 (sport) → 4 (habillé) | adéquation à l'activité |
 | `couleurs` | 1 à 2 parmi 14 | harmonie chromatique |
+| `saisons` | 0 à 4 saisons | **filtre strict** — aucune cochée = toute l'année |
+| `coupe` | ajusté, droit, ample | contraste de silhouette |
 | `dehors` | oui / non | résiste à la pluie et à la neige |
 | `photo` | JPEG redimensionné à 640 px | reconnaissance visuelle |
 | `porteLe` | liste de dates | récence et statistiques |
@@ -93,24 +95,48 @@ polo-baskets pour aller travailler :
   déjà correctes ; il n'en rachète pas une qui ne convient pas. Les rejets,
   eux, s'appliquent toujours pleinement.
 
-**Récence.** Une pièce portée dans les cinq derniers jours est pénalisée,
-d'autant plus fortement qu'elle est récente.
+**Rotation.** L'objectif est que la garde-robe tourne entièrement. Deux
+effets opposés, volontairement dissymétriques :
+
+- une pièce portée dans les cinq derniers jours est **écartée fermement**,
+  d'autant plus qu'elle est récente ;
+- une pièce oubliée est **remontée** : +1,4 si elle n'est jamais sortie du
+  placard, +1,1 au-delà de deux mois, +0,7 au-delà d'un mois.
+
+**Style contemporain.** Un corpus de règles daté (voir section 6) :
+contraste de silhouette entre le haut et le bas, camaïeu, accent unique sur
+base neutre, chaussure qui tire la tenue vers le haut, accessoire qui signe.
+
+### La règle qui gouverne les bonus
+
+Le style appris et le bonus d'oubli sont tous deux multipliés par un facteur
+qui s'annule à mesure que la tenue s'éloigne de la formalité et de la
+température visées. **Ils départagent des tenues déjà adaptées ; ils n'en
+imposent jamais une qui ne convient pas.** Sans cette règle, le moteur
+proposait un short et des baskets pour aller travailler, au motif qu'ils
+n'avaient jamais été portés. Les pénalités, elles, s'appliquent toujours
+pleinement.
 
 Les trois tenues affichées diffèrent entre elles d'au moins deux pièces,
 pour proposer un choix et non trois variantes de la même idée.
 
 ## 5. Écrans
 
-**Aujourd'hui** — quatre boutons météo (soleil, nuages, pluie, neige), trois
-boutons température, trois boutons activité (travail, loisir, vacances),
-puis `Proposer des tenues`. Chaque proposition s'affiche en une bande de
-vignettes, avec `j'aime`, `je n'aime pas` et `Je porte ça`.
+**Aujourd'hui** — quatre boutons météo (soleil, nuages, pluie, neige), quatre
+boutons température, trois boutons activité (travail, loisir, vacances) et
+quatre boutons saison, celle du jour étant présélectionnée d'après la date.
+Puis `Proposer des tenues`. Chaque proposition s'affiche en une bande de
+vignettes, avec `j'aime`, `je n'aime pas` et `Je porte ça`. En dessous,
+`Montre-moi autre chose` relance en écartant les pièces déjà vues, et la
+révision du corpus de style est rappelée.
 
 **Garde-robe** — grille de photos filtrable par catégorie, ajout et
 modification d'une pièce.
 
-**Journal** — historique des tenues portées, pièces jamais mises, chargement
-ou retrait de la garde-robe d'exemple, boutons d'export et d'import.
+**Journal** — historique des tenues portées, `Ce que tu ne portes plus`
+(les pièces jamais mises ou délaissées depuis plus de trente jours, nommées
+et datées), pourcentage de garde-robe déjà portée, chargement ou retrait de
+la garde-robe d'exemple, boutons d'export et d'import.
 
 ## 5 bis. Garde-robe d'exemple
 
@@ -121,7 +147,47 @@ activités, ce qui permet d'essayer les suggestions avant d'avoir photographié
 quoi que ce soit. Le retrait ne touche pas aux pièces personnelles ; il
 supprime aussi les tenues du journal qui contenaient une pièce d'exemple.
 
-## 6. Hors périmètre de la première version
+## 6. Les tendances, et ce que l'application ne peut pas faire
+
+L'application n'a **aucun accès au réseau**. Elle ne consulte ni défilés, ni
+magazines, ni réseaux sociaux, et ne peut donc pas connaître les tendances du
+moment. Aucune astuce ne contourne cela sans serveur.
+
+Ce qui est implémenté à la place est un **corpus de règles de style écrit à la
+main et daté** — actuellement *révision août 2026*, affichée sous les
+propositions pour que la distinction reste visible à l'usage. Ces règles
+encodent des principes de composition durables plutôt que des microtendances
+saisonnières :
+
+| Règle | Effet |
+|---|---|
+| Contraste de silhouette | +1,2 si un volume ample répond à une coupe ajustée ; −1,0 si tout est ample, −0,5 si tout est ajusté |
+| Camaïeu | +1,0 si toutes les couleurs marquées relèvent d'une même famille chromatique |
+| Accent unique | +0,7 pour une seule couleur vive sur une base neutre |
+| Ancrage par la chaussure | +0,4 si la chaussure est au moins aussi habillée que le reste ; −0,8 si elle le tire nettement vers le bas |
+| Accessoire | +0,3 — un accessoire signe une tenue ; la composition n'en autorise qu'un |
+
+Réviser ces règles suppose de modifier le code et de republier. C'est un acte
+éditorial conscient, pas une mise à jour automatique.
+
+## 7. Tenir la charge à 500 pièces
+
+Énumérer toutes les combinaisons devient impossible à cette échelle — une
+garde-robe de 500 pièces en produit des milliards. Le moteur **présélectionne**
+donc les meilleures candidates par catégorie (7 hauts, 6 bas, 5 paires de
+chaussures, 3 pulls, 3 manteaux, 4 accessoires) sur un score individuel
+combinant proximité de formalité, plausibilité thermique et bonus d'oubli,
+plus une **part de hasard**. Ce hasard sert deux fins : deux demandes
+identiques ne donnent pas deux fois la même tenue, et la garde-robe tourne.
+
+Mesuré sur 500 pièces : **140 à 190 ms** par demande.
+
+Le bouton *Montre-moi autre chose* écarte les pièces déjà affichées et
+relance. La pénalité correspondante s'applique dans la notation des tenues et
+non dans la seule présélection — sans quoi une petite garde-robe, où la
+présélection ne filtre rien, reproposerait à l'identique.
+
+## 8. Hors périmètre de cette version
 
 Météo automatique par géolocalisation, notifications, partage entre
 plusieurs personnes, reconnaissance automatique du vêtement sur la photo,

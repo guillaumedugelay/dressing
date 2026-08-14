@@ -312,6 +312,10 @@
       <span class="legende">La journée</span>
       <div class="choix" id="choix-activite"></div>
     </div>
+    <div class="bloc">
+      <span class="legende">La saison</span>
+      <div class="choix" id="choix-saison"></div>
+    </div>
     <button class="primaire" id="btn-proposer">Proposer des tenues</button>
     <div id="propositions" style="margin-top:22px"></div>
   </section>
@@ -332,6 +336,11 @@
       <span class="legende">Ma garde-robe en chiffres</span>
       <div id="stats"></div>
     </div>
+    <div class="bloc">
+      <span class="legende">Ce que tu ne portes plus</span>
+      <div id="oubliees"></div>
+    </div>
+
     <div class="bloc">
       <span class="legende">Pour essayer</span>
       <p id="texte-exemple" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
@@ -383,6 +392,16 @@
     <div class="champ">
       <span class="legende">Couleurs — une ou deux</span>
       <div class="pastilles" id="choix-couleurs"></div>
+    </div>
+
+    <div class="champ">
+      <span class="legende">Saisons — aucune cochée = toute l'année</span>
+      <div class="choix" id="choix-saisons"></div>
+    </div>
+
+    <div class="champ">
+      <span class="legende">Coupe</span>
+      <div class="curseur" id="choix-coupe"></div>
     </div>
 
     <div class="champ">
@@ -465,33 +484,59 @@ const COULEURS = [
 const CHALEURS = ["Léger", "Fin", "Moyen", "Chaud", "Très chaud"];
 const REGISTRES = ["Sport", "Décontracté", "Soigné", "Habillé"];
 
+/* Une pièce sans saison cochée est réputée portable toute l'année. */
+const SAISONS = [
+  { id: "printemps", nom: "Printemps", pict: "🌸", mois: [2, 3, 4] },
+  { id: "ete",       nom: "Été",       pict: "🌞", mois: [5, 6, 7] },
+  { id: "automne",   nom: "Automne",   pict: "🍁", mois: [8, 9, 10] },
+  { id: "hiver",     nom: "Hiver",     pict: "⛄", mois: [11, 0, 1] },
+];
+
+const COUPES = [
+  { id: "ajuste", nom: "Ajusté" },
+  { id: "droit",  nom: "Droit" },
+  { id: "ample",  nom: "Ample" },
+];
+
+/* Familles chromatiques, pour reconnaître un camaïeu. */
+const FAMILLES = {
+  chaud:  ["beige", "marron", "orange", "jaune", "rouge", "rose"],
+  froid:  ["marine", "denim", "bleu", "vert", "violet"],
+  achrome:["noir", "blanc", "gris"],
+};
+
 /* Garde-robe d'exemple : de quoi essayer le moteur avant d'avoir photographié
    la moindre pièce. Volontairement passe-partout — à modifier ou à retirer. */
+const PRINTEMPS_ETE = ["printemps", "ete"];
+const MI_SAISON = ["printemps", "automne"];
+const FROIDES = ["automne", "hiver"];
+const TOUTES = [];
+
 const EXEMPLE = [
-  ["T-shirt blanc",              "haut",       ["blanc"],           1, 1],
-  ["T-shirt gris chiné",         "haut",       ["gris"],            1, 1],
-  ["Chemise blanche Oxford",     "haut",       ["blanc"],           2, 3],
-  ["Chemise à carreaux",         "haut",       ["bleu", "blanc"],   2, 2],
-  ["Polo bleu marine",           "haut",       ["marine"],          1, 2],
-  ["Jean brut",                  "bas",        ["denim"],           2, 2],
-  ["Chino beige",                "bas",        ["beige"],           2, 3],
-  ["Pantalon de costume",        "bas",        ["gris"],            2, 4],
-  ["Short kaki",                 "bas",        ["vert"],            1, 1],
-  ["Pull marine col rond",       "pull",       ["marine"],          3, 3],
-  ["Gilet gris",                 "pull",       ["gris"],            3, 3],
-  ["Sweat à capuche noir",       "pull",       ["noir"],            3, 1],
-  ["Veste de costume marine",    "manteau",    ["marine"],          2, 4],
-  ["Parka verte imperméable",    "manteau",    ["vert"],            4, 2, true],
-  ["Doudoune noire",             "manteau",    ["noir"],            5, 2, true],
-  ["Baskets blanches",           "chaussures", ["blanc"],           1, 1],
-  ["Derbies marron",             "chaussures", ["marron"],          2, 4],
-  ["Bottines noires étanches",   "chaussures", ["noir"],            3, 3, true],
-  ["Sandales",                   "chaussures", ["marron"],          1, 1],
-  ["Écharpe grise",              "accessoire", ["gris"],            3, 2],
-  ["Ceinture marron",            "accessoire", ["marron"],          1, 3],
-  ["Casquette bleue",            "accessoire", ["bleu"],            1, 1],
-].map(([nom, categorie, couleurs, chaleur, formalite, dehors = false], i) =>
-  ({ id: "demo-" + i, nom, categorie, couleurs, chaleur, formalite, dehors, photo: "", porteLe: [] }));
+  ["T-shirt blanc",            "haut",       ["blanc"],         1, 1, ["printemps","ete","automne"], "droit"],
+  ["T-shirt gris chiné",       "haut",       ["gris"],          1, 1, ["printemps","ete","automne"], "droit"],
+  ["Chemise blanche Oxford",   "haut",       ["blanc"],         2, 3, TOUTES,        "droit"],
+  ["Chemise à carreaux",       "haut",       ["bleu","blanc"],  2, 2, ["printemps","automne","hiver"], "ample"],
+  ["Polo bleu marine",         "haut",       ["marine"],        1, 2, PRINTEMPS_ETE, "ajuste"],
+  ["Jean brut",                "bas",        ["denim"],         2, 2, TOUTES,        "droit"],
+  ["Chino beige",              "bas",        ["beige"],         2, 3, ["printemps","ete","automne"], "droit"],
+  ["Pantalon de costume",      "bas",        ["gris"],          2, 4, TOUTES,        "droit"],
+  ["Short kaki",               "bas",        ["vert"],          1, 1, ["ete"],       "ample"],
+  ["Pull marine col rond",     "pull",       ["marine"],        3, 3, FROIDES,       "ajuste"],
+  ["Gilet gris",               "pull",       ["gris"],          3, 3, ["printemps","automne","hiver"], "droit"],
+  ["Sweat à capuche noir",     "pull",       ["noir"],          3, 1, ["printemps","automne","hiver"], "ample"],
+  ["Veste de costume marine",  "manteau",    ["marine"],        2, 4, TOUTES,        "ajuste"],
+  ["Parka verte imperméable",  "manteau",    ["vert"],          4, 2, ["printemps","automne","hiver"], "ample", true],
+  ["Doudoune noire",           "manteau",    ["noir"],          5, 2, ["hiver"],     "ample", true],
+  ["Baskets blanches",         "chaussures", ["blanc"],         1, 1, TOUTES,        "droit"],
+  ["Derbies marron",           "chaussures", ["marron"],        2, 4, TOUTES,        "droit"],
+  ["Bottines noires étanches", "chaussures", ["noir"],          3, 3, FROIDES,       "droit", true],
+  ["Sandales",                 "chaussures", ["marron"],        1, 1, ["ete"],       "droit"],
+  ["Écharpe grise",            "accessoire", ["gris"],          3, 2, FROIDES,       "droit"],
+  ["Ceinture marron",          "accessoire", ["marron"],        1, 3, TOUTES,        "droit"],
+  ["Casquette bleue",          "accessoire", ["bleu"],          1, 1, PRINTEMPS_ETE, "droit"],
+].map(([nom, categorie, couleurs, chaleur, formalite, saisons, coupe, dehors = false], i) =>
+  ({ id: "demo-" + i, nom, categorie, couleurs, chaleur, formalite, saisons, coupe, dehors, photo: "", porteLe: [] }));
 
 /* ═══════════ Stockage ═══════════ */
 
@@ -539,11 +584,14 @@ const DB = {
   },
 };
 
+const saisonCourante = () =>
+  (SAISONS.find((s) => s.mois.includes(new Date().getMonth())) || SAISONS[0]).id;
+
 const etat = {
   pieces: [], tenues: [], avis: [],
-  meteo: "soleil", temp: "doux", activite: "travail",
+  meteo: "soleil", temp: "doux", activite: "travail", saison: saisonCourante(),
   filtre: "tout", vue: "jour",
-  propositions: [],
+  propositions: [], ecartees: new Set(),
 };
 
 /* ═══════════ Utilitaires ═══════════ */
@@ -620,6 +668,83 @@ function derniereFois(piece) {
   return Math.min(...piece.porteLe.map(joursDepuis));
 }
 
+const portable = (piece) =>
+  !piece.saisons || !piece.saisons.length || piece.saisons.includes(etat.saison);
+
+/* Objectif : faire tourner toute la garde-robe. Une pièce récente est
+   écartée, une pièce oubliée est remontée. Les deux effets sont séparés :
+   l'écart est ferme, la remontée se mérite (voir noterTenue). */
+function penaliteRecence(piece) {
+  const jours = derniereFois(piece);
+  return jours <= 5 ? -(6 - jours) * 0.55 : 0;
+}
+
+function bonusOubli(piece) {
+  const jours = derniereFois(piece);
+  if (jours <= 5) return 0;
+  if (!(piece.porteLe || []).length) return 1.4;   // jamais sortie du placard
+  if (jours >= 60) return 1.1;
+  if (jours >= 30) return 0.7;
+  if (jours >= 14) return 0.3;
+  return 0;
+}
+
+const noteRotation = (piece) => penaliteRecence(piece) + bonusOubli(piece);
+
+const familleDe = (couleur) =>
+  Object.keys(FAMILLES).find((f) => FAMILLES[f].includes(couleur));
+
+/* ═══════════ Règles de style ═══════════
+   L'application n'a aucun accès au réseau : elle ne lit pas les tendances,
+   elle applique un corpus de règles écrit à la main et daté. À réviser en
+   republiant l'application, jamais en cours d'utilisation. */
+
+const STYLE_REVISION = "août 2026";
+
+function noteStyle(pieces) {
+  const detail = [];
+  let bonus = 0;
+  const de = (c) => pieces.find((p) => p.categorie === c);
+  const haut = de("haut") || de("robe"), bas = de("bas");
+  const coupe = (p) => (p && p.coupe) || "droit";
+
+  /* Contraste de silhouette : un volume, un seul. Deux pièces amples
+     empâtent, deux pièces ajustées raidissent. */
+  if (haut && bas) {
+    const ch = coupe(haut), cb = coupe(bas);
+    if ((ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample")) {
+      bonus += 1.2; detail.push("silhouette contrastée");
+    } else if (ch === "ample" && cb === "ample") bonus -= 1.0;
+    else if (ch === "ajuste" && cb === "ajuste") bonus -= 0.5;
+  }
+
+  /* Camaïeu : toutes les couleurs marquées dans une même famille. */
+  const teintes = pieces.flatMap((p) => p.couleurs || []).filter((c) => familleDe(c) !== "achrome");
+  const familles = new Set(teintes.map(familleDe));
+  if (teintes.length >= 2 && familles.size === 1) { bonus += 1.0; detail.push("camaïeu"); }
+
+  /* Un seul accent sur une base neutre : la valeur sûre. */
+  const vives = new Set(pieces.flatMap((p) => p.couleurs || [])
+    .filter((c) => !COULEURS.find((x) => x.id === c)?.neutre));
+  if (vives.size === 1 && teintes.length <= 2) { bonus += 0.7; detail.push("un seul accent"); }
+
+  /* La chaussure tire la tenue vers le haut plutôt qu'elle ne la tire vers
+     le bas — le réflexe qui distingue une tenue habillée d'une tenue subie. */
+  const ch = de("chaussures");
+  if (ch) {
+    const reste = pieces.filter((p) => p.categorie !== "chaussures" && p.categorie !== "accessoire");
+    const moyenne = reste.reduce((s, p) => s + p.formalite, 0) / (reste.length || 1);
+    if (ch.formalite >= moyenne) bonus += 0.4;
+    else if (ch.formalite <= moyenne - 2) bonus -= 0.8;
+  }
+
+  /* Un accessoire signe une tenue ; trois la surchargent — la composition
+     n'en autorise qu'un, donc on récompense simplement sa présence. */
+  if (pieces.some((p) => p.categorie === "accessoire")) bonus += 0.3;
+
+  return { bonus, detail };
+}
+
 function chaleurTenue(pieces) {
   return pieces.reduce((somme, p) => somme + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
 }
@@ -673,10 +798,10 @@ function noterTenue(pieces, affinites) {
   for (let i = 0; i < pieces.length; i++)
     for (let j = i + 1; j < pieces.length; j++)
       appris += affinites.get(clePaire(pieces[i].id, pieces[j].id)) || 0;
-  /* Le style appris départage des tenues déjà adaptées à l'occasion ; il ne
-     rachète pas une tenue qui ne convient pas. D'où l'atténuation quand la
-     formalité ou la chaleur s'éloignent de la cible. Les rejets, eux, comptent
-     toujours pleinement. */
+  /* Ni le style appris ni le désir de faire tourner la garde-robe ne peuvent
+     racheter une tenue inadaptée à l'occasion : les deux bonus s'éteignent à
+     mesure que la formalité ou la chaleur s'éloignent de la cible. Ils
+     départagent, ils n'imposent pas. Les rejets, eux, comptent pleinement. */
   const credibilite = Math.max(0, 1 - ecartForme / 1.5) * Math.max(0, 1 - ecartChaleur / 4);
   const bonusAppris = appris >= 0
     ? Math.min(4.5, appris * 1.1) * credibilite
@@ -684,10 +809,19 @@ function noterTenue(pieces, affinites) {
   score += bonusAppris;
   if (bonusAppris >= 1.5) detail.push("dans tes habitudes");
 
-  for (const p of pieces) {
-    const jours = derniereFois(p);
-    if (jours <= 5) score -= (6 - jours) * 0.5;
-  }
+  /* Rotation : le moteur doit finir par proposer toute la garde-robe. */
+  score += pieces.reduce((s, p) => s + penaliteRecence(p), 0);
+  /* Écarté d'un « montre-moi autre chose » : la pénalité vit ici, et pas
+     seulement dans la présélection, sinon une petite garde-robe — où la
+     présélection ne filtre rien — reproposerait la même tenue. */
+  score -= 1.6 * pieces.filter((p) => etat.ecartees.has(p.id)).length;
+  const oubli = pieces.reduce((s, p) => s + bonusOubli(p), 0) * credibilite;
+  score += oubli;
+  if (oubli >= 3) detail.push("des pièces que tu oublies");
+
+  const style = noteStyle(pieces);
+  score += style.bonus;
+  detail.push(...style.detail);
 
   return { score, detail };
 }
@@ -695,14 +829,42 @@ function noterTenue(pieces, affinites) {
 /* Énumère les tenues possibles, puis garde les meilleures en imposant
    qu'elles diffèrent d'au moins deux pièces les unes des autres. */
 function proposerTenues(combien = 3) {
-  const par = (c) => etat.pieces.filter((p) => p.categorie === c);
-  const hauts = par("haut"), bas = par("bas"), robes = par("robe");
-  const pulls = par("pull"), manteaux = par("manteau"), chaussures = par("chaussures");
-  const accessoires = par("accessoire");
+  const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
+  const cibleTemp = TEMPS.find((t) => t.id === etat.temp).cible;
+  const saison = SAISONS.find((s) => s.id === etat.saison).nom.toLowerCase();
 
-  if (!chaussures.length) return { erreur: "Ajoute au moins une paire de chaussures." };
+  /* Au-delà de quelques dizaines de pièces, énumérer toutes les combinaisons
+     devient hors de portée : 500 pièces en produisent des milliards. On
+     présélectionne donc les meilleures candidates par catégorie, avec une
+     part de hasard pour que deux demandes identiques ne donnent pas deux
+     fois la même tenue et que la garde-robe tourne. */
+  const promesse = (p) => {
+    let n = -0.9 * Math.abs(p.formalite - cibleForme);
+    n -= 0.5 * Math.abs(p.chaleur - cibleTemp / 4);
+    n += noteRotation(p);
+    if (etat.ecartees.has(p.id)) n -= 2;
+    return n + Math.random() * 1.3;
+  };
+  const par = (c, garder) => {
+    const liste = etat.pieces.filter((p) => p.categorie === c && portable(p));
+    if (liste.length <= garder) return liste;
+    return liste.map((p) => ({ p, n: promesse(p) }))
+                .sort((a, b) => b.n - a.n).slice(0, garder).map((x) => x.p);
+  };
+
+  const hauts = par("haut", 7), bas = par("bas", 6), robes = par("robe", 4);
+  const pulls = par("pull", 3), manteaux = par("manteau", 3);
+  const chaussures = par("chaussures", 5), accessoires = par("accessoire", 4);
+
+  const horsSaison = etat.pieces.length - etat.pieces.filter(portable).length;
+  const rappel = horsSaison
+    ? ` ${horsSaison} pièce${horsSaison > 1 ? "s sont écartées" : " est écartée"} car hors ${saison} — corrige leurs saisons dans la garde-robe si besoin.`
+    : "";
+
+  if (!chaussures.length)
+    return { erreur: `Aucune paire de chaussures disponible pour cette saison.${rappel}` };
   if (!robes.length && (!hauts.length || !bas.length))
-    return { erreur: "Il faut au moins un haut et un bas, ou bien une robe." };
+    return { erreur: `Il faut au moins un haut et un bas de ${saison}, ou bien une robe.${rappel}` };
 
   const bases = [];
   for (const h of hauts) for (const b of bas) bases.push([h, b]);
@@ -797,7 +959,15 @@ function rendreJour() {
         <button class="secondaire avis" data-avis="${i}" data-sens="1" aria-pressed="false" aria-label="J'aime">👍</button>
         <button class="secondaire avis" data-avis="${i}" data-sens="-1" aria-pressed="false" aria-label="Je n'aime pas">👎</button>
       </div>
-    </article>`).join("");
+    </article>`).join("") + `
+    <button class="secondaire" id="btn-autre" style="width:100%;margin-top:2px">
+      Montre-moi autre chose
+    </button>
+    <p style="font-size:11.5px;color:var(--texte-doux);text-align:center;margin:10px 0 0">
+      Règles de style — révision ${STYLE_REVISION}
+    </p>`;
+
+  $("#btn-autre").onclick = () => lancer(true);
 
   hote.querySelectorAll("[data-porte]").forEach((b) => {
     b.onclick = () => enregistrerPort(etat.propositions[+b.dataset.porte]);
@@ -871,11 +1041,29 @@ function rendreJournal() {
   const compteur = {};
   for (const t of etat.tenues) for (const id of t.pieces) compteur[id] = (compteur[id] || 0) + 1;
   const favori = Object.entries(compteur).sort((a, b) => b[1] - a[1])[0];
+  const couverture = etat.pieces.length
+    ? Math.round((etat.pieces.length - jamais.length) / etat.pieces.length * 100) : 0;
   $("#stats").innerHTML = `
     <div class="stat"><span>Pièces répertoriées</span><b>${etat.pieces.length}</b></div>
     <div class="stat"><span>Tenues notées</span><b>${etat.tenues.length}</b></div>
-    <div class="stat"><span>Jamais portées</span><b>${jamais.length}</b></div>
+    <div class="stat"><span>Garde-robe déjà portée</span><b>${couverture} %</b></div>
     ${favori && parId(favori[0]) ? `<div class="stat"><span>La plus portée</span><b>${echapper(parId(favori[0]).nom)}</b></div>` : ""}`;
+
+  /* Les nommer, pas seulement les compter : c'est la liste qui donne envie
+     de les ressortir. Les délaissées de longue date comptent autant que les
+     pièces jamais mises. */
+  const oubliees = etat.pieces
+    .filter((p) => derniereFois(p) >= 30)
+    .sort((a, b) => derniereFois(b) - derniereFois(a));
+  $("#oubliees").innerHTML = oubliees.length
+    ? oubliees.slice(0, 15).map((p) => {
+        const j = derniereFois(p);
+        return `<div class="stat"><span>${echapper(p.nom)}</span>
+          <b style="color:var(--texte-doux);font-size:12.5px">${
+            j === Infinity ? "jamais portée" : `il y a ${j} j`}</b></div>`;
+      }).join("") + (oubliees.length > 15
+        ? `<div class="stat"><span style="color:var(--texte-doux)">et ${oubliees.length - 15} autres</span><b></b></div>` : "")
+    : `<div class="vide">Rien ne dort au fond du placard.</div>`;
 
   rendreExemple();
 }
@@ -888,6 +1076,24 @@ function rendre() {
 }
 
 /* ═══════════ Actions ═══════════ */
+
+/* « Autre chose » écarte les pièces déjà vues, pour balayer la garde-robe
+   plutôt que tourner autour des mêmes valeurs sûres. */
+function lancer(relance) {
+  if (relance) etat.propositions.forEach((t) => t.pieces.forEach((p) => etat.ecartees.add(p.id)));
+  else etat.ecartees.clear();
+
+  const r = proposerTenues();
+  if (r.erreur) {
+    etat.propositions = [];
+    $("#propositions").innerHTML =
+      `<div class="vide"><strong>Rien à proposer</strong>${echapper(r.erreur)}</div>`;
+    return;
+  }
+  etat.propositions = r.tenues;
+  rendreJour();
+  if (relance) $("#propositions").scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 async function enregistrerPort(tenue) {
   const date = aujourdhui();
@@ -924,8 +1130,10 @@ let brouillon = null;
 
 function ouvrirFiche(piece) {
   brouillon = piece
-    ? { ...piece, couleurs: [...(piece.couleurs || [])], porteLe: [...(piece.porteLe || [])] }
-    : { id: null, nom: "", categorie: "haut", couleurs: [], chaleur: 2, formalite: 2, dehors: false, photo: "", porteLe: [] };
+    ? { ...piece, couleurs: [...(piece.couleurs || [])], saisons: [...(piece.saisons || [])],
+        coupe: piece.coupe || "droit", porteLe: [...(piece.porteLe || [])] }
+    : { id: null, nom: "", categorie: "haut", couleurs: [], saisons: [], coupe: "droit",
+        chaleur: 2, formalite: 2, dehors: false, photo: "", porteLe: [] };
 
   $("#fiche-titre").textContent = piece ? "Modifier" : "Nouveau vêtement";
   $("#btn-supprimer").hidden = !piece;
@@ -946,6 +1154,24 @@ function ouvrirFiche(piece) {
       b.setAttribute("aria-pressed", brouillon.couleurs.includes(id));
     };
   });
+
+  $("#choix-saisons").innerHTML = SAISONS.map((s) => `
+    <button type="button" data-id="${s.id}" aria-pressed="${brouillon.saisons.includes(s.id)}">
+      <span class="pict" aria-hidden="true">${s.pict}</span><span>${s.nom}</span>
+    </button>`).join("");
+  $("#choix-saisons").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      const id = b.dataset.id;
+      brouillon.saisons = brouillon.saisons.includes(id)
+        ? brouillon.saisons.filter((x) => x !== id)
+        : [...brouillon.saisons, id];
+      b.setAttribute("aria-pressed", brouillon.saisons.includes(id));
+    };
+  });
+
+  curseur($("#choix-coupe"), COUPES.map((c) => c.nom),
+    COUPES.findIndex((c) => c.id === brouillon.coupe),
+    (i) => { brouillon.coupe = COUPES[i].id; });
 
   curseur($("#choix-chaleur"), CHALEURS, brouillon.chaleur - 1, (i) => { brouillon.chaleur = i + 1; });
   curseur($("#choix-formalite"), REGISTRES, brouillon.formalite - 1, (i) => { brouillon.formalite = i + 1; });
@@ -1097,17 +1323,9 @@ async function demarrer() {
   boutonsChoix($("#choix-meteo"), METEOS, etat.meteo, (v) => { etat.meteo = v; });
   boutonsChoix($("#choix-temp"), TEMPS, etat.temp, (v) => { etat.temp = v; });
   boutonsChoix($("#choix-activite"), ACTIVITES, etat.activite, (v) => { etat.activite = v; });
+  boutonsChoix($("#choix-saison"), SAISONS, etat.saison, (v) => { etat.saison = v; });
 
-  $("#btn-proposer").onclick = () => {
-    const r = proposerTenues();
-    if (r.erreur) {
-      etat.propositions = [];
-      $("#propositions").innerHTML = `<div class="vide"><strong>Pas encore assez de vêtements</strong>${r.erreur}</div>`;
-      return;
-    }
-    etat.propositions = r.tenues;
-    rendreJour();
-  };
+  $("#btn-proposer").onclick = () => lancer(false);
 
   $("#fab").onclick = () => ouvrirFiche(null);
   $("#fiche-fermer").onclick = () => $("#fiche").close();
