@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dressing</title>
+<meta name="description" content="Ma garde-robe, et la tenue du jour selon la météo et l'activité.">
+<meta name="theme-color" content="#F2EEE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181F" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dressing">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="icon" href="icone-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+<style>
+  :root {
+    --lin:        #F2EEE6;
+    --lin-creux:  #E7E1D5;
+    --encre:      #1F2534;
+    --encre-doux: #5A6274;
+    --trait:      #D4CCBD;
+    --indigo:     #3E5288;
+    --indigo-pale:#E2E6F2;
+    --laiton:     #9A6F28;
+    --alerte:     #97402F;
+    --fond:       var(--lin);
+    --carte:      #FBF9F5;
+    --texte:      var(--encre);
+    --texte-doux: var(--encre-doux);
+    --accent:     var(--indigo);
+    --accent-fond:var(--indigo-pale);
+    --ombre:      0 1px 2px rgba(31,37,52,.07), 0 6px 16px rgba(31,37,52,.05);
+    --serif: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
+    --sans:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fond:       #14181F;
+      --carte:      #1D222C;
+      --lin-creux:  #262C38;
+      --trait:      #333A48;
+      --texte:      #E8E4DA;
+      --texte-doux: #979FB0;
+      --accent:     #9DB0E0;
+      --accent-fond:#28304A;
+      --laiton:     #C9A25C;
+      --alerte:     #D98872;
+      --ombre:      0 1px 2px rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"] {
+    --fond:#14181F; --carte:#1D222C; --lin-creux:#262C38; --trait:#333A48;
+    --texte:#E8E4DA; --texte-doux:#979FB0; --accent:#9DB0E0; --accent-fond:#28304A;
+    --laiton:#C9A25C; --alerte:#D98872;
+    --ombre:0 1px 2px rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"] {
+    --fond:#F2EEE6; --carte:#FBF9F5; --lin-creux:#E7E1D5; --trait:#D4CCBD;
+    --texte:#1F2534; --texte-doux:#5A6274; --accent:#3E5288; --accent-fond:#E2E6F2;
+    --laiton:#9A6F28; --alerte:#97402F;
+    --ombre:0 1px 2px rgba(31,37,52,.07), 0 6px 16px rgba(31,37,52,.05);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fond); color: var(--texte);
+    font-family: var(--sans); font-size: 16px; line-height: 1.45;
+    -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .app { max-width: 620px; margin: 0 auto; padding: 0 16px 108px; }
+
+  header.chef {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; padding: max(14px, env(safe-area-inset-top)) 0 10px;
+  }
+  .chef h1 {
+    font-family: var(--serif); font-weight: 500; font-size: 27px;
+    margin: 0; letter-spacing: -.01em;
+  }
+  .chef .compte {
+    font-family: var(--mono); font-size: 12px; color: var(--texte-doux);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .vue { display: none; }
+  .vue.active { display: block; }
+
+  .bloc { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
+  .legende {
+    font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--texte-doux); font-weight: 600;
+  }
+
+  .choix { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choix button {
+    flex: 1 1 0; min-width: 72px; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; padding: 11px 6px;
+    background: var(--carte); border: 1px solid var(--trait); border-radius: 12px;
+    font-size: 13px; color: var(--texte-doux); transition: background .15s, border-color .15s, color .15s;
+  }
+  .choix button .pict { font-size: 21px; line-height: 1; }
+  .choix button[aria-pressed="true"] {
+    background: var(--accent-fond); border-color: var(--accent);
+    color: var(--texte); font-weight: 600;
+  }
+
+  .primaire {
+    width: 100%; padding: 15px; border: none; border-radius: 13px;
+    background: var(--accent); color: var(--fond);
+    font-family: var(--serif); font-size: 18px; letter-spacing: .01em;
+    box-shadow: var(--ombre);
+  }
+  .primaire:disabled { opacity: .45; }
+  :root[data-theme="dark"] .primaire, :root:not([data-theme="light"]) .primaire { color: #14181F; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .primaire { color: #FBF9F5; } }
+  :root[data-theme="light"] .primaire { color: #FBF9F5; }
+
+  .secondaire {
+    padding: 10px 14px; border-radius: 10px; background: var(--carte);
+    border: 1px solid var(--trait); font-size: 14px;
+  }
+
+  /* --- Propositions --- */
+  .tenue {
+    background: var(--carte); border: 1px solid var(--trait); border-radius: 16px;
+    padding: 14px; margin-bottom: 14px; box-shadow: var(--ombre);
+  }
+  .tenue > .entete {
+    display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 11px;
+  }
+  .tenue .rang { font-family: var(--serif); font-size: 17px; }
+  .tenue .note {
+    font-family: var(--mono); font-size: 11px; color: var(--texte-doux);
+    font-variant-numeric: tabular-nums;
+  }
+  .portant { display: flex; gap: 9px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+  .piece { flex: 0 0 84px; }
+  .piece .vignette {
+    width: 84px; height: 100px; border-radius: 9px; background: var(--lin-creux);
+    object-fit: cover; display: block; border: 1px solid var(--trait);
+  }
+  .sans-photo {
+    background: var(--lin-creux); display: flex; align-items: center;
+    justify-content: center; font-size: 25px;
+  }
+  .piece .sans-photo {
+    width: 84px; height: 100px; border-radius: 9px; border: 1px solid var(--trait);
+  }
+  .piece .etiq {
+    font-size: 11.5px; line-height: 1.25; margin-top: 5px; color: var(--texte-doux);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .actions button { flex: 0 0 auto; }
+  .actions .porte { flex: 1 1 auto; background: var(--accent-fond); border-color: var(--accent); font-weight: 600; }
+  .actions .avis[aria-pressed="true"] { background: var(--accent-fond); border-color: var(--accent); }
+
+  .vide {
+    text-align: center; color: var(--texte-doux); padding: 34px 18px;
+    border: 1px dashed var(--trait); border-radius: 14px; font-size: 14.5px;
+  }
+  .vide strong { display: block; font-family: var(--serif); font-size: 18px; color: var(--texte); margin-bottom: 6px; font-weight: 500; }
+
+  /* --- Garde-robe --- */
+  .filtres { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0 10px; }
+  .filtres button {
+    flex: 0 0 auto; padding: 7px 13px; border-radius: 999px; font-size: 13.5px;
+    background: var(--carte); border: 1px solid var(--trait); color: var(--texte-doux);
+  }
+  .filtres button[aria-pressed="true"] { background: var(--accent-fond); border-color: var(--accent); color: var(--texte); font-weight: 600; }
+
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 11px; }
+  .carte-piece {
+    background: var(--carte); border: 1px solid var(--trait); border-radius: 13px;
+    overflow: hidden; text-align: left; padding: 0; box-shadow: var(--ombre);
+  }
+  .carte-piece img, .carte-piece .sans-photo {
+    width: 100%; aspect-ratio: 3/4; object-fit: cover;
+    border: none; border-radius: 0; height: auto;
+  }
+  .carte-piece img { display: block; background: var(--lin-creux); }
+  .carte-piece .sans-photo { font-size: 38px; }
+  .carte-piece .infos { padding: 8px 9px 10px; }
+  .carte-piece .nom { font-size: 13.5px; font-weight: 600; line-height: 1.25; }
+  .carte-piece .meta {
+    font-family: var(--mono); font-size: 10.5px; color: var(--texte-doux);
+    margin-top: 3px; font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Journal --- */
+  .jour {
+    display: flex; gap: 11px; align-items: center; padding: 11px 0;
+    border-bottom: 1px solid var(--trait);
+  }
+  .jour .date {
+    font-family: var(--mono); font-size: 11.5px; color: var(--texte-doux);
+    flex: 0 0 62px; font-variant-numeric: tabular-nums; text-transform: uppercase;
+  }
+  .jour .minis { display: flex; gap: 4px; flex: 1 1 auto; overflow: hidden; }
+  .jour .minis img, .jour .minis span {
+    width: 34px; height: 42px; border-radius: 5px; object-fit: cover;
+    background: var(--lin-creux); flex: 0 0 auto; display: flex;
+    align-items: center; justify-content: center; font-size: 15px;
+  }
+
+  .stat { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--trait); font-size: 14.5px; }
+  .stat b { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  /* --- Barre d'onglets --- */
+  nav.onglets {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: flex; justify-content: center; gap: 4px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--fond) 88%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--trait);
+  }
+  nav.onglets button {
+    flex: 1 1 0; max-width: 190px; background: none; border: none;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 5px 0 3px; color: var(--texte-doux); font-size: 11px; letter-spacing: .02em;
+  }
+  nav.onglets button .pict { font-size: 20px; line-height: 1.1; }
+  nav.onglets button[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
+
+  .fab {
+    position: fixed; right: max(16px, calc(50% - 294px));
+    bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 41;
+    width: 54px; height: 54px; border-radius: 50%; border: none;
+    background: var(--accent); color: var(--fond); font-size: 27px; line-height: 1;
+    box-shadow: 0 4px 14px rgba(31,37,52,.28);
+  }
+
+  /* --- Fiche vêtement --- */
+  dialog.fiche {
+    border: none; padding: 0; background: var(--fond); color: var(--texte);
+    width: 100%; max-width: 620px; max-height: 100%; height: 100%; margin: 0 auto;
+  }
+  dialog.fiche::backdrop { background: rgba(0,0,0,.5); }
+  .fiche-corps { padding: max(14px, env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 17px; }
+  .fiche-entete { display: flex; align-items: center; justify-content: space-between; }
+  .fiche-entete h2 { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0; }
+  .champ { display: flex; flex-direction: column; gap: 7px; }
+  .champ input[type="text"] {
+    padding: 12px; border-radius: 11px; border: 1px solid var(--trait);
+    background: var(--carte); width: 100%;
+  }
+  .apercu {
+    width: 100%; aspect-ratio: 4/3; object-fit: contain; border-radius: 13px;
+    background: var(--lin-creux); border: 1px solid var(--trait);
+  }
+  .pastilles { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pastille {
+    width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--trait);
+    padding: 0; position: relative;
+  }
+  .pastille[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-fond); }
+  .pastille[aria-pressed="true"]::after {
+    content: "✓"; position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 16px; color: #fff; text-shadow: 0 0 3px rgba(0,0,0,.65);
+  }
+  .curseur { display: flex; gap: 6px; }
+  .curseur button {
+    flex: 1; padding: 9px 2px; border-radius: 9px; background: var(--carte);
+    border: 1px solid var(--trait); font-size: 12.5px; color: var(--texte-doux);
+  }
+  .curseur button[aria-pressed="true"] { background: var(--accent-fond); border-color: var(--accent); color: var(--texte); font-weight: 600; }
+  .bas-fiche { display: flex; gap: 9px; margin-top: 4px; }
+  .bas-fiche .primaire { flex: 1; }
+  .danger { color: var(--alerte); border-color: color-mix(in srgb, var(--alerte) 45%, var(--trait)); }
+
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 60;
+    background: var(--encre); color: var(--lin); padding: 11px 17px;
+    border-radius: 999px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.3);
+    opacity: 0; pointer-events: none; transition: opacity .22s, transform .22s;
+  }
+  :root[data-theme="dark"] .toast, :root:not([data-theme="light"]) .toast { background: #E8E4DA; color: #14181F; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .toast { background: #1F2534; color: #F2EEE6; } }
+  :root[data-theme="light"] .toast { background: #1F2534; color: #F2EEE6; }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <header class="chef">
+    <h1 id="titre">Aujourd'hui</h1>
+    <span class="compte" id="compte"></span>
+  </header>
+
+  <!-- ============ AUJOURD'HUI ============ -->
+  <section class="vue active" id="vue-jour">
+    <div class="bloc">
+      <span class="legende">Le temps qu'il fait</span>
+      <div class="choix" id="choix-meteo"></div>
+    </div>
+    <div class="bloc">
+      <span class="legende">La température</span>
+      <div class="choix" id="choix-temp"></div>
+    </div>
+    <div class="bloc">
+      <span class="legende">La journée</span>
+      <div class="choix" id="choix-activite"></div>
+    </div>
+    <button class="primaire" id="btn-proposer">Proposer des tenues</button>
+    <div id="propositions" style="margin-top:22px"></div>
+  </section>
+
+  <!-- ============ GARDE-ROBE ============ -->
+  <section class="vue" id="vue-dressing">
+    <div class="filtres" id="filtres"></div>
+    <div class="grille" id="grille"></div>
+  </section>
+
+  <!-- ============ JOURNAL ============ -->
+  <section class="vue" id="vue-journal">
+    <div class="bloc">
+      <span class="legende">Ce que j'ai porté</span>
+      <div id="historique"></div>
+    </div>
+    <div class="bloc">
+      <span class="legende">Ma garde-robe en chiffres</span>
+      <div id="stats"></div>
+    </div>
+    <div class="bloc">
+      <span class="legende">Pour essayer</span>
+      <p id="texte-exemple" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
+      <button class="secondaire" id="btn-exemple"></button>
+    </div>
+
+    <div class="bloc">
+      <span class="legende">Sauvegarde</span>
+      <p style="margin:0;font-size:14px;color:var(--texte-doux)">
+        Tout est stocké dans ce téléphone. Exporte un fichier de temps en temps :
+        c'est la seule copie de ta garde-robe.
+      </p>
+      <div style="display:flex;gap:9px">
+        <button class="secondaire" id="btn-export" style="flex:1">Exporter</button>
+        <button class="secondaire" id="btn-import" style="flex:1">Importer</button>
+      </div>
+      <input type="file" id="fichier-import" accept="application/json" hidden>
+    </div>
+  </section>
+</div>
+
+<button class="fab" id="fab" hidden aria-label="Ajouter un vêtement">+</button>
+
+<nav class="onglets" id="onglets"></nav>
+
+<dialog class="fiche" id="fiche">
+  <form method="dialog" class="fiche-corps" id="form-fiche">
+    <div class="fiche-entete">
+      <h2 id="fiche-titre">Nouveau vêtement</h2>
+      <button type="button" class="secondaire" id="fiche-fermer">Fermer</button>
+    </div>
+
+    <div class="champ">
+      <img class="apercu" id="apercu" alt="">
+      <input type="file" id="prise-photo" accept="image/*" hidden>
+      <button type="button" class="secondaire" id="btn-photo">Prendre ou choisir une photo</button>
+    </div>
+
+    <div class="champ">
+      <label class="legende" for="nom">Nom</label>
+      <input type="text" id="nom" placeholder="Chemise blanche Oxford" autocomplete="off">
+    </div>
+
+    <div class="champ">
+      <span class="legende">Catégorie</span>
+      <div class="choix" id="choix-categorie"></div>
+    </div>
+
+    <div class="champ">
+      <span class="legende">Couleurs — une ou deux</span>
+      <div class="pastilles" id="choix-couleurs"></div>
+    </div>
+
+    <div class="champ">
+      <span class="legende">Chaleur</span>
+      <div class="curseur" id="choix-chaleur"></div>
+    </div>
+
+    <div class="champ">
+      <span class="legende">Registre</span>
+      <div class="curseur" id="choix-formalite"></div>
+    </div>
+
+    <div class="champ">
+      <span class="legende">Intempéries</span>
+      <div class="curseur" id="choix-dehors"></div>
+    </div>
+
+    <div class="bas-fiche">
+      <button type="button" class="primaire" id="btn-enregistrer">Enregistrer</button>
+      <button type="button" class="secondaire danger" id="btn-supprimer" hidden>Supprimer</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* ═══════════ Référentiels ═══════════ */
+
+const METEOS = [
+  { id: "soleil", nom: "Soleil", pict: "☀️" },
+  { id: "nuages", nom: "Nuages", pict: "☁️" },
+  { id: "pluie",  nom: "Pluie",  pict: "🌧️" },
+  { id: "neige",  nom: "Neige",  pict: "❄️" },
+];
+
+const TEMPS = [
+  { id: "chaud", nom: "Chaud",  pict: "🔥", cible: 4,  detail: "22°+" },
+  { id: "doux",  nom: "Doux",   pict: "🌤️", cible: 7,  detail: "12–22°" },
+  { id: "frais", nom: "Frais",  pict: "🍂", cible: 11, detail: "3–12°" },
+  { id: "froid", nom: "Froid",  pict: "🥶", cible: 14, detail: "< 3°" },
+];
+
+const ACTIVITES = [
+  { id: "travail",  nom: "Travail",  pict: "💼", cible: 3 },
+  { id: "loisir",   nom: "Loisir",   pict: "🚲", cible: 2 },
+  { id: "vacances", nom: "Vacances", pict: "🌴", cible: 1.5 },
+];
+
+const CATEGORIES = [
+  { id: "haut",        nom: "Haut",        pict: "👕" },
+  { id: "bas",         nom: "Bas",         pict: "👖" },
+  { id: "robe",        nom: "Robe",        pict: "👗" },
+  { id: "pull",        nom: "Pull",        pict: "🧶" },
+  { id: "manteau",     nom: "Manteau",     pict: "🧥" },
+  { id: "chaussures",  nom: "Chaussures",  pict: "👞" },
+  { id: "accessoire",  nom: "Accessoire",  pict: "🧣" },
+];
+
+const COULEURS = [
+  { id: "noir",   nom: "Noir",   hex: "#1A1A1C", neutre: true },
+  { id: "blanc",  nom: "Blanc",  hex: "#F7F5F0", neutre: true },
+  { id: "gris",   nom: "Gris",   hex: "#8C8F96", neutre: true },
+  { id: "beige",  nom: "Beige",  hex: "#CDBBA0", neutre: true },
+  { id: "marine", nom: "Marine", hex: "#22304F", neutre: true },
+  { id: "denim",  nom: "Denim",  hex: "#5A7295", neutre: true },
+  { id: "marron", nom: "Marron", hex: "#6B4A31", neutre: true },
+  { id: "rouge",  nom: "Rouge",  hex: "#A32E28" },
+  { id: "orange", nom: "Orange", hex: "#C4692A" },
+  { id: "jaune",  nom: "Jaune",  hex: "#D6AE3A" },
+  { id: "vert",   nom: "Vert",   hex: "#48704C" },
+  { id: "bleu",   nom: "Bleu",   hex: "#2E6E9E" },
+  { id: "violet", nom: "Violet", hex: "#6A4A82" },
+  { id: "rose",   nom: "Rose",   hex: "#C07B8E" },
+];
+
+const CHALEURS = ["Léger", "Fin", "Moyen", "Chaud", "Très chaud"];
+const REGISTRES = ["Sport", "Décontracté", "Soigné", "Habillé"];
+
+/* Garde-robe d'exemple : de quoi essayer le moteur avant d'avoir photographié
+   la moindre pièce. Volontairement passe-partout — à modifier ou à retirer. */
+const EXEMPLE = [
+  ["T-shirt blanc",              "haut",       ["blanc"],           1, 1],
+  ["T-shirt gris chiné",         "haut",       ["gris"],            1, 1],
+  ["Chemise blanche Oxford",     "haut",       ["blanc"],           2, 3],
+  ["Chemise à carreaux",         "haut",       ["bleu", "blanc"],   2, 2],
+  ["Polo bleu marine",           "haut",       ["marine"],          1, 2],
+  ["Jean brut",                  "bas",        ["denim"],           2, 2],
+  ["Chino beige",                "bas",        ["beige"],           2, 3],
+  ["Pantalon de costume",        "bas",        ["gris"],            2, 4],
+  ["Short kaki",                 "bas",        ["vert"],            1, 1],
+  ["Pull marine col rond",       "pull",       ["marine"],          3, 3],
+  ["Gilet gris",                 "pull",       ["gris"],            3, 3],
+  ["Sweat à capuche noir",       "pull",       ["noir"],            3, 1],
+  ["Veste de costume marine",    "manteau",    ["marine"],          2, 4],
+  ["Parka verte imperméable",    "manteau",    ["vert"],            4, 2, true],
+  ["Doudoune noire",             "manteau",    ["noir"],            5, 2, true],
+  ["Baskets blanches",           "chaussures", ["blanc"],           1, 1],
+  ["Derbies marron",             "chaussures", ["marron"],          2, 4],
+  ["Bottines noires étanches",   "chaussures", ["noir"],            3, 3, true],
+  ["Sandales",                   "chaussures", ["marron"],          1, 1],
+  ["Écharpe grise",              "accessoire", ["gris"],            3, 2],
+  ["Ceinture marron",            "accessoire", ["marron"],          1, 3],
+  ["Casquette bleue",            "accessoire", ["bleu"],            1, 1],
+].map(([nom, categorie, couleurs, chaleur, formalite, dehors = false], i) =>
+  ({ id: "demo-" + i, nom, categorie, couleurs, chaleur, formalite, dehors, photo: "", porteLe: [] }));
+
+/* ═══════════ Stockage ═══════════ */
+
+const DB = {
+  base: null,
+  ouvrir() {
+    return new Promise((ok, ko) => {
+      const r = indexedDB.open("dressing", 1);
+      r.onupgradeneeded = () => {
+        const d = r.result;
+        if (!d.objectStoreNames.contains("pieces")) d.createObjectStore("pieces", { keyPath: "id" });
+        if (!d.objectStoreNames.contains("tenues")) d.createObjectStore("tenues", { keyPath: "id" });
+        if (!d.objectStoreNames.contains("avis"))   d.createObjectStore("avis",   { keyPath: "paire" });
+      };
+      r.onsuccess = () => { DB.base = r.result; ok(); };
+      r.onerror = () => ko(r.error);
+    });
+  },
+  tout(magasin) {
+    return new Promise((ok, ko) => {
+      const r = DB.base.transaction(magasin).objectStore(magasin).getAll();
+      r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
+    });
+  },
+  poser(magasin, valeur) {
+    return new Promise((ok, ko) => {
+      const t = DB.base.transaction(magasin, "readwrite");
+      t.objectStore(magasin).put(valeur);
+      t.oncomplete = () => ok(); t.onerror = () => ko(t.error);
+    });
+  },
+  retirer(magasin, cle) {
+    return new Promise((ok, ko) => {
+      const t = DB.base.transaction(magasin, "readwrite");
+      t.objectStore(magasin).delete(cle);
+      t.oncomplete = () => ok(); t.onerror = () => ko(t.error);
+    });
+  },
+  vider(magasin) {
+    return new Promise((ok, ko) => {
+      const t = DB.base.transaction(magasin, "readwrite");
+      t.objectStore(magasin).clear();
+      t.oncomplete = () => ok(); t.onerror = () => ko(t.error);
+    });
+  },
+};
+
+const etat = {
+  pieces: [], tenues: [], avis: [],
+  meteo: "soleil", temp: "doux", activite: "travail",
+  filtre: "tout", vue: "jour",
+  propositions: [],
+};
+
+/* ═══════════ Utilitaires ═══════════ */
+
+const $ = (s) => document.querySelector(s);
+const idNeuf = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const echapper = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const clePaire = (a, b) => [a, b].sort().join("|");
+const aujourdhui = () => new Date().toISOString().slice(0, 10);
+const parId = (id) => etat.pieces.find((p) => p.id === id);
+const pictoCat = (c) => (CATEGORIES.find((x) => x.id === c) || {}).pict || "👕";
+
+let minuteurToast;
+function toast(message) {
+  const t = $("#toast");
+  t.textContent = message;
+  t.classList.add("on");
+  clearTimeout(minuteurToast);
+  minuteurToast = setTimeout(() => t.classList.remove("on"), 2200);
+}
+
+function joursDepuis(dateIso) {
+  const ms = Date.now() - new Date(dateIso + "T12:00:00").getTime();
+  return Math.floor(ms / 86400000);
+}
+
+/* Redimensionne la photo pour ne pas saturer le stockage du téléphone. */
+function photoCompacte(fichier) {
+  return new Promise((ok, ko) => {
+    const lecteur = new FileReader();
+    lecteur.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 640;
+        const ratio = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * ratio);
+        c.height = Math.round(img.height * ratio);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        ok(c.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = () => ko(new Error("image illisible"));
+      img.src = lecteur.result;
+    };
+    lecteur.onerror = () => ko(lecteur.error);
+    lecteur.readAsDataURL(fichier);
+  });
+}
+
+/* ═══════════ Moteur de suggestion ═══════════ */
+
+/* Affinité apprise : combien de fois deux pièces ont été portées ensemble,
+   corrigée par les avis donnés sur les propositions.
+   Une habitude prise au bureau ne vaut pas pleinement en vacances : ce qui a
+   été porté pour une autre activité ne compte que pour une fraction. */
+function tableAffinites() {
+  const table = new Map();
+  const ajouter = (a, b, poids) => {
+    const c = clePaire(a, b);
+    table.set(c, (table.get(c) || 0) + poids);
+  };
+  for (const tenue of etat.tenues) {
+    const poids = tenue.activite === etat.activite ? 1 : 0.35;
+    for (let i = 0; i < tenue.pieces.length; i++)
+      for (let j = i + 1; j < tenue.pieces.length; j++)
+        ajouter(tenue.pieces[i], tenue.pieces[j], poids);
+  }
+  for (const a of etat.avis) table.set(a.paire, (table.get(a.paire) || 0) + a.score);
+  return table;
+}
+
+function derniereFois(piece) {
+  if (!piece.porteLe || !piece.porteLe.length) return Infinity;
+  return Math.min(...piece.porteLe.map(joursDepuis));
+}
+
+function chaleurTenue(pieces) {
+  return pieces.reduce((somme, p) => somme + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
+}
+
+function noterTenue(pieces, affinites) {
+  const cibleChaleur = TEMPS.find((t) => t.id === etat.temp).cible;
+  const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
+  const detail = [];
+  let score = 0;
+
+  const ecartChaleur = Math.abs(chaleurTenue(pieces) - cibleChaleur);
+  score -= 1.5 * ecartChaleur;
+  if (ecartChaleur <= 1) detail.push("bien couvert");
+
+  const formalites = pieces.map((p) => p.formalite);
+  const moyenne = formalites.reduce((a, b) => a + b, 0) / formalites.length;
+  const ecartForme = Math.abs(moyenne - cibleForme);
+  score -= 1.4 * ecartForme;
+  const dispersion = Math.max(...formalites) - Math.min(...formalites);
+  if (dispersion > 2) score -= 2.5 * (dispersion - 2);
+  if (Math.abs(moyenne - cibleForme) <= 0.5 && dispersion <= 2) detail.push("le bon registre");
+
+  /* La somme des chaleurs peut tomber juste sur un assemblage absurde : un
+     short sous une doudoune, des sandales sous une parka. Une pièce d'été aux
+     pieds ou aux jambes est incompatible avec une vraie couche d'hiver. */
+  const couvrantes = pieces.filter((p) => ["pull", "manteau", "accessoire"].includes(p.categorie));
+  const couchePlusChaude = couvrantes.length ? Math.max(...couvrantes.map((p) => p.chaleur)) : 0;
+  if (couchePlusChaude >= 3)
+    for (const p of pieces)
+      if ((p.categorie === "bas" || p.categorie === "chaussures") && p.chaleur === 1)
+        score -= 1.75 * (couchePlusChaude - 2);
+
+  if (etat.meteo === "pluie" || etat.meteo === "neige") {
+    const chaussures = pieces.find((p) => p.categorie === "chaussures");
+    const manteau = pieces.find((p) => p.categorie === "manteau");
+    if (chaussures) score += chaussures.dehors ? 3 : -2;
+    if (manteau && manteau.dehors) score += 2;
+    if (chaussures && chaussures.dehors)
+      detail.push(etat.meteo === "neige" ? "paré pour la neige" : "prêt pour la pluie");
+  }
+
+  const vives = new Set();
+  for (const p of pieces)
+    for (const c of p.couleurs || [])
+      if (!COULEURS.find((x) => x.id === c)?.neutre) vives.add(c);
+  if (vives.size === 2) score -= 1.5;
+  else if (vives.size >= 3) score -= 3;
+  else if (vives.size <= 1) detail.push("couleurs qui s'accordent");
+
+  let appris = 0;
+  for (let i = 0; i < pieces.length; i++)
+    for (let j = i + 1; j < pieces.length; j++)
+      appris += affinites.get(clePaire(pieces[i].id, pieces[j].id)) || 0;
+  /* Le style appris départage des tenues déjà adaptées à l'occasion ; il ne
+     rachète pas une tenue qui ne convient pas. D'où l'atténuation quand la
+     formalité ou la chaleur s'éloignent de la cible. Les rejets, eux, comptent
+     toujours pleinement. */
+  const credibilite = Math.max(0, 1 - ecartForme / 1.5) * Math.max(0, 1 - ecartChaleur / 4);
+  const bonusAppris = appris >= 0
+    ? Math.min(4.5, appris * 1.1) * credibilite
+    : Math.max(-5, appris * 1.1);
+  score += bonusAppris;
+  if (bonusAppris >= 1.5) detail.push("dans tes habitudes");
+
+  for (const p of pieces) {
+    const jours = derniereFois(p);
+    if (jours <= 5) score -= (6 - jours) * 0.5;
+  }
+
+  return { score, detail };
+}
+
+/* Énumère les tenues possibles, puis garde les meilleures en imposant
+   qu'elles diffèrent d'au moins deux pièces les unes des autres. */
+function proposerTenues(combien = 3) {
+  const par = (c) => etat.pieces.filter((p) => p.categorie === c);
+  const hauts = par("haut"), bas = par("bas"), robes = par("robe");
+  const pulls = par("pull"), manteaux = par("manteau"), chaussures = par("chaussures");
+  const accessoires = par("accessoire");
+
+  if (!chaussures.length) return { erreur: "Ajoute au moins une paire de chaussures." };
+  if (!robes.length && (!hauts.length || !bas.length))
+    return { erreur: "Il faut au moins un haut et un bas, ou bien une robe." };
+
+  const bases = [];
+  for (const h of hauts) for (const b of bas) bases.push([h, b]);
+  for (const r of robes) bases.push([r]);
+
+  const cible = TEMPS.find((t) => t.id === etat.temp).cible;
+  const couches = [[]];
+  for (const p of pulls) couches.push([p]);
+  for (const m of manteaux) {
+    couches.push([m]);
+    for (const p of pulls) couches.push([p, m]);
+  }
+
+  /* Un accessoire au plus, et jamais imposé : c'est la note de chaleur qui
+     décidera de l'écharpe en janvier et de la casquette en juillet. */
+  const extras = [[], ...accessoires.map((a) => [a])];
+
+  const affinites = tableAffinites();
+  const candidates = [];
+  for (const base of bases) {
+    for (const ch of chaussures) {
+      for (const couche of couches) {
+        /* Élagage avant les accessoires : inutile de développer une base
+           manifestement hors saison. */
+        const socle = [...base, ...couche, ch];
+        if (Math.abs(chaleurTenue(socle) - cible) > 6) continue;
+        for (const extra of extras) {
+          const pieces = [...socle, ...extra];
+          const { score, detail } = noterTenue(pieces, affinites);
+          candidates.push({ pieces, score, detail });
+        }
+      }
+    }
+  }
+  if (!candidates.length) return { erreur: "Rien ne correspond à cette température. Ajoute des pièces plus chaudes ou plus légères." };
+
+  candidates.sort((a, b) => b.score - a.score);
+  const retenues = [];
+  for (const c of candidates) {
+    const ids = new Set(c.pieces.map((p) => p.id));
+    const assezDifferente = retenues.every((r) => {
+      const communs = r.pieces.filter((p) => ids.has(p.id)).length;
+      return Math.max(r.pieces.length, c.pieces.length) - communs >= 2;
+    });
+    if (assezDifferente) retenues.push(c);
+    if (retenues.length === combien) break;
+  }
+  return { tenues: retenues };
+}
+
+/* ═══════════ Rendu ═══════════ */
+
+function boutonsChoix(hote, options, valeurActuelle, auClic) {
+  hote.innerHTML = options.map((o) => `
+    <button type="button" data-id="${o.id}" aria-pressed="${o.id === valeurActuelle}">
+      <span class="pict" aria-hidden="true">${o.pict}</span>
+      <span>${o.nom}</span>
+      ${o.detail ? `<span style="font-size:10.5px;opacity:.7">${o.detail}</span>` : ""}
+    </button>`).join("");
+  hote.querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      hote.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      auClic(b.dataset.id);
+    };
+  });
+}
+
+function vignette(piece, classe = "vignette") {
+  return piece.photo
+    ? `<img class="${classe}" src="${piece.photo}" alt="${echapper(piece.nom)}">`
+    : `<div class="sans-photo" aria-hidden="true">${pictoCat(piece.categorie)}</div>`;
+}
+
+function rendreJour() {
+  const hote = $("#propositions");
+  if (!etat.propositions.length) { hote.innerHTML = ""; return; }
+  hote.innerHTML = etat.propositions.map((t, i) => `
+    <article class="tenue">
+      <div class="entete">
+        <span class="rang">Tenue ${i + 1}</span>
+        <span class="note">${t.detail.slice(0, 2).join(" · ") || "au plus proche"}</span>
+      </div>
+      <div class="portant">
+        ${t.pieces.map((p) => `
+          <div class="piece">
+            ${vignette(p)}
+            <div class="etiq">${echapper(p.nom)}</div>
+          </div>`).join("")}
+      </div>
+      <div class="actions">
+        <button class="secondaire porte" data-porte="${i}">Je porte ça</button>
+        <button class="secondaire avis" data-avis="${i}" data-sens="1" aria-pressed="false" aria-label="J'aime">👍</button>
+        <button class="secondaire avis" data-avis="${i}" data-sens="-1" aria-pressed="false" aria-label="Je n'aime pas">👎</button>
+      </div>
+    </article>`).join("");
+
+  hote.querySelectorAll("[data-porte]").forEach((b) => {
+    b.onclick = () => enregistrerPort(etat.propositions[+b.dataset.porte]);
+  });
+  hote.querySelectorAll("[data-avis]").forEach((b) => {
+    b.onclick = () => {
+      donnerAvis(etat.propositions[+b.dataset.avis], +b.dataset.sens);
+      b.closest(".actions").querySelectorAll(".avis").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    };
+  });
+}
+
+function rendreDressing() {
+  const filtres = [{ id: "tout", nom: "Tout" }, ...CATEGORIES];
+  $("#filtres").innerHTML = filtres.map((c) => {
+    const n = c.id === "tout" ? etat.pieces.length : etat.pieces.filter((p) => p.categorie === c.id).length;
+    return `<button data-id="${c.id}" aria-pressed="${etat.filtre === c.id}">${c.nom} ${n ? `<span style="opacity:.6">${n}</span>` : ""}</button>`;
+  }).join("");
+  $("#filtres").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => { etat.filtre = b.dataset.id; rendreDressing(); };
+  });
+
+  const liste = etat.filtre === "tout" ? etat.pieces : etat.pieces.filter((p) => p.categorie === etat.filtre);
+  const grille = $("#grille");
+  if (!liste.length) {
+    grille.innerHTML = etat.pieces.length
+      ? `<div class="vide" style="grid-column:1/-1">
+          <strong>Rien dans cette catégorie</strong>
+          Appuie sur le bouton + pour y ajouter une pièce.</div>`
+      : `<div class="vide" style="grid-column:1/-1">
+          <strong>Ta garde-robe est vide</strong>
+          Appuie sur le bouton + pour photographier une première pièce, ou pars
+          d'un exemple pour voir tout de suite ce que l'app sait faire.
+          <button class="secondaire" id="btn-exemple-vide" style="margin-top:14px">Charger une garde-robe d'exemple</button>
+        </div>`;
+    const amorce = grille.querySelector("#btn-exemple-vide");
+    if (amorce) amorce.onclick = chargerExemple;
+    return;
+  }
+  const ordre = [...liste].sort((a, b) => a.categorie.localeCompare(b.categorie) || a.nom.localeCompare(b.nom));
+  grille.innerHTML = ordre.map((p) => `
+    <button class="carte-piece" data-id="${p.id}">
+      ${vignette(p, "")}
+      <div class="infos">
+        <div class="nom">${echapper(p.nom)}</div>
+        <div class="meta">${CHALEURS[p.chaleur - 1]} · ${REGISTRES[p.formalite - 1]}</div>
+      </div>
+    </button>`).join("");
+  grille.querySelectorAll("[data-id]").forEach((b) => {
+    b.onclick = () => ouvrirFiche(parId(b.dataset.id));
+  });
+}
+
+function rendreJournal() {
+  const histo = $("#historique");
+  const recentes = [...etat.tenues].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
+  histo.innerHTML = recentes.length ? recentes.map((t) => {
+    const d = new Date(t.date + "T12:00:00");
+    const jour = d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    return `<div class="jour">
+      <span class="date">${jour}</span>
+      <span class="minis">${t.pieces.map((id) => {
+        const p = parId(id);
+        if (!p) return "";
+        return p.photo ? `<img src="${p.photo}" alt="${echapper(p.nom)}">` : `<span>${pictoCat(p.categorie)}</span>`;
+      }).join("")}</span>
+    </div>`;
+  }).join("") : `<div class="vide">Aucune tenue notée pour l'instant. Valide une proposition avec « Je porte ça » et elle apparaîtra ici.</div>`;
+
+  const jamais = etat.pieces.filter((p) => !p.porteLe || !p.porteLe.length);
+  const compteur = {};
+  for (const t of etat.tenues) for (const id of t.pieces) compteur[id] = (compteur[id] || 0) + 1;
+  const favori = Object.entries(compteur).sort((a, b) => b[1] - a[1])[0];
+  $("#stats").innerHTML = `
+    <div class="stat"><span>Pièces répertoriées</span><b>${etat.pieces.length}</b></div>
+    <div class="stat"><span>Tenues notées</span><b>${etat.tenues.length}</b></div>
+    <div class="stat"><span>Jamais portées</span><b>${jamais.length}</b></div>
+    ${favori && parId(favori[0]) ? `<div class="stat"><span>La plus portée</span><b>${echapper(parId(favori[0]).nom)}</b></div>` : ""}`;
+
+  rendreExemple();
+}
+
+function rendre() {
+  if (etat.vue === "dressing") rendreDressing();
+  else if (etat.vue === "journal") rendreJournal();
+  else rendreJour();
+  $("#compte").textContent = etat.pieces.length ? `${etat.pieces.length} pièces` : "";
+}
+
+/* ═══════════ Actions ═══════════ */
+
+async function enregistrerPort(tenue) {
+  const date = aujourdhui();
+  await DB.poser("tenues", {
+    id: idNeuf(), date, pieces: tenue.pieces.map((p) => p.id),
+    meteo: etat.meteo, temp: etat.temp, activite: etat.activite,
+  });
+  for (const p of tenue.pieces) {
+    const piece = parId(p.id);
+    piece.porteLe = [...(piece.porteLe || []), date];
+    await DB.poser("pieces", piece);
+  }
+  etat.tenues = await DB.tout("tenues");
+  toast("Tenue notée — c'est ce qui affine les suggestions");
+}
+
+async function donnerAvis(tenue, sens) {
+  const poids = sens > 0 ? 0.8 : -1.2;
+  for (let i = 0; i < tenue.pieces.length; i++) {
+    for (let j = i + 1; j < tenue.pieces.length; j++) {
+      const paire = clePaire(tenue.pieces[i].id, tenue.pieces[j].id);
+      const existant = etat.avis.find((a) => a.paire === paire);
+      const valeur = { paire, score: (existant ? existant.score : 0) + poids };
+      await DB.poser("avis", valeur);
+    }
+  }
+  etat.avis = await DB.tout("avis");
+  toast(sens > 0 ? "Noté, je t'en proposerai davantage" : "Compris, j'éviterai ces associations");
+}
+
+/* ═══════════ Fiche vêtement ═══════════ */
+
+let brouillon = null;
+
+function ouvrirFiche(piece) {
+  brouillon = piece
+    ? { ...piece, couleurs: [...(piece.couleurs || [])], porteLe: [...(piece.porteLe || [])] }
+    : { id: null, nom: "", categorie: "haut", couleurs: [], chaleur: 2, formalite: 2, dehors: false, photo: "", porteLe: [] };
+
+  $("#fiche-titre").textContent = piece ? "Modifier" : "Nouveau vêtement";
+  $("#btn-supprimer").hidden = !piece;
+  $("#nom").value = brouillon.nom;
+  majApercu();
+
+  boutonsChoix($("#choix-categorie"), CATEGORIES, brouillon.categorie, (v) => { brouillon.categorie = v; });
+
+  $("#choix-couleurs").innerHTML = COULEURS.map((c) => `
+    <button type="button" class="pastille" data-id="${c.id}" title="${c.nom}" aria-label="${c.nom}"
+      style="background:${c.hex}" aria-pressed="${brouillon.couleurs.includes(c.id)}"></button>`).join("");
+  $("#choix-couleurs").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      const id = b.dataset.id;
+      if (brouillon.couleurs.includes(id)) brouillon.couleurs = brouillon.couleurs.filter((x) => x !== id);
+      else if (brouillon.couleurs.length >= 2) return toast("Deux couleurs au maximum");
+      else brouillon.couleurs.push(id);
+      b.setAttribute("aria-pressed", brouillon.couleurs.includes(id));
+    };
+  });
+
+  curseur($("#choix-chaleur"), CHALEURS, brouillon.chaleur - 1, (i) => { brouillon.chaleur = i + 1; });
+  curseur($("#choix-formalite"), REGISTRES, brouillon.formalite - 1, (i) => { brouillon.formalite = i + 1; });
+  curseur($("#choix-dehors"), ["Non", "Résiste à la pluie"], brouillon.dehors ? 1 : 0, (i) => { brouillon.dehors = i === 1; });
+
+  $("#fiche").showModal();
+}
+
+function curseur(hote, etiquettes, actif, auClic) {
+  hote.innerHTML = etiquettes.map((e, i) =>
+    `<button type="button" data-i="${i}" aria-pressed="${i === actif}">${e}</button>`).join("");
+  hote.querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      hote.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      auClic(+b.dataset.i);
+    };
+  });
+}
+
+function majApercu() {
+  const img = $("#apercu");
+  if (brouillon.photo) { img.src = brouillon.photo; img.style.display = "block"; }
+  else img.style.display = "none";
+}
+
+async function enregistrerPiece() {
+  const nom = $("#nom").value.trim();
+  if (!nom) { $("#nom").focus(); return toast("Donne un nom à cette pièce"); }
+  if (!brouillon.couleurs.length) return toast("Choisis au moins une couleur");
+  brouillon.nom = nom;
+  if (!brouillon.id) brouillon.id = idNeuf();
+  await DB.poser("pieces", brouillon);
+  etat.pieces = await DB.tout("pieces");
+  $("#fiche").close();
+  etat.vue = "dressing"; majOnglets(); rendre();
+  toast("Enregistré");
+}
+
+async function supprimerPiece() {
+  if (!confirm(`Supprimer « ${brouillon.nom} » de la garde-robe ?`)) return;
+  await DB.retirer("pieces", brouillon.id);
+  etat.pieces = await DB.tout("pieces");
+  $("#fiche").close();
+  rendre();
+  toast("Supprimé");
+}
+
+/* ═══════════ Sauvegarde ═══════════ */
+
+function exporter() {
+  const donnees = { version: 1, exporteLe: new Date().toISOString(), pieces: etat.pieces, tenues: etat.tenues, avis: etat.avis };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = `dressing-${aujourdhui()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast("Fichier de sauvegarde créé");
+}
+
+async function importer(fichier) {
+  let donnees;
+  try { donnees = JSON.parse(await fichier.text()); }
+  catch { return toast("Ce fichier n'est pas une sauvegarde lisible"); }
+  if (!Array.isArray(donnees.pieces)) return toast("Ce fichier n'est pas une sauvegarde Dressing");
+  if (!confirm(`Remplacer la garde-robe actuelle par cette sauvegarde (${donnees.pieces.length} pièces) ?`)) return;
+  await Promise.all(["pieces", "tenues", "avis"].map((m) => DB.vider(m)));
+  for (const p of donnees.pieces) await DB.poser("pieces", p);
+  for (const t of donnees.tenues || []) await DB.poser("tenues", t);
+  for (const a of donnees.avis || []) await DB.poser("avis", a);
+  await charger();
+  rendre();
+  toast("Sauvegarde restaurée");
+}
+
+/* ═══════════ Garde-robe d'exemple ═══════════ */
+
+const exemplePresent = () => etat.pieces.some((p) => p.id.startsWith("demo-"));
+
+async function chargerExemple() {
+  for (const p of EXEMPLE) {
+    if (parId(p.id)) continue;
+    await DB.poser("pieces", { ...p, couleurs: [...p.couleurs], porteLe: [] });
+  }
+  await charger();
+  etat.vue = "dressing"; majOnglets(); rendre();
+  toast("22 pièces ajoutées — modifie-les ou retire-les quand tu veux");
+}
+
+async function retirerExemple() {
+  if (!confirm("Retirer les 22 pièces d'exemple ? Tes propres vêtements ne sont pas touchés.")) return;
+  const aRetirer = new Set(etat.pieces.filter((p) => p.id.startsWith("demo-")).map((p) => p.id));
+  for (const id of aRetirer) await DB.retirer("pieces", id);
+  for (const t of etat.tenues)
+    if (t.pieces.some((id) => aRetirer.has(id))) await DB.retirer("tenues", t.id);
+  await charger();
+  etat.propositions = [];
+  rendre();
+  toast("Pièces d'exemple retirées");
+}
+
+function rendreExemple() {
+  const present = exemplePresent();
+  $("#texte-exemple").textContent = present
+    ? "Les 22 pièces d'exemple sont dans ta garde-robe. Retire-les quand tu auras saisi les tiennes."
+    : "Vingt-deux pièces passe-partout, sans photo, pour essayer les suggestions tout de suite.";
+  $("#btn-exemple").textContent = present ? "Retirer l'exemple" : "Charger une garde-robe d'exemple";
+  $("#btn-exemple").classList.toggle("danger", present);
+  $("#btn-exemple").onclick = present ? retirerExemple : chargerExemple;
+}
+
+/* ═══════════ Navigation ═══════════ */
+
+const ONGLETS = [
+  { id: "jour",     nom: "Aujourd'hui", pict: "🌤️", titre: "Aujourd'hui" },
+  { id: "dressing", nom: "Garde-robe",  pict: "🚪", titre: "Garde-robe" },
+  { id: "journal",  nom: "Journal",     pict: "📓", titre: "Journal" },
+];
+
+function majOnglets() {
+  $("#onglets").querySelectorAll("button").forEach((b) =>
+    b.setAttribute("aria-pressed", b.dataset.id === etat.vue));
+  document.querySelectorAll(".vue").forEach((v) => v.classList.remove("active"));
+  $("#vue-" + etat.vue).classList.add("active");
+  $("#titre").textContent = ONGLETS.find((o) => o.id === etat.vue).titre;
+  $("#fab").hidden = etat.vue !== "dressing";
+  window.scrollTo(0, 0);
+}
+
+/* ═══════════ Démarrage ═══════════ */
+
+async function charger() {
+  etat.pieces = await DB.tout("pieces");
+  etat.tenues = await DB.tout("tenues");
+  etat.avis = await DB.tout("avis");
+}
+
+async function demarrer() {
+  await DB.ouvrir();
+  await charger();
+
+  $("#onglets").innerHTML = ONGLETS.map((o) => `
+    <button data-id="${o.id}" aria-pressed="${o.id === etat.vue}">
+      <span class="pict" aria-hidden="true">${o.pict}</span><span>${o.nom}</span>
+    </button>`).join("");
+  $("#onglets").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => { etat.vue = b.dataset.id; majOnglets(); rendre(); };
+  });
+
+  boutonsChoix($("#choix-meteo"), METEOS, etat.meteo, (v) => { etat.meteo = v; });
+  boutonsChoix($("#choix-temp"), TEMPS, etat.temp, (v) => { etat.temp = v; });
+  boutonsChoix($("#choix-activite"), ACTIVITES, etat.activite, (v) => { etat.activite = v; });
+
+  $("#btn-proposer").onclick = () => {
+    const r = proposerTenues();
+    if (r.erreur) {
+      etat.propositions = [];
+      $("#propositions").innerHTML = `<div class="vide"><strong>Pas encore assez de vêtements</strong>${r.erreur}</div>`;
+      return;
+    }
+    etat.propositions = r.tenues;
+    rendreJour();
+  };
+
+  $("#fab").onclick = () => ouvrirFiche(null);
+  $("#fiche-fermer").onclick = () => $("#fiche").close();
+  $("#btn-enregistrer").onclick = enregistrerPiece;
+  $("#btn-supprimer").onclick = supprimerPiece;
+  $("#btn-photo").onclick = () => $("#prise-photo").click();
+  $("#prise-photo").onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try { brouillon.photo = await photoCompacte(f); majApercu(); }
+    catch { toast("Cette image n'a pas pu être lue"); }
+    e.target.value = "";
+  };
+  $("#form-fiche").addEventListener("submit", (e) => e.preventDefault());
+
+  $("#btn-export").onclick = exporter;
+  $("#btn-import").onclick = () => $("#fichier-import").click();
+  $("#fichier-import").onchange = (e) => { if (e.target.files[0]) importer(e.target.files[0]); e.target.value = ""; };
+
+  majOnglets();
+  rendre();
+}
+
+demarrer().catch((e) => {
+  document.querySelector(".app").innerHTML =
+    `<div class="vide" style="margin-top:40px"><strong>Le stockage local est inaccessible</strong>
+     Safari en navigation privée bloque l'enregistrement. Ouvre cette page dans un onglet normal.</div>`;
+  console.error(e);
+});
+
+})();
+</script>
+
+</body>
+</html>

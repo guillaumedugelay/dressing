@@ -1,0 +1,12 @@
+{
+  "name": "Dressing",
+  "short_name": "Dressing",
+  "description": "Ma garde-robe, et la tenue du jour selon la météo et l'activité.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F2EEE6",
+  "theme_color": "#3E5288",
+  "lang": "fr",
+  "icons": [{ "src": "icone-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }]
+}
