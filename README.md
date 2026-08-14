@@ -36,9 +36,8 @@ un polo-baskets un jour de travail. Le bonus qui remonte les pièces oubliées
 obéit à la même limite.
 
 **Sur les tendances.** Une tâche hebdomadaire collecte les flux RSS de la
-flux RSS de la presse mode, en fait synthétiser des règles
-chiffrées par Claude, et dépose le résultat dans `tendances.json` à côté de
-l'application. Celle-ci le télécharge au lancement et le garde : elle marche
+presse mode, en fait synthétiser des règles chiffrées par Claude, et dépose le
+résultat dans `tendances.json` à côté de l'application. Celle-ci le télécharge au lancement et le garde : elle marche
 hors ligne sur la dernière version connue. La date du corpus est rappelée sous
 les propositions, et un réglage *classique ↔ tendance* dans le Journal en fixe
 le poids, de 0 à 2. Détail de la chaîne dans [TENDANCES.md](TENDANCES.md).
