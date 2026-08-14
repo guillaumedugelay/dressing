@@ -20,8 +20,11 @@ Trois écrans :
 
 ## Les données
 
-Tout est stocké dans le navigateur du téléphone, via IndexedDB. Rien ne sort
-de l'appareil, aucune requête réseau n'est faite. En contrepartie, **effacer
+Ta garde-robe est stockée dans le navigateur du téléphone, via IndexedDB.
+**Ni tes vêtements, ni tes photos, ni ton historique ne quittent l'appareil.**
+Les seules requêtes réseau sont sortantes et anonymes : le corpus de tendances
+téléchargé depuis GitHub, et — si tu configures un lieu — la prévision du jour
+demandée à Open-Meteo, qui reçoit alors une position approchée. En contrepartie, **effacer
 les données de Safari efface la garde-robe** : le bouton *Exporter* du Journal
 produit un fichier JSON de sauvegarde, à faire après chaque grosse saisie.
 
