@@ -13,7 +13,7 @@ l'activité de la journée et au style de son propriétaire.
 | Hébergement | Page unique autonome publiée sur une URL stable |
 | Stockage | 100 % local au téléphone (IndexedDB). Aucune donnée envoyée nulle part |
 | Sauvegarde | Export / import d'un fichier JSON, à la demande |
-| Réseau | Aucun appel externe. La météo est saisie manuellement |
+| Réseau | Facultatif : prévision météo et corpus de tendances. L'app reste utilisable hors ligne |
 
 Conséquence assumée : effacer les données de Safari efface la garde-robe.
 D'où l'export JSON, à faire après chaque grosse session de saisie.
@@ -122,8 +122,9 @@ pour proposer un choix et non trois variantes de la même idée.
 
 ## 5. Écrans
 
-**Aujourd'hui** — quatre boutons météo (soleil, nuages, pluie, neige), quatre
-boutons température, trois boutons activité (travail, loisir, vacances) et
+**Aujourd'hui** — si un lieu est configuré, un bandeau donne la prévision du
+jour et pré-règle les boutons. Puis quatre boutons météo (soleil, nuages,
+pluie, neige), quatre boutons température, trois boutons activité (travail, loisir, vacances) et
 quatre boutons saison, celle du jour étant présélectionnée d'après la date.
 Puis `Proposer des tenues`. Chaque proposition s'affiche en une bande de
 vignettes, avec `j'aime`, `je n'aime pas` et `Je porte ça`. En dessous,
@@ -133,7 +134,9 @@ révision du corpus de style est rappelée.
 **Garde-robe** — grille de photos filtrable par catégorie, ajout et
 modification d'une pièce.
 
-**Journal** — historique des tenues portées, `Ce que tu ne portes plus`
+**Journal** — réglage de la météo automatique (position ou nom de ville),
+réglage classique ↔ tendance, historique des tenues portées,
+`Ce que tu ne portes plus`
 (les pièces jamais mises ou délaissées depuis plus de trente jours, nommées
 et datées), pourcentage de garde-robe déjà portée, chargement ou retrait de
 la garde-robe d'exemple, boutons d'export et d'import.
@@ -146,6 +149,28 @@ la garde-robe vide. Elles couvrent les quatre températures et les trois
 activités, ce qui permet d'essayer les suggestions avant d'avoir photographié
 quoi que ce soit. Le retrait ne touche pas aux pièces personnelles ; il
 supprime aussi les tenues du journal qui contenaient une pièce d'exemple.
+
+## 5 ter. Météo automatique
+
+Une page web sur iPhone **ne peut pas s'exécuter à heure fixe** : iOS ne
+réveille pas une application épinglée pour lui faire faire du réseau en
+arrière-plan. Le relevé se fait donc à l'ouverture de l'application.
+
+Ce n'est pas un pis-aller. Le relevé porte sur la **prévision de la journée** —
+temps dominant et température maximale ressentie — et non sur l'instant : ce
+qu'il fera à quatorze heures décide de la tenue, pas ce qu'il fait au réveil.
+
+| Point | Décision |
+|---|---|
+| Source | [Open-Meteo](https://open-meteo.com) — gratuit, sans clé ni compte |
+| Lieu | position de l'appareil, ou nom de ville cherché dans l'application |
+| Correspondance | codes temps de l'OMM → soleil / nuages / pluie / neige |
+| Température | ressenti maximal → chaud ≥ 22°, doux ≥ 12°, frais ≥ 3°, froid < 3° |
+| Cache | un relevé par jour, conservé : rouvrir hors ligne retrouve celui du matin |
+| Repli | sans lieu, sans réseau ou position refusée, les boutons restent manuels |
+
+Le relevé **pré-règle** les boutons, il ne les verrouille pas : un appui sur un
+autre bouton reste souverain, et le bandeau le dit explicitement.
 
 ## 6. Composition et tendances
 

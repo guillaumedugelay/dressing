@@ -170,6 +170,20 @@
   .vide strong { display: block; font-family: var(--serif); font-size: 18px; color: var(--texte); margin-bottom: 6px; font-weight: 500; }
 
   /* --- Garde-robe --- */
+  #bandeau-meteo {
+    margin: 0 0 14px; padding: 10px 13px; border-radius: 11px;
+    background: var(--accent-fond); border: 1px solid var(--accent);
+    font-size: 13.5px; line-height: 1.4;
+  }
+  #bandeau-meteo b { font-weight: 600; }
+  #bandeau-meteo span { color: var(--texte-doux); }
+
+  .villes { display: flex; flex-direction: column; gap: 6px; }
+  .villes button {
+    text-align: left; padding: 10px 12px; border-radius: 10px;
+    background: var(--carte); border: 1px solid var(--trait); font-size: 14px;
+  }
+
   .filtres { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0 10px; }
   .filtres button {
     flex: 0 0 auto; padding: 7px 13px; border-radius: 999px; font-size: 13.5px;
@@ -300,6 +314,7 @@
 
   <!-- ============ AUJOURD'HUI ============ -->
   <section class="vue active" id="vue-jour">
+    <p id="bandeau-meteo" hidden></p>
     <div class="bloc">
       <span class="legende">Le temps qu'il fait</span>
       <div class="choix" id="choix-meteo"></div>
@@ -336,6 +351,18 @@
       <span class="legende">Ma garde-robe en chiffres</span>
       <div id="stats"></div>
     </div>
+    <div class="bloc">
+      <span class="legende">Météo automatique</span>
+      <p id="texte-meteo" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
+      <div style="display:flex;gap:9px">
+        <button class="secondaire" id="btn-position" style="flex:1">Utiliser ma position</button>
+        <button class="secondaire" id="btn-oublier-lieu" style="flex:1" hidden>Revenir au manuel</button>
+      </div>
+      <input type="text" id="ville" placeholder="ou tape le nom d'une ville" autocomplete="off"
+        style="padding:12px;border-radius:11px;border:1px solid var(--trait);background:var(--carte);width:100%">
+      <div class="villes" id="villes"></div>
+    </div>
+
     <div class="bloc">
       <span class="legende">Classique ou tendance</span>
       <p id="texte-tendances" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
@@ -504,6 +531,23 @@ const COUPES = [
   { id: "ample",  nom: "Ample" },
 ];
 
+/* Codes temps de l'OMM, ramenés aux quatre boutons de l'application. */
+function meteoDuCode(code) {
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "neige";
+  if (code >= 51 && code <= 99) return "pluie";      // bruine, pluie, averses, orages
+  if ([2, 3, 45, 48].includes(code)) return "nuages"; // couvert ou brouillard
+  return "soleil";                                    // 0 et 1
+}
+
+/* On raisonne sur le ressenti maximal de la journée, pas sur la température
+   du petit matin : c'est ce qu'on portera à quatorze heures qui compte. */
+function tempDuRessenti(deg) {
+  if (deg >= 22) return "chaud";
+  if (deg >= 12) return "doux";
+  if (deg >= 3) return "frais";
+  return "froid";
+}
+
 /* Familles chromatiques, pour reconnaître un camaïeu. */
 const FAMILLES = {
   chaud:  ["beige", "marron", "orange", "jaune", "rouge", "rose"],
@@ -604,6 +648,7 @@ const etat = {
   pieces: [], tenues: [], avis: [],
   meteo: "soleil", temp: "doux", activite: "travail", saison: saisonCourante(),
   poidsTendance: 1,
+  lieu: null, releve: null,
   filtre: "tout", vue: "jour",
   propositions: [], ecartees: new Set(),
 };
@@ -785,6 +830,85 @@ async function chargerTendances() {
 
   const garde = await DB.prendre("reglages", "tendances");
   if (garde) TENDANCES = garde.valeur;
+}
+
+/* ═══════════ Météo ═══════════
+   Une page web sur iPhone ne peut pas s'exécuter à heure fixe : iOS ne la
+   réveille pas en arrière-plan. Le relevé se fait donc à l'ouverture, et
+   porte sur la *prévision de la journée* plutôt que sur l'instant — c'est ce
+   qu'il fera à quatorze heures qui décide de la tenue, pas ce qu'il fait à
+   six heures. Le résultat est gardé pour la journée : rouvrir l'application
+   hors ligne retrouve le relevé du matin. */
+
+async function chercherVilles(nom) {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(nom)}&count=5&language=fr&format=json`;
+  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!r.ok) throw new Error("recherche indisponible");
+  const { results } = await r.json();
+  return (results || []).map((v) => ({
+    lat: v.latitude, lon: v.longitude,
+    nom: [v.name, v.admin1, v.country_code].filter(Boolean).join(", "),
+  }));
+}
+
+function positionActuelle() {
+  return new Promise((ok, ko) => {
+    if (!navigator.geolocation) return ko(new Error("position indisponible"));
+    navigator.geolocation.getCurrentPosition(
+      (p) => ok({ lat: +p.coords.latitude.toFixed(3), lon: +p.coords.longitude.toFixed(3), nom: "Ma position" }),
+      () => ko(new Error("position refusée")),
+      { timeout: 10000, maximumAge: 3600000 });
+  });
+}
+
+async function releverMeteo({ force = false } = {}) {
+  if (!etat.lieu) return;
+
+  const garde = await DB.prendre("reglages", "meteoDuJour");
+  if (!force && garde && garde.valeur.date === aujourdhui() && garde.valeur.lieu === etat.lieu.nom) {
+    etat.releve = garde.valeur;
+    return appliquerReleve();
+  }
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${etat.lieu.lat}&longitude=${etat.lieu.lon}`
+      + "&daily=weather_code,apparent_temperature_max&timezone=auto&forecast_days=1";
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(String(r.status));
+    const { daily } = await r.json();
+    etat.releve = {
+      date: aujourdhui(),
+      lieu: etat.lieu.nom,
+      meteo: meteoDuCode(daily.weather_code[0]),
+      temp: tempDuRessenti(daily.apparent_temperature_max[0]),
+      degres: Math.round(daily.apparent_temperature_max[0]),
+      preleveA: new Date().toISOString(),
+    };
+    await DB.poser("reglages", { cle: "meteoDuJour", valeur: etat.releve });
+  } catch {
+    /* Hors ligne ou service indisponible : on garde le dernier relevé connu,
+       et les boutons manuels restent la solution de repli. */
+    if (garde) etat.releve = garde.valeur;
+  }
+  appliquerReleve();
+}
+
+/* Le relevé pré-règle les boutons ; il ne les verrouille pas. Un appui sur
+   un autre bouton reste souverain. */
+function appliquerReleve() {
+  if (!etat.releve || etat.releve.date !== aujourdhui()) return;
+  etat.meteo = etat.releve.meteo;
+  etat.temp = etat.releve.temp;
+  synchroniserJour();
+}
+
+/* Les boutons reflètent l'état, pas l'inverse : après un relevé il faut les
+   redessiner, sinon ils affichent encore le réglage précédent. */
+function synchroniserJour() {
+  if (!$("#choix-meteo")) return;
+  boutonsChoix($("#choix-meteo"), METEOS, etat.meteo, (v) => { etat.meteo = v; });
+  boutonsChoix($("#choix-temp"), TEMPS, etat.temp, (v) => { etat.temp = v; });
+  rendreEnteteMeteo();
 }
 
 /* Chaque règle est indépendante ; leur somme est bornée pour qu'aucune saison
@@ -1019,6 +1143,7 @@ function vignette(piece, classe = "vignette") {
 }
 
 function rendreJour() {
+  rendreEnteteMeteo();
   const hote = $("#propositions");
   if (!etat.propositions.length) { hote.innerHTML = ""; return; }
   hote.innerHTML = etat.propositions.map((t, i) => `
@@ -1147,6 +1272,7 @@ function rendreJournal() {
         ? `<div class="stat"><span style="color:var(--texte-doux)">et ${oubliees.length - 15} autres</span><b></b></div>` : "")
     : `<div class="vide">Rien ne dort au fond du placard.</div>`;
 
+  rendreMeteo();
   rendreTendances();
   rendreExemple();
 }
@@ -1329,6 +1455,73 @@ async function importer(fichier) {
   toast("Sauvegarde restaurée");
 }
 
+/* ═══════════ Réglage de la météo ═══════════ */
+
+function rendreEnteteMeteo() {
+  const b = $("#bandeau-meteo");
+  const r = etat.releve;
+  if (!r || r.date !== aujourdhui()) { b.hidden = true; return; }
+  const nomMeteo = METEOS.find((m) => m.id === r.meteo).nom.toLowerCase();
+  b.hidden = false;
+  b.innerHTML = `<b>${echapper(r.lieu)} — ${nomMeteo}, ${r.degres}° ressentis.</b>
+    <span>Prévision du jour, déjà reportée sur les boutons. Corrige-les si tu n'es pas d'accord.</span>`;
+}
+
+async function definirLieu(lieu) {
+  etat.lieu = lieu;
+  await DB.poser("reglages", { cle: "lieu", valeur: lieu });
+  await releverMeteo({ force: true });
+  $("#villes").innerHTML = "";
+  $("#ville").value = "";
+  rendreMeteo();
+  toast(etat.releve ? "Météo relevée" : "Lieu enregistré, relevé au prochain passage");
+}
+
+function rendreMeteo() {
+  const r = etat.releve;
+  $("#texte-meteo").textContent = !etat.lieu
+    ? "Les boutons sont réglés à la main. Choisis un lieu et l'application relèvera la prévision du jour à chaque ouverture."
+    : r && r.date === aujourdhui()
+      ? `${etat.lieu.nom} — relevé aujourd'hui : ${METEOS.find((m) => m.id === r.meteo).nom.toLowerCase()}, ${r.degres}° ressentis.`
+      : `${etat.lieu.nom} — pas encore de relevé aujourd'hui ; il se fera dès que le réseau répondra.`;
+  $("#btn-oublier-lieu").hidden = !etat.lieu;
+}
+
+async function reglerMeteo() {
+  $("#btn-position").onclick = async () => {
+    try { await definirLieu(await positionActuelle()); }
+    catch (e) { toast(e.message === "position refusée"
+      ? "Position refusée — tape plutôt un nom de ville"
+      : "Position indisponible sur cet appareil"); }
+  };
+
+  $("#btn-oublier-lieu").onclick = async () => {
+    etat.lieu = null; etat.releve = null;
+    await DB.retirer("reglages", "lieu");
+    await DB.retirer("reglages", "meteoDuJour");
+    rendreMeteo(); rendreEnteteMeteo();
+    toast("Retour au réglage manuel");
+  };
+
+  let minuteur;
+  $("#ville").oninput = (e) => {
+    clearTimeout(minuteur);
+    const nom = e.target.value.trim();
+    if (nom.length < 3) { $("#villes").innerHTML = ""; return; }
+    minuteur = setTimeout(async () => {
+      try {
+        const villes = await chercherVilles(nom);
+        $("#villes").innerHTML = villes.length
+          ? villes.map((v, i) => `<button data-i="${i}">${echapper(v.nom)}</button>`).join("")
+          : `<p style="font-size:13px;color:var(--texte-doux);margin:0">Aucune ville de ce nom.</p>`;
+        $("#villes").querySelectorAll("button").forEach((b) => {
+          b.onclick = () => definirLieu(villes[+b.dataset.i]);
+        });
+      } catch { $("#villes").innerHTML = ""; }
+    }, 400);
+  };
+}
+
 /* ═══════════ Réglage des tendances ═══════════ */
 
 const NIVEAUX_TENDANCE = [
@@ -1418,6 +1611,8 @@ async function charger() {
   etat.avis = await DB.tout("avis");
   const poids = await DB.prendre("reglages", "poidsTendance");
   if (poids) etat.poidsTendance = poids.valeur;
+  const lieu = await DB.prendre("reglages", "lieu");
+  if (lieu) etat.lieu = lieu.valeur;
 }
 
 async function demarrer() {
@@ -1426,6 +1621,9 @@ async function demarrer() {
   /* Le corpus arrive du réseau ou du cache ; l'application ne l'attend pas
      pour s'afficher, elle se rafraîchit quand il est là. */
   chargerTendances().then(() => { if (etat.vue === "journal") rendreTendances(); });
+  /* Le relevé ne retarde pas l'affichage : les boutons se replacent tout
+     seuls quand la prévision arrive. */
+  releverMeteo().then(() => { if (etat.vue === "journal") rendreMeteo(); });
 
   $("#onglets").innerHTML = ONGLETS.map((o) => `
     <button data-id="${o.id}" aria-pressed="${o.id === etat.vue}">
@@ -1456,6 +1654,7 @@ async function demarrer() {
   };
   $("#form-fiche").addEventListener("submit", (e) => e.preventDefault());
 
+  reglerMeteo();
   $("#btn-export").onclick = exporter;
   $("#btn-import").onclick = () => $("#fichier-import").click();
   $("#fichier-import").onchange = (e) => { if (e.target.files[0]) importer(e.target.files[0]); e.target.value = ""; };

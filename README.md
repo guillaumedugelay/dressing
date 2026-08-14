@@ -13,6 +13,8 @@ L'application s'ouvre alors en plein écran, sans barre de navigateur.
 Trois écrans :
 
 - **Aujourd'hui** — météo, température et activité, puis trois tenues proposées.
+  Si un lieu est configuré, la prévision du jour est relevée à l'ouverture et
+  pré-règle les boutons ; tu peux toujours les corriger.
 - **Garde-robe** — photographier et décrire chaque pièce.
 - **Journal** — historique, statistiques, sauvegarde, garde-robe d'exemple.
 
@@ -34,6 +36,12 @@ Les habitudes viennent du bouton *Je porte ça* et des avis 👍/👎. Elles ne
 peuvent que départager des tenues déjà adaptées à l'occasion — jamais imposer
 un polo-baskets un jour de travail. Le bonus qui remonte les pièces oubliées
 obéit à la même limite.
+
+**Sur la météo.** Le relevé se fait à l'ouverture, pas à heure fixe : iOS ne
+réveille pas une page web en arrière-plan. Il porte sur la prévision de la
+journée — temps dominant et ressenti maximal — via [Open-Meteo](https://open-meteo.com),
+gratuit et sans clé. Un relevé par jour est conservé, donc rouvrir l'app hors
+ligne retrouve celui du matin. Sans lieu configuré, tout reste manuel.
 
 **Sur les tendances.** Une tâche hebdomadaire collecte les flux RSS de la
 presse mode, en fait synthétiser des règles chiffrées par Claude, et dépose le
