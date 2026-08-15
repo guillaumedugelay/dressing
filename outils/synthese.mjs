@@ -82,15 +82,30 @@ const materiau = corpus.articles
   .map((a) => `[${a.source}] ${a.titre}${a.extrait ? ` — ${a.extrait}` : ""}`)
   .join("\n");
 
-process.stderr.write(`Synthèse de ${corpus.articles.length} articles…\n`);
+/* Opus 5 à effort élevé : lire de la prose éditoriale et en dégager des
+   tendances demande du jugement, pas de l'extraction. À 0,16 $ le passage
+   hebdomadaire, l'enjeu ne justifie pas d'économiser ici — contrairement à
+   l'analyse des photos, répétée cinq cents fois.
+   Se change au coup par coup avec MODELE= et EFFORT=, pour comparer. */
+const MODELE = process.env.MODELE || "claude-opus-5";
+const EFFORT = process.env.EFFORT || "high";
+
+if (!process.env.ANTHROPIC_API_KEY) {
+  process.stderr.write("ANTHROPIC_API_KEY n'est pas dans l'environnement — tendances inchangées.\n");
+  process.stderr.write("La clé se dépose en secret GitHub pour la tâche hebdomadaire,\n");
+  process.stderr.write("ou dans l'environnement de ce terminal pour un essai à la main.\n");
+  process.exit(1);
+}
+
+process.stderr.write(`Synthèse de ${corpus.articles.length} articles avec ${MODELE}, effort ${EFFORT}…\n`);
 
 const client = new Anthropic();
 const reponse = await client.messages.create({
-  model: "claude-opus-5",
+  model: MODELE,
   max_tokens: 16000,
   system: CONSIGNE,
   output_config: {
-    effort: "high",
+    effort: EFFORT,
     format: { type: "json_schema", schema: SCHEMA },
   },
   messages: [{ role: "user", content: `Voici la collecte de la semaine :\n\n${materiau}` }],

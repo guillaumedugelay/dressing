@@ -182,13 +182,24 @@ passages qui compte.
 
 | Levier | Effet |
 |---|---|
-| Passer `effort` de `high` à `medium` dans `synthese.mjs` | agit sur les 80 % — la baisse la plus efficace |
+| `MODELE=claude-sonnet-5 EFFORT=medium` | agit sur les 80 % — la baisse la plus efficace |
 | Espacer à un passage tous les quinze jours | divise la facture par deux |
 | Utiliser Claude Sonnet 5 plutôt qu'Opus 5 | environ 40 % moins cher, au prix d'une lecture moins fine |
 | Réduire `PLAFOND` ou `EXTRAIT` dans `collecte.mjs` | agit sur les 20 % — effet marginal |
 
 À ce niveau de dépense, aucun de ces réglages ne se justifie ; ils sont
 documentés pour le jour où la chaîne grossirait.
+
+**Choix retenu : Claude Opus 5 à effort élevé.** Dégager des tendances d'une
+prose éditoriale demande du jugement, pas de l'extraction — contrairement à
+l'analyse des photos, répétée cinq cents fois, qui tourne sur Sonnet 5. À
+0,16 $ la semaine, économiser ici n'aurait pas de sens. À revoir quand la
+chaîne aura tourné quelques semaines et qu'on pourra comparer des corpus réels
+plutôt que spéculer :
+
+```bash
+MODELE=claude-sonnet-5 EFFORT=medium node outils/synthese.mjs < corpus.json
+```
 
 ## 8. Ce qui restera vrai malgré tout
 
