@@ -74,9 +74,14 @@ téléphone, puis Journal → `Fusionner un fichier`.
 | `confiance` | oui | haute, moyenne ou basse — voir ci-dessous |
 
 **La confiance est le point utile.** Le modèle signale lui-même les pièces
-dont il n'est pas sûr — photo floue, vêtement plié, matière ambiguë. Le script
-les liste à la fin. Sur cinq cents pièces, tu ne revérifies que celles-là au
-lieu de tout relire.
+dont il n'est pas sûr, et dit **en une phrase ce dont il doute** — photo floue,
+vêtement plié, matière ambiguë. Le script les liste à la fin.
+
+Ce marquage **survit à la fusion** : dans l'application, ces pièces portent une
+pastille « à vérifier » et un filtre du même nom les regroupe. Ouvrir la fiche
+montre la phrase de doute ; l'enregistrer efface la marque. Sur cinq cents
+pièces, tu ne relis donc que ce que le modèle a lui-même signalé, sans avoir à
+noter quoi que ce soit au passage.
 
 Une pièce déjà analysée porte `analyseeLe` et sera sautée aux passages
 suivants : tu peux relancer le script après chaque série de photos sans tout

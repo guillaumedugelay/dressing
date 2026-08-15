@@ -34,6 +34,7 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `dehors` | oui / non | résiste à la pluie et à la neige |
 | `photo` | JPEG redimensionné à 640 px | reconnaissance visuelle ; les couleurs y sont lues automatiquement |
 | `porteLe` | liste de dates | récence et statistiques |
+| `confiance` / `doute` | posés par l'analyse par photo | signalent une fiche à relire ; effacés à l'enregistrement |
 
 ### Tenue portée
 
@@ -152,7 +153,10 @@ vignettes, avec `j'aime`, `je n'aime pas` et `Je porte ça`. En dessous,
 révision du corpus de style est rappelée.
 
 **Garde-robe** — grille de photos filtrable par catégorie, ajout et
-modification d'une pièce.
+modification d'une pièce. Une pièce que l'analyse par photo n'a pas su décrire
+avec certitude porte une pastille **à vérifier**, et un filtre du même nom les
+regroupe. Ouvrir la fiche affiche la phrase de doute du modèle ; l'enregistrer
+efface la marque — enregistrer vaut arbitrage.
 
 **Journal** — réglage de la météo automatique (position ou nom de ville),
 réglage classique ↔ tendance, historique des tenues portées,

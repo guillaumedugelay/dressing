@@ -202,6 +202,22 @@
   }
   .carte-piece img { display: block; background: var(--lin-creux); }
   .carte-piece .sans-photo { font-size: 38px; }
+  .carte-piece { position: relative; }
+  .carte-piece .a-verifier {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--laiton); color: var(--fond);
+    font-size: 10px; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 7px; border-radius: 999px; text-transform: uppercase;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+  .doute {
+    margin: 0; padding: 10px 12px; border-radius: 10px;
+    background: color-mix(in srgb, var(--laiton) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--laiton) 45%, transparent);
+    font-size: 13px; line-height: 1.45;
+  }
+  .doute b { color: var(--laiton); }
+
   .carte-piece .infos { padding: 8px 9px 10px; }
   .carte-piece .nom { font-size: 13.5px; font-weight: 600; line-height: 1.25; }
   .carte-piece .meta {
@@ -406,6 +422,8 @@
       <h2 id="fiche-titre">Nouveau vêtement</h2>
       <button type="button" class="secondaire" id="fiche-fermer">Fermer</button>
     </div>
+
+    <p class="doute" id="doute" hidden></p>
 
     <div class="champ">
       <img class="apercu" id="apercu" alt="">
@@ -1334,17 +1352,29 @@ function rendreJour() {
   });
 }
 
+/* Une pièce que l'analyse n'a pas su décrire avec certitude reste marquée
+   jusqu'à ce que tu l'ouvres et l'enregistres. C'est ce qui rend le tri
+   praticable sur plusieurs centaines de fiches. */
+const aVerifier = (p) => p.confiance && p.confiance !== "haute";
+
 function rendreDressing() {
-  const filtres = [{ id: "tout", nom: "Tout" }, ...CATEGORIES];
+  const douteuses = etat.pieces.filter(aVerifier).length;
+  const filtres = [{ id: "tout", nom: "Tout" },
+    ...(douteuses ? [{ id: "verifier", nom: "À vérifier" }] : []),
+    ...CATEGORIES];
   $("#filtres").innerHTML = filtres.map((c) => {
-    const n = c.id === "tout" ? etat.pieces.length : etat.pieces.filter((p) => p.categorie === c.id).length;
+    const n = c.id === "tout" ? etat.pieces.length
+      : c.id === "verifier" ? douteuses
+      : etat.pieces.filter((p) => p.categorie === c.id).length;
     return `<button data-id="${c.id}" aria-pressed="${etat.filtre === c.id}">${c.nom} ${n ? `<span style="opacity:.6">${n}</span>` : ""}</button>`;
   }).join("");
   $("#filtres").querySelectorAll("button").forEach((b) => {
     b.onclick = () => { etat.filtre = b.dataset.id; rendreDressing(); };
   });
 
-  const liste = etat.filtre === "tout" ? etat.pieces : etat.pieces.filter((p) => p.categorie === etat.filtre);
+  const liste = etat.filtre === "tout" ? etat.pieces
+    : etat.filtre === "verifier" ? etat.pieces.filter(aVerifier)
+    : etat.pieces.filter((p) => p.categorie === etat.filtre);
   const grille = $("#grille");
   if (!liste.length) {
     grille.innerHTML = etat.pieces.length
@@ -1365,6 +1395,7 @@ function rendreDressing() {
   grille.innerHTML = ordre.map((p) => `
     <button class="carte-piece" data-id="${p.id}">
       ${vignette(p, "")}
+      ${aVerifier(p) ? `<span class="a-verifier">à vérifier</span>` : ""}
       <div class="infos">
         <div class="nom">${echapper(p.nom)}</div>
         <div class="meta">${CHALEURS[p.chaleur - 1]} · ${
@@ -1503,6 +1534,14 @@ function ouvrirFiche(piece) {
 
   boutonsChoix($("#choix-categorie"), CATEGORIES, brouillon.categorie, (v) => { brouillon.categorie = v; });
 
+  const bandeau = $("#doute");
+  bandeau.hidden = !aVerifier(brouillon);
+  if (!bandeau.hidden) {
+    bandeau.innerHTML = `<b>À vérifier.</b> ${
+      brouillon.doute ? echapper(brouillon.doute) : "L'analyse n'était pas sûre d'elle sur cette pièce."}
+      <br><span style="color:var(--texte-doux)">Corrige ce qui ne va pas, puis enregistre : la marque disparaîtra.</span>`;
+  }
+
   $("#lu-photo").hidden = true;
   majPastilles();
 
@@ -1606,6 +1645,9 @@ async function enregistrerPiece() {
   if (!brouillon.couleurs.length) return toast("Choisis au moins une couleur");
   brouillon.nom = nom;
   if (!brouillon.id) brouillon.id = idNeuf();
+  /* Enregistrer, c'est avoir tranché : la marque et le doute s'effacent. */
+  delete brouillon.confiance;
+  delete brouillon.doute;
   await DB.poser("pieces", brouillon);
   etat.pieces = await DB.tout("pieces");
   $("#fiche").close();
