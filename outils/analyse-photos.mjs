@@ -12,7 +12,9 @@
  * Options :
  *   --limite 5    n'analyser que les 5 premières pièces (pour essayer)
  *   --simuler     afficher ce qui serait rempli, sans rien écrire
- *   --forcer      réanalyser les pièces déjà analysées
+ *   --forcer      réanalyser les pièces déjà analysées, sauf celles que tu as
+ *                 corrigées à la main depuis
+ *   --tout        réanalyser vraiment tout, y compris tes corrections
  *
  * Requiert ANTHROPIC_API_KEY dans l'environnement.
  */
@@ -117,7 +119,8 @@ if (!process.env.ANTHROPIC_API_KEY) {
 
 const limite = valeur("--limite") ? parseInt(valeur("--limite"), 10) : Infinity;
 const simuler = option("--simuler");
-const forcer = option("--forcer");
+const tout = option("--tout");
+const forcer = option("--forcer") || tout;
 
 const donnees = JSON.parse(readFileSync(fichier, "utf8"));
 if (!Array.isArray(donnees.pieces)) {
@@ -128,14 +131,21 @@ if (!Array.isArray(donnees.pieces)) {
 /* ═══════════ Sélection des pièces ═══════════ */
 
 const sansPhoto = donnees.pieces.filter((p) => !p.photo).length;
+
+/* Une fiche que tu as ouverte et enregistrée après son analyse porte une date
+   de correction. Une réanalyse la saute : ton arbitrage vaut mieux qu'une
+   nouvelle hypothèse, et le contraire ferait perdre des heures de relecture.
+   --tout passe outre, en connaissance de cause. */
+const protegees = donnees.pieces.filter((p) => p.photo && p.corrigeeLe && !tout);
 const aTraiter = donnees.pieces
-  .filter((p) => p.photo && (forcer || !p.analyseeLe))
+  .filter((p) => p.photo && (forcer || !p.analyseeLe) && !(p.corrigeeLe && !tout))
   .slice(0, limite);
 
 console.error(`${donnees.pieces.length} pièces dans l'export.`);
 if (sansPhoto) console.error(`  ${sansPhoto} sans photo — ignorées.`);
 const dejaFaites = donnees.pieces.filter((p) => p.photo && p.analyseeLe).length;
 if (dejaFaites && !forcer) console.error(`  ${dejaFaites} déjà analysées — ignorées (--forcer pour refaire).`);
+if (protegees.length) console.error(`  ${protegees.length} corrigées à la main — préservées (--tout pour les écraser).`);
 console.error(`  ${aTraiter.length} à analyser avec ${MODELE}, effort ${EFFORT}.\n`);
 
 if (!aTraiter.length) { console.error("Rien à faire."); process.exit(0); }

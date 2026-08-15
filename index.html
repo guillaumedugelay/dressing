@@ -1645,9 +1645,13 @@ async function enregistrerPiece() {
   if (!brouillon.couleurs.length) return toast("Choisis au moins une couleur");
   brouillon.nom = nom;
   if (!brouillon.id) brouillon.id = idNeuf();
-  /* Enregistrer, c'est avoir tranché : la marque et le doute s'effacent. */
+  /* Enregistrer, c'est avoir tranché : la marque et le doute s'effacent.
+     Et sur une fiche issue de l'analyse, on retient la date de ton arbitrage :
+     une réanalyse ultérieure sautera cette pièce plutôt que d'écraser ton
+     travail. */
   delete brouillon.confiance;
   delete brouillon.doute;
+  if (brouillon.analyseeLe) brouillon.corrigeeLe = aujourdhui();
   await DB.poser("pieces", brouillon);
   etat.pieces = await DB.tout("pieces");
   $("#fiche").close();

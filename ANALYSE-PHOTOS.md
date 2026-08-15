@@ -87,6 +87,12 @@ Une pièce déjà analysée porte `analyseeLe` et sera sautée aux passages
 suivants : tu peux relancer le script après chaque série de photos sans tout
 refaire. `--forcer` recommence quand même.
 
+**Tes corrections sont protégées.** Une fiche que tu as ouverte et enregistrée
+après son analyse porte une date de correction, et `--forcer` la saute : ton
+arbitrage vaut mieux qu'une nouvelle hypothèse. C'est ce qui rend sûre une
+réanalyse générale — par exemple le jour où le modèle de données gagnera un
+champ. `--tout` passe outre, en connaissance de cause.
+
 ## Ce que ça coûte
 
 Le script affiche le compte exact à la fin — jetons consommés, coût du

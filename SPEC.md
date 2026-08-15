@@ -276,7 +276,26 @@ relance. La pénalité correspondante s'applique dans la notation des tenues et
 non dans la seule présélection — sans quoi une petite garde-robe, où la
 présélection ne filtre rien, reproposerait à l'identique.
 
-## 8. Hors périmètre de cette version
+## 8. Décidé, mais reporté : la longueur
+
+Un champ `longueur` — court, aux genoux, long — sur les bas, robes et
+manteaux. Reporté volontairement le 15 août 2026 : mieux vaut saisir la
+garde-robe avec le modèle actuel que retarder la saisie.
+
+**Ce qu'il débloquerait.** Le premier corpus de tendances réel a produit une
+règle `categorie: robe` dont la note était « robe longue fluide ou
+robe-chemise » : la presse parlait de longueur, le vocabulaire ne sachant pas
+la dire, la règle a valorisé *toutes* les robes. La longueur rendrait aussi les
+proportions calculables — jupe longue et bottines, mini et manteau long — et
+resserrerait la cohérence saisonnière.
+
+**Ce que coûtera l'ajout tardif.** Une réanalyse complète des photos, quelques
+dollars, plutôt que le remplissage à la main de centaines de champs. C'est
+précisément pourquoi les corrections manuelles sont désormais protégées d'une
+réanalyse (`corrigeeLe`) : sans cela, cet ajout différé aurait effacé le
+travail de relecture.
+
+## 9. Hors périmètre de cette version
 
 Météo automatique par géolocalisation, notifications, partage entre
 plusieurs personnes, reconnaissance automatique du vêtement sur la photo,
