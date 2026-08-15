@@ -5,6 +5,46 @@ Ma garde-robe, et la tenue du jour selon la météo, l'activité et mes habitude
 Application web d'une seule page, sans serveur, sans compte et sans réseau.
 Conçue pour être ouverte le matin sur iPhone, depuis l'écran d'accueil.
 
+## Mise en route
+
+### Sur le téléphone — rien à installer, rien à payer
+
+1. Ouvrir **https://guillaumedugelay.github.io/dressing/** dans Safari, puis
+   **Partager → Sur l'écran d'accueil**. L'app s'ouvre ensuite en plein écran.
+2. *Facultatif, pour essayer* : Journal → `Charger une garde-robe d'exemple`.
+   Vingt-deux pièces sans photo, à retirer d'un bouton ensuite.
+3. Journal → **Météo automatique** → `Utiliser ma position`, ou taper une
+   ville. Dès lors, la prévision du jour est relevée à chaque ouverture.
+4. Garde-robe → bouton **+** → photo, nom, puis les champs. **Les couleurs
+   sont lues sur la photo** et pré-cochées ; le reste est à remplir, ou à
+   laisser tel quel si tu comptes lancer l'analyse par lots.
+5. Journal → **Exporter**. Le fichier part dans l'app Fichiers.
+
+À ce stade l'application est pleinement utilisable. Tout ce qui suit est
+facultatif.
+
+### Sur l'ordinateur — pour faire remplir les fiches par les photos
+
+6. Une fois pour toutes : `npm install`, et une clé d'API
+   [Anthropic](https://console.anthropic.com) dans l'environnement.
+7. Transférer l'export sur le PC, puis essayer sur cinq pièces sans rien
+   écrire :
+   ```bash
+   node outils/analyse-photos.mjs dressing-AAAA-MM-JJ.json --limite 5 --simuler
+   ```
+8. Si le résultat convient, relancer sans les options, renvoyer le fichier
+   `…-analyse.json` sur le téléphone, puis Journal → **Fusionner un fichier**.
+
+Détail complet dans [ANALYSE-PHOTOS.md](ANALYSE-PHOTOS.md).
+
+### Ce qui reste à activer
+
+| | État |
+|---|---|
+| Application, météo, lecture des couleurs | **en service**, rien à faire |
+| Analyse des photos par lots | attend une clé d'API sur le PC |
+| Tendances hebdomadaires | attend la même clé en secret GitHub `ANTHROPIC_API_KEY` ; sans elle la tâche s'exécute et saute la synthèse sans rien casser |
+
 ## Utilisation
 
 Ouvrir l'adresse dans Safari, puis **Partager → Sur l'écran d'accueil**.
