@@ -87,15 +87,24 @@ refaire. `--forcer` recommence quand même.
 Le script affiche le compte exact à la fin — jetons consommés, coût du
 passage, coût par pièce, et projection sur cinq cents pièces.
 
-Ordre de grandeur : quelques centimes par pièce, soit une dizaine de dollars
-pour une garde-robe entière, **une fois pour toutes**. Les vêtements achetés
-ensuite s'ajoutent à l'unité, pour une fraction de centime.
+Par défaut, **Claude Sonnet 5 à effort moyen** : le bon compromis pour une
+extraction structurée répétée cinq cents fois.
 
-Le modèle se change par variable d'environnement si tu veux arbitrer
-autrement :
+| Réglage | 500 pièces |
+|---|---|
+| Sonnet 5, effort moyen — **par défaut** | ≈ 3,70 $ au tarif de lancement, ≈ 5,60 $ ensuite |
+| Opus 5, effort élevé | ≈ 9,30 $ |
+
+Sonnet 5 est en tarif de lancement jusqu'au 31 août 2026 ; passée cette date
+le script bascule tout seul sur le tarif normal, sans rien à changer.
+
+Une fois pour toutes, donc. Les vêtements achetés ensuite s'ajoutent à
+l'unité, pour moins d'un centime pièce.
+
+Pour arbitrer autrement le temps d'un passage :
 
 ```bash
-MODELE=claude-sonnet-5 EFFORT=medium node outils/analyse-photos.mjs export.json
+MODELE=claude-opus-5 EFFORT=high node outils/analyse-photos.mjs export.json
 ```
 
 ## Ce qui reste manuel

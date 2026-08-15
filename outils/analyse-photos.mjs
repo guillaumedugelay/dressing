@@ -26,12 +26,31 @@ const COULEURS = ["noir", "blanc", "gris", "beige", "marine", "denim", "marron",
 const COUPES = ["ajuste", "droit", "ample"];
 const SAISONS = ["printemps", "ete", "automne", "hiver"];
 
-const MODELE = process.env.MODELE || "claude-opus-5";
-const EFFORT = process.env.EFFORT || "high";
+/* Sonnet 5 à effort moyen : choix de l'utilisateur, pour un rapport
+   qualité-prix adapté à une extraction structurée répétée cinq cents fois.
+   Se change au coup par coup avec MODELE= et EFFORT=. */
+const MODELE = process.env.MODELE || "claude-sonnet-5";
+const EFFORT = process.env.EFFORT || "medium";
 const PARALLELE = 4;
 
-/* Tarifs Claude Opus 5, pour le décompte final. */
-const TARIF = { entree: 5 / 1e6, sortie: 25 / 1e6 };
+/* Tarifs par million de jetons, pour le décompte final. Claude Sonnet 5 est
+   en tarif de lancement jusqu'au 31 août 2026 ; passée cette date, le calcul
+   bascule tout seul sur le tarif normal. */
+const TARIFS = {
+  "claude-opus-5":    { entree: 5, sortie: 25 },
+  "claude-sonnet-5":  { entree: 3, sortie: 15, lancement: { entree: 2, sortie: 10, jusquA: "2026-08-31" } },
+  "claude-haiku-4-5": { entree: 1, sortie: 5 },
+};
+
+function tarifDu(modele) {
+  const t = TARIFS[modele];
+  if (!t) return null;                       // modèle inconnu : pas d'estimation inventée
+  const l = t.lancement;
+  const actif = l && new Date().toISOString().slice(0, 10) <= l.jusquA;
+  return { entree: (actif ? l.entree : t.entree) / 1e6,
+           sortie: (actif ? l.sortie : t.sortie) / 1e6,
+           lancement: actif };
+}
 
 const SCHEMA = {
   type: "object",
@@ -205,10 +224,16 @@ await Promise.all(Array.from({ length: Math.min(PARALLELE, aTraiter.length) }, o
 
 /* ═══════════ Bilan ═══════════ */
 
-const cout = usage.entree * TARIF.entree + usage.sortie * TARIF.sortie;
+const tarif = tarifDu(MODELE);
 console.error(`\n${faits} analysées, ${echecs} en échec, en ${Math.round((Date.now() - debut) / 1000)} s.`);
-console.error(`Jetons : ${usage.entree} en entrée, ${usage.sortie} en sortie — environ ${cout.toFixed(2)} $.`);
-if (faits) console.error(`Soit ${(cout / faits).toFixed(4)} $ par pièce ; pour 500 pièces, environ ${(cout / faits * 500).toFixed(2)} $.`);
+console.error(`Jetons : ${usage.entree} en entrée, ${usage.sortie} en sortie.`);
+if (tarif) {
+  const cout = usage.entree * tarif.entree + usage.sortie * tarif.sortie;
+  console.error(`Coût : environ ${cout.toFixed(2)} $${tarif.lancement ? " (tarif de lancement)" : ""}.`);
+  if (faits) console.error(`Soit ${(cout / faits).toFixed(4)} $ par pièce ; pour 500 pièces, environ ${(cout / faits * 500).toFixed(2)} $.`);
+} else {
+  console.error(`Tarif inconnu pour ${MODELE} — pas d'estimation de coût.`);
+}
 
 const douteuses = rapport.filter((r) => r.confiance !== "haute");
 if (douteuses.length) {
