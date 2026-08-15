@@ -61,9 +61,11 @@ Les quatre formes de règle :
 - silhouette : une combinaison de coupes haut/bas qui fonctionne (ou pas, si le poids est négatif)
 - couleur : une couleur qui monte (poids positif) ou qui reflue (poids négatif)
 - association : deux couleurs qui vont bien ensemble cette saison
-- categorie : une catégorie de vêtement mise en avant, éventuellement dans une coupe précise
+- categorie : une catégorie de vêtement mise en avant, éventuellement dans une coupe précise. **Uniquement parmi manteau, pull, robe et accessoire** : toute tenue comporte déjà un haut, un bas et des chaussures, si bien qu'une règle sur ces trois-là s'applique à tout et ne départage rien.
 
 Le poids dit la force de la tendance, de -2 à 2. Réserve les valeurs au-delà de 1,5 aux tendances vraiment dominantes ; une tendance mentionnée une seule fois mérite 0,5.
+
+Une tendance que ce vocabulaire ne sait pas dire — une matière, un motif, un détail de coupe, un type de chaussure — doit être **abandonnée**, pas rabattue sur l'approximation la plus proche. Mieux vaut dix règles justes que douze dont deux sont fausses.
 
 Ne reprends aucune phrase des articles. La note est ta formulation, courte et concrète.
 
@@ -127,15 +129,18 @@ const { resume, regles } = JSON.parse(texte);
 /* Garde-fou : le moteur ne sait appliquer que le vocabulaire fermé. Une règle
    hors vocabulaire est écartée ici plutôt que ignorée silencieusement dans
    l'application. */
+/* Un haut, un bas et des chaussures figurent dans toute tenue : une règle qui
+   les vise s'ajouterait à chaque candidate sans jamais les départager. */
+const TOUJOURS_PRESENTES = ["haut", "bas", "chaussures"];
 const connu = (v, liste) => !v || liste.includes(v);
 const valides = regles.filter((r) => {
   const ok = connu(r.haut, COUPES) && connu(r.bas, COUPES) && connu(r.coupe, COUPES)
     && (r.type !== "couleur" || COULEURS.includes(r.valeur))
-    && (r.type !== "categorie" || CATEGORIES.includes(r.valeur))
+    && (r.type !== "categorie" || (CATEGORIES.includes(r.valeur) && !TOUJOURS_PRESENTES.includes(r.valeur)))
     && (r.type !== "association" || (Array.isArray(r.couleurs) && r.couleurs.length === 2
         && r.couleurs.every((c) => COULEURS.includes(c))))
     && Math.abs(r.poids) <= 2;
-  if (!ok) process.stderr.write(`  règle écartée (hors vocabulaire) : ${JSON.stringify(r)}\n`);
+  if (!ok) process.stderr.write(`  règle écartée : ${r.note || JSON.stringify(r)}\n`);
   return ok;
 });
 

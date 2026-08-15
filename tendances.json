@@ -41,12 +41,6 @@
       "note": "Bijoux imposants et grands sacs"
     },
     {
-      "type": "categorie",
-      "valeur": "chaussures",
-      "poids": 1,
-      "note": "Chaussures plates confortables, achat clé"
-    },
-    {
       "type": "couleur",
       "valeur": "beige",
       "poids": 1,

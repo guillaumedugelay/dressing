@@ -121,6 +121,21 @@ L'application charge ce fichier et lui applique les mêmes mécanismes de
 notation que ses règles de composition. Le moteur n'a presque pas changé :
 seule la table des règles est devenue mobile.
 
+### Deux garde-fous appris du premier passage réel
+
+Le premier corpus généré, le 15 août 2026, a produit une règle
+`categorie: chaussures` valant +1. Or **toute tenue comporte des chaussures** :
+la règle s'ajoutait à chaque candidate sans jamais les départager. Même chose
+pour `haut` et `bas`. Seuls `manteau`, `pull`, `robe` et `accessoire` sont
+facultatifs, donc discriminants — le script écarte désormais les autres, et la
+consigne l'explique.
+
+La cause profonde mérite d'être notée : la presse disait « chaussures plates
+confortables », une nuance que le vocabulaire ne sait pas exprimer. Le modèle
+l'a rabattue sur l'approximation la plus proche plutôt que de l'abandonner. La
+consigne lui demande maintenant explicitement de **renoncer** à une tendance
+inexprimable : mieux vaut dix règles justes que douze dont deux sont fausses.
+
 ### Ce que le vocabulaire actuel ne sait pas dire
 
 Une tendance porte souvent sur la **matière** (lin, cuir, maille), le

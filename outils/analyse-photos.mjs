@@ -73,14 +73,17 @@ const SCHEMA = {
     },
     dehors: { type: "boolean", description: "Vrai seulement si la pièce résiste réellement à la pluie ou à la neige (imperméable, ciré, bottines étanches, doudoune déperlante)." },
     confiance: { type: "string", enum: ["haute", "moyenne", "basse"], description: "Ton degré de certitude sur l'ensemble, pour signaler les pièces à revérifier." },
+    doute: { type: "string", description: "Si la confiance n'est pas haute : une phrase courte disant ce dont tu doutes et pourquoi, assez précise pour que le propriétaire sache quoi regarder — « la matière pourrait être du lin ou du coton mélangé », « la jupe est posée à plat, la coupe est difficile à juger ». Chaîne vide si la confiance est haute." },
   },
-  required: ["nom", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "saisons", "dehors", "confiance"],
+  required: ["nom", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "saisons", "dehors", "confiance", "doute"],
   additionalProperties: false,
 };
 
 const CONSIGNE = `Tu regardes la photo d'un vêtement, prise chez son propriétaire, pour remplir sa fiche dans une application de garde-robe.
 
-Décris la pièce **telle qu'elle est**, pas telle qu'elle devrait être. Si la photo est mauvaise, mal éclairée, ou si la pièce est pliée au point d'être ambiguë, choisis l'option la plus probable et baisse ta confiance : une pièce signalée « basse » sera revérifiée à la main, c'est fait pour.
+Décris la pièce **telle qu'elle est**, pas telle qu'elle devrait être. Si la photo est mauvaise, mal éclairée, ou si la pièce est pliée au point d'être ambiguë, choisis l'option la plus probable et baisse ta confiance.
+
+Quand tu n'es pas sûr, **dis où exactement**. Le propriétaire a plusieurs centaines de vêtements à relire : « confiance moyenne » l'oblige à tout réexaminer, tandis qu'une phrase précise lui dit quoi regarder. Nomme le champ qui te pose problème et la raison.
 
 Trois pièges à éviter :
 - **Le registre est un intervalle, pas un chiffre.** Beaucoup de vêtements se portent de plusieurs façons selon le reste de la tenue : une jupe unie est décontractée avec des baskets et soignée avec des escarpins, une chemise blanche va du décontracté à l'habillé, un jean brut du sport au soigné. Donne alors deux bornes différentes. Ne les égalise que pour une pièce réellement univoque — un sweat à capuche, un smoking, des tongs. Dans le doute, élargis : une pièce décrite trop étroitement sera écartée à tort de la moitié des tenues.
@@ -192,6 +195,7 @@ function appliquer(piece, lu) {
   piece.dehors = lu.dehors;
   piece.analyseeLe = new Date().toISOString().slice(0, 10);
   piece.confiance = lu.confiance;
+  if (lu.doute) piece.doute = lu.doute; else delete piece.doute;
 
   const change = [];
   for (const champ of ["nom", "categorie", "chaleur", "formaliteMin", "formaliteMax", "coupe", "dehors"])
@@ -221,7 +225,8 @@ async function ouvrier() {
       console.error(`  [${faits + echecs}/${aTraiter.length}] ${lu.nom} — ${lu.categorie}, ${lu.couleurs.join("+")}, `
         + `chaleur ${lu.chaleur}, ${registreLisible(lu)}, ${lu.coupe}`
         + `${lu.saisons.length ? `, ${lu.saisons.join("/")}` : ", toute l'année"}${lu.dehors ? ", imperméable" : ""}${marque}`);
-      rapport.push({ id: piece.id, nom: lu.nom, confiance: lu.confiance, change });
+      if (lu.doute) console.error(`        ↳ ${lu.doute}`);
+      rapport.push({ id: piece.id, nom: lu.nom, confiance: lu.confiance, doute: lu.doute, change });
     } catch (e) {
       echecs++;
       console.error(`  [${faits + echecs}/${aTraiter.length}] ${etiquette} — ÉCHEC : ${e.message}`);
@@ -248,7 +253,8 @@ if (tarif) {
 const douteuses = rapport.filter((r) => r.confiance !== "haute");
 if (douteuses.length) {
   console.error(`\n${douteuses.length} pièce(s) à revérifier dans l'application :`);
-  for (const d of douteuses) console.error(`  ${d.confiance === "basse" ? "⚠" : "·"} ${d.nom}`);
+  for (const d of douteuses)
+    console.error(`  ${d.confiance === "basse" ? "⚠" : "·"} ${d.nom}${d.doute ? ` — ${d.doute}` : ""}`);
 }
 
 /* Pas de process.exit() ici : couper le processus pendant que les connexions
