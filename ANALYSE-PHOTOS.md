@@ -107,6 +107,30 @@ Pour arbitrer autrement le temps d'un passage :
 MODELE=claude-opus-5 EFFORT=high node outils/analyse-photos.mjs export.json
 ```
 
+## Bien photographier
+
+Le premier essai a donné ce doute, formulé par le modèle lui-même :
+
+> « La jupe est froissée et posée à plat, la coupe exacte (évasée plissée) et
+> la matière précise sont difficiles à confirmer. »
+
+Aucune consigne ne rattrape ça : quand le doute porte sur ce que la photo ne
+montre pas, la correction est en amont. Quatre habitudes qui coûtent quelques
+secondes par pièce et évitent des dizaines de relectures :
+
+- **Suspendre plutôt que poser à plat**, sur un cintre ou une poignée de porte.
+  C'est ce qui révèle la coupe et le tombé — l'information la plus difficile à
+  retrouver autrement.
+- **Défroisser** d'un geste. Un vêtement froissé masque sa propre structure.
+- **Un fond uni et contrasté** : la pièce se détache, et la lecture des
+  couleurs y gagne aussi.
+- **Toute la pièce dans le cadre**, à la lumière du jour si possible. Une
+  photo cadrée serré perd la longueur, les manches, la forme générale.
+
+Le champ `doute` est là pour dire quand ça n'a pas suffi. Si les mêmes
+reproches reviennent sur beaucoup de pièces, c'est la façon de photographier
+qu'il faut ajuster, pas la consigne.
+
 ## Modifier la consigne
 
 La consigne donnée au modèle est du texte français ordinaire, dans
