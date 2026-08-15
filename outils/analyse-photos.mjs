@@ -241,12 +241,16 @@ if (douteuses.length) {
   for (const d of douteuses) console.error(`  ${d.confiance === "basse" ? "⚠" : "·"} ${d.nom}`);
 }
 
+/* Pas de process.exit() ici : couper le processus pendant que les connexions
+   du SDK se referment déclenche une assertion de libuv sous Windows
+   (« UV_HANDLE_CLOSING »), après coup et sans conséquence, mais alarmante et
+   assortie d'un code d'erreur. On laisse la boucle d'événements se vider. */
 if (simuler) {
   console.error("\n(--simuler : aucun fichier écrit)");
-  process.exit(0);
+} else {
+  const sortie = fichier.replace(/\.json$/i, "") + "-analyse.json";
+  writeFileSync(sortie, JSON.stringify(donnees, null, 1));
+  console.error(`\nÉcrit : ${sortie}`);
+  console.error("À réimporter dans l'application, en choisissant « Fusionner ».");
 }
-
-const sortie = fichier.replace(/\.json$/i, "") + "-analyse.json";
-writeFileSync(sortie, JSON.stringify(donnees, null, 1));
-console.error(`\nÉcrit : ${sortie}`);
-console.error("À réimporter dans l'application, en choisissant « Fusionner ».");
+if (echecs) process.exitCode = 1;
