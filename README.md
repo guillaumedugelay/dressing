@@ -16,7 +16,12 @@ Trois écrans :
   Si un lieu est configuré, la prévision du jour est relevée à l'ouverture et
   pré-règle les boutons ; tu peux toujours les corriger.
 - **Garde-robe** — photographier et décrire chaque pièce.
-- **Journal** — historique, statistiques, sauvegarde, garde-robe d'exemple.
+- **Journal** — historique, statistiques, météo, tendances, sauvegarde,
+  garde-robe d'exemple.
+
+Deux façons d'importer : **Fusionner** met à jour les fiches sans toucher au
+journal des tenues portées — c'est le mode normal, notamment après une analyse
+des photos. **Remplacer tout** est réservé à la restauration d'une sauvegarde.
 
 ## Les données
 
@@ -39,6 +44,12 @@ Les habitudes viennent du bouton *Je porte ça* et des avis 👍/👎. Elles ne
 peuvent que départager des tenues déjà adaptées à l'occasion — jamais imposer
 un polo-baskets un jour de travail. Le bonus qui remonte les pièces oubliées
 obéit à la même limite.
+
+**Sur les photos.** À la prise de vue, les couleurs dominantes sont lues dans
+le téléphone et pré-cochées — rien ne sort de l'appareil. Pour faire remplir
+*tous* les champs par un modèle de vision, voir [ANALYSE-PHOTOS.md](ANALYSE-PHOTOS.md) :
+l'analyse se fait par lots depuis un ordinateur, où la clé d'API peut vivre
+sans être exposée.
 
 **Sur la météo.** Le relevé se fait à l'ouverture, pas à heure fixe : iOS ne
 réveille pas une page web en arrière-plan. Il porte sur la prévision de la
@@ -63,12 +74,14 @@ Le détail des règles et des pondérations est dans [SPEC.md](SPEC.md).
 | `tendances.json` | le corpus de tendances, régénéré chaque semaine |
 | `icone-180.png` | icône d'écran d'accueil |
 | `manifest.webmanifest` | nom et affichage plein écran |
+| `outils/analyse-photos.mjs` | remplit les fiches à partir des photos, depuis le PC |
 | `outils/collecte.mjs` | collecte des sources publiques |
 | `outils/synthese.mjs` | traduction de la prose en règles chiffrées |
 | `outils/serveur-local.mjs` | petit serveur pour essayer l'app en local |
 | `.github/workflows/tendances.yml` | la tâche hebdomadaire |
 | `SPEC.md` | la spécification et les règles du moteur |
 | `TENDANCES.md` | l'architecture de la chaîne de tendances |
+| `ANALYSE-PHOTOS.md` | comment faire décrire la garde-robe par les photos |
 
 ## Essayer en local
 

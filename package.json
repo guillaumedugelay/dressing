@@ -1,0 +1,14 @@
+{
+  "name": "dressing",
+  "private": true,
+  "type": "module",
+  "description": "Outils hors ligne de l'application Dressing — analyse des photos, collecte et synthèse des tendances.",
+  "scripts": {
+    "serveur": "node outils/serveur-local.mjs",
+    "collecte": "node outils/collecte.mjs > corpus.json",
+    "synthese": "node outils/synthese.mjs < corpus.json > tendances.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}

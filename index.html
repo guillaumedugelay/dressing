@@ -388,8 +388,9 @@
       </p>
       <div style="display:flex;gap:9px">
         <button class="secondaire" id="btn-export" style="flex:1">Exporter</button>
-        <button class="secondaire" id="btn-import" style="flex:1">Importer</button>
+        <button class="secondaire" id="btn-fusionner" style="flex:1">Fusionner un fichier</button>
       </div>
+      <button class="secondaire danger" id="btn-remplacer">Remplacer tout par un fichier</button>
       <input type="file" id="fichier-import" accept="application/json" hidden>
     </div>
   </section>
@@ -1546,19 +1547,37 @@ function exporter() {
   toast("Fichier de sauvegarde créé");
 }
 
-async function importer(fichier) {
+/* Deux façons d'importer, et la distinction compte : après une analyse des
+   photos sur ordinateur, on veut réinjecter les fiches enrichies **sans**
+   effacer le journal des tenues portées ni les avis. C'est la fusion.
+   Le remplacement reste là pour restaurer une sauvegarde après un pépin. */
+async function importer(fichier, mode) {
   let donnees;
   try { donnees = JSON.parse(await fichier.text()); }
   catch { return toast("Ce fichier n'est pas une sauvegarde lisible"); }
   if (!Array.isArray(donnees.pieces)) return toast("Ce fichier n'est pas une sauvegarde Dressing");
-  if (!confirm(`Remplacer la garde-robe actuelle par cette sauvegarde (${donnees.pieces.length} pièces) ?`)) return;
-  await Promise.all(["pieces", "tenues", "avis"].map((m) => DB.vider(m)));
+
+  const connus = new Set(etat.pieces.map((p) => p.id));
+  const majs = donnees.pieces.filter((p) => connus.has(p.id)).length;
+  const neuves = donnees.pieces.length - majs;
+
+  if (mode === "remplacer") {
+    if (!confirm(`Remplacer toute la garde-robe par ce fichier ?\n\n`
+      + `${donnees.pieces.length} pièces entrantes. Tes ${etat.pieces.length} pièces actuelles, `
+      + `le journal et les avis seront effacés.`)) return;
+    await Promise.all(["pieces", "tenues", "avis"].map((m) => DB.vider(m)));
+    for (const t of donnees.tenues || []) await DB.poser("tenues", t);
+    for (const a of donnees.avis || []) await DB.poser("avis", a);
+  } else {
+    if (!confirm(`Fusionner ce fichier avec ta garde-robe ?\n\n`
+      + `${majs} pièce${majs > 1 ? "s" : ""} mise${majs > 1 ? "s" : ""} à jour, ${neuves} ajoutée${neuves > 1 ? "s" : ""}.\n`
+      + `Ton journal et tes avis ne sont pas touchés.`)) return;
+  }
+
   for (const p of donnees.pieces) await DB.poser("pieces", p);
-  for (const t of donnees.tenues || []) await DB.poser("tenues", t);
-  for (const a of donnees.avis || []) await DB.poser("avis", a);
   await charger();
   rendre();
-  toast("Sauvegarde restaurée");
+  toast(mode === "remplacer" ? "Sauvegarde restaurée" : `${majs} mises à jour, ${neuves} ajoutées`);
 }
 
 /* ═══════════ Réglage de la météo ═══════════ */
@@ -1776,8 +1795,13 @@ async function demarrer() {
 
   reglerMeteo();
   $("#btn-export").onclick = exporter;
-  $("#btn-import").onclick = () => $("#fichier-import").click();
-  $("#fichier-import").onchange = (e) => { if (e.target.files[0]) importer(e.target.files[0]); e.target.value = ""; };
+  let modeImport = "fusionner";
+  $("#btn-fusionner").onclick = () => { modeImport = "fusionner"; $("#fichier-import").click(); };
+  $("#btn-remplacer").onclick = () => { modeImport = "remplacer"; $("#fichier-import").click(); };
+  $("#fichier-import").onchange = (e) => {
+    if (e.target.files[0]) importer(e.target.files[0], modeImport);
+    e.target.value = "";
+  };
 
   majOnglets();
   rendre();

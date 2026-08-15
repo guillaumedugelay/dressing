@@ -1,0 +1,227 @@
+/* Analyse par lots des photos de la garde-robe.
+ *
+ * Se lance sur ton PC, jamais dans le téléphone : la clé d'API reste ici et
+ * n'est jamais exposée. Les photos ne font que transiter le temps d'un appel ;
+ * elles ne sont stockées nulle part ailleurs que dans le téléphone.
+ *
+ *   node outils/analyse-photos.mjs dressing-2026-08-14.json
+ *
+ * Écrit un fichier « …-analyse.json » à réimporter dans l'application, en
+ * choisissant « Fusionner » pour ne pas perdre le journal des tenues portées.
+ *
+ * Options :
+ *   --limite 5    n'analyser que les 5 premières pièces (pour essayer)
+ *   --simuler     afficher ce qui serait rempli, sans rien écrire
+ *   --forcer      réanalyser les pièces déjà analysées
+ *
+ * Requiert ANTHROPIC_API_KEY dans l'environnement.
+ */
+
+import Anthropic from "@anthropic-ai/sdk";
+import { readFileSync, writeFileSync } from "fs";
+
+const CATEGORIES = ["haut", "bas", "robe", "pull", "manteau", "chaussures", "accessoire"];
+const COULEURS = ["noir", "blanc", "gris", "beige", "marine", "denim", "marron",
+                  "rouge", "orange", "jaune", "vert", "bleu", "violet", "rose"];
+const COUPES = ["ajuste", "droit", "ample"];
+const SAISONS = ["printemps", "ete", "automne", "hiver"];
+
+const MODELE = process.env.MODELE || "claude-opus-5";
+const EFFORT = process.env.EFFORT || "high";
+const PARALLELE = 4;
+
+/* Tarifs Claude Opus 5, pour le décompte final. */
+const TARIF = { entree: 5 / 1e6, sortie: 25 / 1e6 };
+
+const SCHEMA = {
+  type: "object",
+  properties: {
+    nom: { type: "string", description: "Nom court en français, tel qu'on le dirait à l'oral : « chemise en lin blanc », « bottines en cuir marron »." },
+    categorie: { type: "string", enum: CATEGORIES },
+    couleurs: {
+      type: "array",
+      items: { type: "string", enum: COULEURS },
+      description: "Une couleur, ou deux si la pièce en porte vraiment deux de façon marquée. Jamais plus de deux.",
+    },
+    chaleur: { type: "integer", description: "1 très léger, 2 fin, 3 moyen, 4 chaud, 5 très chaud. Juge la matière et l'épaisseur, pas la couleur." },
+    formalite: { type: "integer", description: "1 sport, 2 décontracté, 3 soigné, 4 habillé." },
+    coupe: { type: "string", enum: COUPES },
+    saisons: {
+      type: "array",
+      items: { type: "string", enum: SAISONS },
+      description: "Les saisons où la pièce se porte. Liste vide si elle se porte toute l'année — c'est le cas le plus fréquent, ne restreins pas sans raison.",
+    },
+    dehors: { type: "boolean", description: "Vrai seulement si la pièce résiste réellement à la pluie ou à la neige (imperméable, ciré, bottines étanches, doudoune déperlante)." },
+    confiance: { type: "string", enum: ["haute", "moyenne", "basse"], description: "Ton degré de certitude sur l'ensemble, pour signaler les pièces à revérifier." },
+  },
+  required: ["nom", "categorie", "couleurs", "chaleur", "formalite", "coupe", "saisons", "dehors", "confiance"],
+  additionalProperties: false,
+};
+
+const CONSIGNE = `Tu regardes la photo d'un vêtement, prise chez son propriétaire, pour remplir sa fiche dans une application de garde-robe.
+
+Décris la pièce **telle qu'elle est**, pas telle qu'elle devrait être. Si la photo est mauvaise, mal éclairée, ou si la pièce est pliée au point d'être ambiguë, choisis l'option la plus probable et baisse ta confiance : une pièce signalée « basse » sera revérifiée à la main, c'est fait pour.
+
+Deux pièges à éviter :
+- **La chaleur se juge à la matière et à l'épaisseur**, pas à la couleur. Un pull noir fin n'est pas chaud parce qu'il est noir.
+- **Les saisons se restreignent rarement.** Un jean, une chemise, des baskets se portent toute l'année : laisse la liste vide. Ne coche des saisons que pour une pièce réellement saisonnière — short, doudoune, sandales, manteau d'hiver.
+
+Le nom doit être utile dans une liste de plusieurs centaines de vêtements : ce qui distingue cette pièce des autres du même type. « Chemise blanche Oxford » plutôt que « chemise ».`;
+
+/* ═══════════ Arguments ═══════════ */
+
+const args = process.argv.slice(2);
+const fichier = args.find((a) => !a.startsWith("--"));
+const option = (nom) => args.includes(nom);
+const valeur = (nom) => { const i = args.indexOf(nom); return i >= 0 ? args[i + 1] : null; };
+
+if (!fichier) {
+  console.error("Usage : node outils/analyse-photos.mjs <export.json> [--limite N] [--simuler] [--forcer]");
+  process.exit(1);
+}
+
+/* Sans cette vérification, l'absence de clé se manifesterait par une erreur
+   anglaise répétée une fois par pièce. */
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error("ANTHROPIC_API_KEY n'est pas dans l'environnement.\n");
+  console.error("  Crée une clé sur https://console.anthropic.com puis, dans ce terminal :");
+  console.error('    export ANTHROPIC_API_KEY="sk-ant-..."      (bash)');
+  console.error('    $env:ANTHROPIC_API_KEY = "sk-ant-..."      (PowerShell)\n');
+  console.error("La clé reste sur cet ordinateur : ne la mets ni dans le dépôt ni dans l'application.");
+  process.exit(1);
+}
+
+const limite = valeur("--limite") ? parseInt(valeur("--limite"), 10) : Infinity;
+const simuler = option("--simuler");
+const forcer = option("--forcer");
+
+const donnees = JSON.parse(readFileSync(fichier, "utf8"));
+if (!Array.isArray(donnees.pieces)) {
+  console.error("Ce fichier n'est pas un export Dressing (pas de tableau « pieces »).");
+  process.exit(1);
+}
+
+/* ═══════════ Sélection des pièces ═══════════ */
+
+const sansPhoto = donnees.pieces.filter((p) => !p.photo).length;
+const aTraiter = donnees.pieces
+  .filter((p) => p.photo && (forcer || !p.analyseeLe))
+  .slice(0, limite);
+
+console.error(`${donnees.pieces.length} pièces dans l'export.`);
+if (sansPhoto) console.error(`  ${sansPhoto} sans photo — ignorées.`);
+const dejaFaites = donnees.pieces.filter((p) => p.photo && p.analyseeLe).length;
+if (dejaFaites && !forcer) console.error(`  ${dejaFaites} déjà analysées — ignorées (--forcer pour refaire).`);
+console.error(`  ${aTraiter.length} à analyser avec ${MODELE}, effort ${EFFORT}.\n`);
+
+if (!aTraiter.length) { console.error("Rien à faire."); process.exit(0); }
+
+/* ═══════════ Analyse ═══════════ */
+
+const client = new Anthropic();
+const usage = { entree: 0, sortie: 0 };
+const rapport = [];
+
+function imageDepuisDataUrl(dataUrl) {
+  const m = /^data:(image\/[a-z+]+);base64,(.+)$/s.exec(dataUrl);
+  if (!m) throw new Error("photo illisible");
+  return { type: "base64", media_type: m[1], data: m[2] };
+}
+
+async function analyser(piece) {
+  const reponse = await client.messages.create({
+    model: MODELE,
+    max_tokens: 4000,
+    system: CONSIGNE,
+    output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
+    messages: [{
+      role: "user",
+      content: [
+        { type: "image", source: imageDepuisDataUrl(piece.photo) },
+        { type: "text", text: piece.nom
+          ? `Le propriétaire a nommé cette pièce « ${piece.nom} ». Garde ce nom s'il est juste, corrige-le s'il est manifestement faux.`
+          : "Cette pièce n'a pas encore de nom." },
+      ],
+    }],
+  });
+
+  usage.entree += reponse.usage.input_tokens;
+  usage.sortie += reponse.usage.output_tokens;
+
+  if (reponse.stop_reason === "refusal") throw new Error("analyse déclinée");
+  const texte = reponse.content.find((b) => b.type === "text")?.text;
+  if (!texte) throw new Error("réponse vide");
+  return JSON.parse(texte);
+}
+
+/* Le nom tapé par le propriétaire est le seul champ qu'on ne remplace pas :
+   c'est le seul qu'il a forcément saisi volontairement. */
+function appliquer(piece, lu) {
+  const avant = { ...piece };
+  if (!piece.nom) piece.nom = lu.nom;
+  piece.categorie = lu.categorie;
+  piece.couleurs = lu.couleurs.slice(0, 2);
+  piece.chaleur = Math.min(5, Math.max(1, lu.chaleur));
+  piece.formalite = Math.min(4, Math.max(1, lu.formalite));
+  piece.coupe = lu.coupe;
+  piece.saisons = lu.saisons;
+  piece.dehors = lu.dehors;
+  piece.analyseeLe = new Date().toISOString().slice(0, 10);
+  piece.confiance = lu.confiance;
+
+  const change = [];
+  for (const champ of ["nom", "categorie", "chaleur", "formalite", "coupe", "dehors"])
+    if (JSON.stringify(avant[champ]) !== JSON.stringify(piece[champ])) change.push(champ);
+  for (const champ of ["couleurs", "saisons"])
+    if (JSON.stringify(avant[champ] || []) !== JSON.stringify(piece[champ])) change.push(champ);
+  return change;
+}
+
+let faits = 0, echecs = 0;
+const file = [...aTraiter];
+
+async function ouvrier() {
+  while (file.length) {
+    const piece = file.shift();
+    const etiquette = piece.nom || piece.id;
+    try {
+      const lu = await analyser(piece);
+      const change = simuler ? [] : appliquer(piece, lu);
+      faits++;
+      const marque = lu.confiance === "basse" ? " ⚠ à revérifier" : lu.confiance === "moyenne" ? " ·" : "";
+      console.error(`  [${faits + echecs}/${aTraiter.length}] ${lu.nom} — ${lu.categorie}, ${lu.couleurs.join("+")}, `
+        + `chaleur ${lu.chaleur}, ${["", "sport", "décontracté", "soigné", "habillé"][lu.formalite]}, ${lu.coupe}`
+        + `${lu.saisons.length ? `, ${lu.saisons.join("/")}` : ", toute l'année"}${lu.dehors ? ", imperméable" : ""}${marque}`);
+      rapport.push({ id: piece.id, nom: lu.nom, confiance: lu.confiance, change });
+    } catch (e) {
+      echecs++;
+      console.error(`  [${faits + echecs}/${aTraiter.length}] ${etiquette} — ÉCHEC : ${e.message}`);
+    }
+  }
+}
+
+const debut = Date.now();
+await Promise.all(Array.from({ length: Math.min(PARALLELE, aTraiter.length) }, ouvrier));
+
+/* ═══════════ Bilan ═══════════ */
+
+const cout = usage.entree * TARIF.entree + usage.sortie * TARIF.sortie;
+console.error(`\n${faits} analysées, ${echecs} en échec, en ${Math.round((Date.now() - debut) / 1000)} s.`);
+console.error(`Jetons : ${usage.entree} en entrée, ${usage.sortie} en sortie — environ ${cout.toFixed(2)} $.`);
+if (faits) console.error(`Soit ${(cout / faits).toFixed(4)} $ par pièce ; pour 500 pièces, environ ${(cout / faits * 500).toFixed(2)} $.`);
+
+const douteuses = rapport.filter((r) => r.confiance !== "haute");
+if (douteuses.length) {
+  console.error(`\n${douteuses.length} pièce(s) à revérifier dans l'application :`);
+  for (const d of douteuses) console.error(`  ${d.confiance === "basse" ? "⚠" : "·"} ${d.nom}`);
+}
+
+if (simuler) {
+  console.error("\n(--simuler : aucun fichier écrit)");
+  process.exit(0);
+}
+
+const sortie = fichier.replace(/\.json$/i, "") + "-analyse.json";
+writeFileSync(sortie, JSON.stringify(donnees, null, 1));
+console.error(`\nÉcrit : ${sortie}`);
+console.error("À réimporter dans l'application, en choisissant « Fusionner ».");
