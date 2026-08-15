@@ -32,7 +32,7 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `saisons` | 0 à 4 saisons | **filtre strict** — aucune cochée = toute l'année |
 | `coupe` | ajusté, droit, ample | contraste de silhouette |
 | `dehors` | oui / non | résiste à la pluie et à la neige |
-| `photo` | JPEG redimensionné à 640 px | reconnaissance visuelle |
+| `photo` | JPEG redimensionné à 640 px | reconnaissance visuelle ; les couleurs y sont lues automatiquement |
 | `porteLe` | liste de dates | récence et statistiques |
 
 ### Tenue portée
@@ -163,7 +163,7 @@ qu'il fera à quatorze heures décide de la tenue, pas ce qu'il fait au réveil.
 | Point | Décision |
 |---|---|
 | Source | [Open-Meteo](https://open-meteo.com) — gratuit, sans clé ni compte |
-| Lieu | position de l'appareil, ou nom de ville cherché dans l'application |
+| Lieu | position de l'appareil (nommée par géocodage inverse OpenStreetMap), ou nom de ville cherché dans l'application |
 | Correspondance | codes temps de l'OMM → soleil / nuages / pluie / neige |
 | Température | ressenti maximal → chaud ≥ 22°, doux ≥ 12°, frais ≥ 3°, froid < 3° |
 | Cache | un relevé par jour, conservé : rouvrir hors ligne retrouve celui du matin |
@@ -171,6 +171,29 @@ qu'il fera à quatorze heures décide de la tenue, pas ce qu'il fait au réveil.
 
 Le relevé **pré-règle** les boutons, il ne les verrouille pas : un appui sur un
 autre bouton reste souverain, et le bandeau le dit explicitement.
+
+## 5 quater. Lecture des couleurs sur la photo
+
+À la prise de vue, l'application lit les couleurs dominantes du vêtement et
+pré-coche les pastilles correspondantes. **Tout se passe dans le téléphone** :
+les pixels sont analysés sur place, la photo ne part nulle part.
+
+L'image est échantillonnée sur ses 60 % centraux, là où se trouve le vêtement,
+pour éviter le fond. Chaque pixel est classé non pas par ressemblance avec les
+pastilles de la palette — un beige photographié ne tombe jamais pile sur
+`#CDBBA0` — mais par teinte, saturation et clarté, ce qui résiste aux
+variations d'éclairage. Une seconde couleur n'est proposée que si elle occupe
+plus d'un quart de la pièce, faute de quoi un reflet deviendrait un motif.
+
+La lecture **propose** : elle ne s'applique que si aucune couleur n'a encore
+été choisie, et le premier clic sur une pastille efface la mention.
+
+Mesuré sur 17 cas, dont un marine sous-exposé, un jean délavé et un noir
+photographié (jamais pur) : **17 sur 17**.
+
+Ce que cette lecture ne sait pas faire : deviner la catégorie, la coupe, la
+formalité ou la chaleur. Ces champs restent à remplir à la main — les déduire
+supposerait d'envoyer la photo à un modèle de vision, décision non prise.
 
 ## 6. Composition et tendances
 
