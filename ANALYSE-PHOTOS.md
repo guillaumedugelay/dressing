@@ -107,6 +107,27 @@ Pour arbitrer autrement le temps d'un passage :
 MODELE=claude-opus-5 EFFORT=high node outils/analyse-photos.mjs export.json
 ```
 
+## Modifier la consigne
+
+La consigne donnée au modèle est du texte français ordinaire, dans
+`outils/analyse-photos.mjs`. C'est le levier principal quand un champ est
+systématiquement mal rempli.
+
+Elle vit dans une chaîne de gabarit délimitée par des accents graves : **n'en
+utilise aucun à l'intérieur**, sous peine de terminer la chaîne au milieu d'une
+phrase. Après toute modification :
+
+```bash
+npm run verifier
+```
+
+Cette commande contrôle la syntaxe des quatre outils sans les exécuter.
+Puis compare le résultat sur quelques pièces, sans rien écrire :
+
+```bash
+node outils/analyse-photos.mjs export.json --forcer --simuler
+```
+
 ## Ce qui reste manuel
 
 Rien d'obligatoire — mais l'analyse propose, elle ne décide pas. Relis au
