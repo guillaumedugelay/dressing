@@ -67,7 +67,7 @@ téléphone, puis Journal → `Fusionner un fichier`.
 | `categorie` | oui | haut, bas, robe, pull, manteau, chaussures, accessoire |
 | `couleurs` | oui | une ou deux parmi les quatorze |
 | `chaleur` | oui | jugée sur la matière et l'épaisseur, pas sur la couleur |
-| `formalite` | oui | sport, décontracté, soigné, habillé |
+| `formaliteMin` / `formaliteMax` | oui | un **intervalle** : une jupe unie est « décontracté à soigné ». Les pièces univoques ont min = max |
 | `coupe` | oui | ajusté, droit, ample |
 | `saisons` | oui | vide = toute l'année, et c'est le cas courant |
 | `dehors` | oui | vrai seulement si la pièce résiste réellement à l'eau |

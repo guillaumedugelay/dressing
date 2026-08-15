@@ -63,17 +63,18 @@ const SCHEMA = {
       description: "Une couleur, ou deux si la pièce en porte vraiment deux de façon marquée. Jamais plus de deux.",
     },
     chaleur: { type: "integer", description: "1 très léger, 2 fin, 3 moyen, 4 chaud, 5 très chaud. Juge la matière et l'épaisseur, pas la couleur." },
-    formalite: { type: "integer", description: "1 sport, 2 décontracté, 3 soigné, 4 habillé." },
+    formaliteMin: { type: "integer", description: "Registre le plus décontracté où la pièce se porte. 1 sport, 2 décontracté, 3 soigné, 4 habillé." },
+    formaliteMax: { type: "integer", description: "Registre le plus habillé où la pièce se porte. Égal à formaliteMin si la pièce ne se porte que d'une façon." },
     coupe: { type: "string", enum: COUPES },
     saisons: {
       type: "array",
       items: { type: "string", enum: SAISONS },
-      description: "Les saisons où la pièce se porte. Liste vide si elle se porte toute l'année — c'est le cas le plus fréquent, ne restreins pas sans raison.",
+      description: "Liste vide = toute l'année, et c'est la réponse attendue dans la grande majorité des cas. Ne coche des saisons que si la pièce elle-même l'impose physiquement.",
     },
     dehors: { type: "boolean", description: "Vrai seulement si la pièce résiste réellement à la pluie ou à la neige (imperméable, ciré, bottines étanches, doudoune déperlante)." },
     confiance: { type: "string", enum: ["haute", "moyenne", "basse"], description: "Ton degré de certitude sur l'ensemble, pour signaler les pièces à revérifier." },
   },
-  required: ["nom", "categorie", "couleurs", "chaleur", "formalite", "coupe", "saisons", "dehors", "confiance"],
+  required: ["nom", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "saisons", "dehors", "confiance"],
   additionalProperties: false,
 };
 
@@ -81,7 +82,8 @@ const CONSIGNE = `Tu regardes la photo d'un vêtement, prise chez son propriéta
 
 Décris la pièce **telle qu'elle est**, pas telle qu'elle devrait être. Si la photo est mauvaise, mal éclairée, ou si la pièce est pliée au point d'être ambiguë, choisis l'option la plus probable et baisse ta confiance : une pièce signalée « basse » sera revérifiée à la main, c'est fait pour.
 
-Deux pièges à éviter :
+Trois pièges à éviter :
+- **Le registre est un intervalle, pas un chiffre.** Beaucoup de vêtements se portent de plusieurs façons selon le reste de la tenue : une jupe unie est décontractée avec des baskets et soignée avec des escarpins, une chemise blanche va du décontracté à l'habillé, un jean brut du sport au soigné. Donne alors `formaliteMin` et `formaliteMax` différents. Ne les égalise que pour une pièce réellement univoque — un sweat à capuche, un smoking, des tongs. Dans le doute, élargis : une pièce décrite trop étroitement sera écartée à tort de la moitié des tenues.
 - **La chaleur se juge à la matière et à l'épaisseur**, pas à la couleur. Un pull noir fin n'est pas chaud parce qu'il est noir.
 - **Les saisons se restreignent très rarement.** La liste vide est la réponse par défaut, pas un aveu d'ignorance. Applique ce test : la pièce est-elle *impossible* à porter dans les autres saisons, une fois la tenue complétée ? Une jupe se porte en hiver avec des collants, une robe sans manches sous un gilet, une chemise fine sous un pull : toutes ces pièces sont **toute l'année**. Ne coche des saisons que si la pièce elle-même l'impose — doudoune, sandales, short de bain, manteau d'hiver. Ne te laisse pas guider par le motif ou la couleur : un imprimé fleuri n'est pas une pièce d'été.
 
@@ -181,7 +183,10 @@ function appliquer(piece, lu) {
   piece.categorie = lu.categorie;
   piece.couleurs = lu.couleurs.slice(0, 2);
   piece.chaleur = Math.min(5, Math.max(1, lu.chaleur));
-  piece.formalite = Math.min(4, Math.max(1, lu.formalite));
+  const borne = (v) => Math.min(4, Math.max(1, v));
+  piece.formaliteMin = Math.min(borne(lu.formaliteMin), borne(lu.formaliteMax));
+  piece.formaliteMax = Math.max(borne(lu.formaliteMin), borne(lu.formaliteMax));
+  delete piece.formalite;
   piece.coupe = lu.coupe;
   piece.saisons = lu.saisons;
   piece.dehors = lu.dehors;
@@ -189,12 +194,17 @@ function appliquer(piece, lu) {
   piece.confiance = lu.confiance;
 
   const change = [];
-  for (const champ of ["nom", "categorie", "chaleur", "formalite", "coupe", "dehors"])
+  for (const champ of ["nom", "categorie", "chaleur", "formaliteMin", "formaliteMax", "coupe", "dehors"])
     if (JSON.stringify(avant[champ]) !== JSON.stringify(piece[champ])) change.push(champ);
   for (const champ of ["couleurs", "saisons"])
     if (JSON.stringify(avant[champ] || []) !== JSON.stringify(piece[champ])) change.push(champ);
   return change;
 }
+
+const REGISTRES = ["", "sport", "décontracté", "soigné", "habillé"];
+const registreLisible = (lu) => lu.formaliteMin === lu.formaliteMax
+  ? REGISTRES[lu.formaliteMin]
+  : `${REGISTRES[lu.formaliteMin]} à ${REGISTRES[lu.formaliteMax]}`;
 
 let faits = 0, echecs = 0;
 const file = [...aTraiter];
@@ -209,7 +219,7 @@ async function ouvrier() {
       faits++;
       const marque = lu.confiance === "basse" ? " ⚠ à revérifier" : lu.confiance === "moyenne" ? " ·" : "";
       console.error(`  [${faits + echecs}/${aTraiter.length}] ${lu.nom} — ${lu.categorie}, ${lu.couleurs.join("+")}, `
-        + `chaleur ${lu.chaleur}, ${["", "sport", "décontracté", "soigné", "habillé"][lu.formalite]}, ${lu.coupe}`
+        + `chaleur ${lu.chaleur}, ${registreLisible(lu)}, ${lu.coupe}`
         + `${lu.saisons.length ? `, ${lu.saisons.join("/")}` : ", toute l'année"}${lu.dehors ? ", imperméable" : ""}${marque}`);
       rapport.push({ id: piece.id, nom: lu.nom, confiance: lu.confiance, change });
     } catch (e) {

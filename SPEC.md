@@ -27,7 +27,7 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `nom` | texte libre | identification |
 | `categorie` | haut, bas, robe, pull, manteau, chaussures, accessoire | composition de la tenue |
 | `chaleur` | 1 (léger) → 5 (très chaud) | adéquation à la température |
-| `formalite` | 1 (sport) → 4 (habillé) | adéquation à l'activité |
+| `formaliteMin` / `formaliteMax` | 1 (sport) → 4 (habillé) | **intervalle** — adéquation à l'activité |
 | `couleurs` | 1 à 2 parmi 14 | harmonie chromatique |
 | `saisons` | 0 à 4 saisons | **filtre strict** — aucune cochée = toute l'année |
 | `coupe` | ajusté, droit, ample | contraste de silhouette |
@@ -66,9 +66,29 @@ cible dérivée de la température déclarée : chaud → 4, doux → 7, frais �
 froid → 14. Chaque point d'écart coûte 1,5.
 
 **Formalité.** L'activité fixe une cible : travail → 3, loisir → 2,
-vacances → 1,5. L'écart moyen des pièces à cette cible coûte 1,4 par point.
-Un écart de plus de 2 entre deux pièces de la même tenue est pénalisé
-séparément : c'est ce qui interdit les baskets de sport sous un costume.
+vacances → 1,5.
+
+Le registre d'un vêtement n'est **pas un chiffre mais un intervalle** : une
+jupe unie est décontractée avec des baskets et soignée avec des escarpins, un
+jean brut va du sport au soigné. Les pièces les plus utiles d'une garde-robe
+étant les plus polyvalentes, les décrire par une valeur unique obligeait à
+mentir à moitié.
+
+Chaque pièce adopte donc, dans une tenue donnée, la valeur de son intervalle
+la plus proche de la cible. Une pièce polyvalente ne coûte rien ; une pièce
+rigide paie son écart. L'écart moyen à la cible coûte 1,4 par point.
+
+**L'incompatibilité, elle, se juge sur les intervalles bruts** — pas sur les
+valeurs adaptées. Deux pièces dont les registres se recouvrent vont ensemble ;
+un écart de plus d'un cran entre deux registres coûte 2,5 par cran
+supplémentaire. C'est ce qui interdit le sweat à capuche sous un pantalon de
+costume, quelle que soit l'occasion déclarée.
+
+> Ce point a failli m'échapper : rendre les pièces adaptables rapprochait
+> artificiellement une veste de costume et des baskets, et neutralisait le
+> garde-fou. Mesuré après correction, pour une tenue de travail :
+> costume + derbies **2,05** › costume + baskets blanches **0,48** ›
+> costume + sweat à capuche **−2,78** › costume + tongs **−3,98**.
 
 **Cohérence saisonnière.** La somme des chaleurs peut tomber juste sur un
 assemblage absurde — un short sous une doudoune, des sandales sous une parka.
