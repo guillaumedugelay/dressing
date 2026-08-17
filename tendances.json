@@ -1,5 +1,5 @@
 {
-  "revision": "2026-08-15",
+  "revision": "2026-08-17",
   "origine": "synthese-automatique",
   "sources": [
     "Vogue",
@@ -7,78 +7,79 @@
     "Who What Wear",
     "WWD"
   ],
-  "resume": "La semaine est entièrement tournée vers la transition vers l'automne : vestes légères, mailles et denim reviennent au premier plan, avec des hauts larges portés sur des bas droits. Côté couleurs, les neutres lavés (beige, brun, noir) dominent, ponctués de touches de lilas, et les accessoires se font volontairement plus gros.",
+  "resume": "La semaine est clairement tournée vers la transition vers l'automne : vestes et trenchs, mailles fines et jeans forment la base, avec des accessoires soignés en point final. Côté couleur, le rouge franc s'impose sur les pantalons et les robes, tandis que le beige d'esprit workwear et une touche de lilas complètent la palette.",
   "regles": [
     {
       "type": "categorie",
       "valeur": "manteau",
+      "coupe": "droit",
       "poids": 1.5,
-      "note": "Veste légère de mi-saison, priorité absolue"
-    },
-    {
-      "type": "couleur",
-      "valeur": "denim",
-      "poids": 1.5,
-      "note": "Le jean brut revient partout"
+      "note": "Veste ou trench droit, pièce clé"
     },
     {
       "type": "categorie",
       "valeur": "pull",
-      "poids": 1.2,
-      "note": "Maille coton et polaire fine, superposables"
-    },
-    {
-      "type": "silhouette",
-      "haut": "ample",
-      "bas": "droit",
-      "poids": 1.2,
-      "note": "Chemise large sur jean droit"
+      "poids": 1,
+      "note": "Pull en coton pour la mi-saison"
     },
     {
       "type": "categorie",
       "valeur": "accessoire",
       "poids": 1.2,
-      "note": "Bijoux imposants et grands sacs"
-    },
-    {
-      "type": "couleur",
-      "valeur": "beige",
-      "poids": 1,
-      "note": "Neutres lavés inspirés du workwear"
-    },
-    {
-      "type": "association",
-      "couleurs": [
-        "beige",
-        "marron"
-      ],
-      "poids": 0.8,
-      "note": "Camaïeu terreux, très facile le matin"
-    },
-    {
-      "type": "couleur",
-      "valeur": "noir",
-      "poids": 0.8,
-      "note": "Look tout noir, valeur sûre du soir"
+      "note": "Sac structuré et montre bien choisie"
     },
     {
       "type": "categorie",
       "valeur": "robe",
+      "poids": 1,
+      "note": "Robe longue fluide, du jour au soir"
+    },
+    {
+      "type": "couleur",
+      "valeur": "denim",
+      "poids": 1.5,
+      "note": "Le jean reste la base quotidienne"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rouge",
+      "poids": 1.5,
+      "note": "Rouge franc sur pantalon et robe"
+    },
+    {
+      "type": "couleur",
+      "valeur": "beige",
       "poids": 0.8,
-      "note": "Robe longue fluide ou robe-chemise"
+      "note": "Beige workwear, esprit vestiaire militaire"
     },
     {
       "type": "couleur",
       "valeur": "violet",
       "poids": 0.5,
-      "note": "Touche de lilas sur les sorties"
+      "note": "Lilas en touche, vu sur tapis rouge"
+    },
+    {
+      "type": "association",
+      "couleurs": [
+        "rouge",
+        "denim"
+      ],
+      "poids": 1,
+      "note": "Le rouge réveille un jean brut"
+    },
+    {
+      "type": "silhouette",
+      "haut": "droit",
+      "bas": "droit",
+      "poids": 1.2,
+      "note": "Veste droite, tee-shirt, jean droit"
     },
     {
       "type": "silhouette",
       "haut": "ample",
-      "bas": "ample",
+      "bas": "ajuste",
       "poids": 0.5,
-      "note": "Duo large assumé, short long inclus"
+      "note": "Haut ample sur bas très ajusté"
     }
   ]
 }
