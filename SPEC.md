@@ -184,7 +184,12 @@ vignettes, avec `j'aime`, `je n'aime pas` et `Je porte ça`. En dessous,
 `Montre-moi autre chose` relance en écartant les pièces déjà vues, et la
 révision du corpus de style est rappelée.
 
-Chaque proposition porte un repli **« Pourquoi cette tenue ? »** qui met le
+Chaque proposition porte une **jauge en cinq blocs** — bancale, passable,
+correcte, bonne, excellente — assortie du score brut en petit. Les paliers
+évitent une fausse précision : le chiffre ne veut rien dire pour qui s'habille,
+mais il explique pourquoi une tenue passe devant une autre.
+
+Chaque proposition porte aussi un repli **« Pourquoi cette tenue ? »** qui met le
 calcul en mots : adéquation à l'occasion et au temps, harmonie des couleurs,
 proportion de la silhouette, motif, règles de tendance touchées, pièces
 oubliées qui ressortent. L'application n'ayant ni réseau ni modèle de langage,

@@ -138,8 +138,19 @@
   }
   .tenue .rang { font-family: var(--serif); font-size: 17px; }
   .tenue .note {
-    font-family: var(--mono); font-size: 11px; color: var(--texte-doux);
-    font-variant-numeric: tabular-nums;
+    font-size: 11.5px; color: var(--texte-doux); margin: 0 0 11px;
+  }
+  .jauge { display: flex; align-items: center; gap: 7px; }
+  .jauge .blocs { display: flex; gap: 2.5px; }
+  .jauge i {
+    width: 7px; height: 13px; border-radius: 2px;
+    background: var(--trait); display: block;
+  }
+  .jauge i.plein { background: var(--accent); }
+  .jauge .mot { font-size: 11.5px; color: var(--texte-doux); }
+  .jauge .brut {
+    font-family: var(--mono); font-size: 10px; color: var(--texte-doux);
+    opacity: .55; font-variant-numeric: tabular-nums;
   }
   .portant { display: flex; gap: 9px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
   .piece { flex: 0 0 84px; }
@@ -1470,6 +1481,29 @@ function boutonsChoix(hote, options, valeurActuelle, auClic) {
   });
 }
 
+/* Le score brut ne veut rien dire pour qui s'habille : le montrer tel quel
+   ferait croire à une précision qui n'existe pas. On le range donc en cinq
+   paliers, avec le mot qui va avec — et le chiffre reste lisible en petit,
+   pour qui veut comprendre pourquoi une tenue passe devant une autre. */
+const PALIERS = [
+  { seuil: 2.5, blocs: 5, mot: "excellente" },
+  { seuil: 1.5, blocs: 4, mot: "bonne" },
+  { seuil: 0.5, blocs: 3, mot: "correcte" },
+  { seuil: -1,  blocs: 2, mot: "passable" },
+  { seuil: -Infinity, blocs: 1, mot: "bancale" },
+];
+
+function jauge(score) {
+  const p = PALIERS.find((x) => score >= x.seuil);
+  const blocs = Array.from({ length: 5 }, (_, i) =>
+    `<i class="${i < p.blocs ? "plein" : ""}"></i>`).join("");
+  return `<span class="jauge" title="score ${score.toFixed(2)}">
+    <span class="blocs">${blocs}</span>
+    <span class="mot">${p.mot}</span>
+    <span class="brut">${score.toFixed(1)}</span>
+  </span>`;
+}
+
 function vignette(piece, classe = "vignette") {
   return piece.photo
     ? `<img class="${classe}" src="${piece.photo}" alt="${echapper(piece.nom)}">`
@@ -1484,8 +1518,9 @@ function rendreJour() {
     <article class="tenue">
       <div class="entete">
         <span class="rang">Tenue ${i + 1}</span>
-        <span class="note">${t.detail.slice(0, 2).join(" · ") || "au plus proche"}</span>
+        ${jauge(t.score)}
       </div>
+      <p class="note">${t.detail.slice(0, 3).join(" · ") || "au plus proche"}</p>
       <div class="portant">
         ${t.pieces.map((p) => `
           <div class="piece">
