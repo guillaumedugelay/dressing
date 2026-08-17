@@ -27,6 +27,9 @@ const COULEURS = ["noir", "blanc", "gris", "beige", "marine", "denim", "marron",
                   "rouge", "orange", "jaune", "vert", "bleu", "violet", "rose"];
 const COUPES = ["ajuste", "droit", "ample"];
 const SAISONS = ["printemps", "ete", "automne", "hiver"];
+const MOTIFS = ["uni", "raye", "carreaux", "imprime"];
+const LONGUEURS = ["court", "genoux", "long"];
+const MATIERES = ["coton", "lin", "laine", "denim", "maille", "cuir", "soie", "synthetique"];
 
 /* Sonnet 5 à effort moyen : choix de l'utilisateur, pour un rapport
    qualité-prix adapté à une extraction structurée répétée cinq cents fois.
@@ -74,11 +77,14 @@ const SCHEMA = {
       description: "Liste vide = toute l'année, et c'est la réponse attendue dans la grande majorité des cas. Ne coche des saisons que si la pièce elle-même l'impose physiquement.",
     },
     dehors: { type: "boolean", description: "Vrai seulement si la pièce résiste réellement à la pluie ou à la neige (imperméable, ciré, bottines étanches, doudoune déperlante)." },
+    motif: { type: "string", enum: MOTIFS, description: "La grande majorité des vêtements sont unis." },
+    longueur: { type: "string", description: "court, genoux ou long. Chaîne vide pour un haut, un pull, des chaussures ou un accessoire, où la notion n'a pas de sens." },
+    matiere: { type: "string", enum: MATIERES, description: "La matière dominante. Choisis la plus proche si elle n'est pas dans la liste." },
     description: { type: "string", description: "Deux phrases décrivant la pièce telle qu'on la verrait en main : matière et tissage, longueur, coupe précise, motif, détails de construction — col, poches, boutons, taille, doublure, fermeture. Consigne le concret et l'observable, pas le jugement : « coton épais non extensible » plutôt que « jolie matière ». C'est la mémoire de ce que la fiche ne sait pas encore stocker." },
     confiance: { type: "string", enum: ["haute", "moyenne", "basse"], description: "Ton degré de certitude sur l'ensemble, pour signaler les pièces à revérifier." },
     doute: { type: "string", description: "Si la confiance n'est pas haute : une phrase courte disant ce dont tu doutes et pourquoi, assez précise pour que le propriétaire sache quoi regarder — « la matière pourrait être du lin ou du coton mélangé », « la jupe est posée à plat, la coupe est difficile à juger ». Chaîne vide si la confiance est haute." },
   },
-  required: ["nom", "description", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "saisons", "dehors", "confiance", "doute"],
+  required: ["nom", "description", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "motif", "longueur", "matiere", "saisons", "dehors", "confiance", "doute"],
   additionalProperties: false,
 };
 
@@ -205,6 +211,9 @@ function appliquer(piece, lu) {
   piece.formaliteMax = Math.max(borne(lu.formaliteMin), borne(lu.formaliteMax));
   delete piece.formalite;
   piece.coupe = lu.coupe;
+  piece.motif = MOTIFS.includes(lu.motif) ? lu.motif : "";
+  piece.longueur = LONGUEURS.includes(lu.longueur) ? lu.longueur : "";
+  piece.matiere = MATIERES.includes(lu.matiere) ? lu.matiere : "";
   piece.saisons = lu.saisons;
   piece.dehors = lu.dehors;
   piece.analyseeLe = new Date().toISOString().slice(0, 10);
@@ -212,7 +221,7 @@ function appliquer(piece, lu) {
   if (lu.doute) piece.doute = lu.doute; else delete piece.doute;
 
   const change = [];
-  for (const champ of ["nom", "categorie", "chaleur", "formaliteMin", "formaliteMax", "coupe", "dehors"])
+  for (const champ of ["nom", "categorie", "chaleur", "formaliteMin", "formaliteMax", "coupe", "motif", "longueur", "matiere", "dehors"])
     if (JSON.stringify(avant[champ]) !== JSON.stringify(piece[champ])) change.push(champ);
   for (const champ of ["couleurs", "saisons"])
     if (JSON.stringify(avant[champ] || []) !== JSON.stringify(piece[champ])) change.push(champ);

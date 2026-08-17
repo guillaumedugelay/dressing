@@ -31,6 +31,9 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `couleurs` | 1 à 2 parmi 14 | harmonie chromatique |
 | `saisons` | 0 à 4 saisons | **filtre strict** — aucune cochée = toute l'année |
 | `coupe` | ajusté, droit, ample | contraste de silhouette |
+| `motif` | uni, rayé, carreaux, imprimé | un motif se porte seul |
+| `longueur` | court, genoux, long — bas, robes et manteaux | prise pour les tendances |
+| `matiere` | coton, lin, laine, denim, maille, cuir, soie, synthétique | prise pour les tendances |
 | `dehors` | oui / non | résiste à la pluie et à la neige |
 | `photo` | JPEG redimensionné à 640 px | reconnaissance visuelle ; les couleurs y sont lues automatiquement |
 | `porteLe` | liste de dates | récence et statistiques |
@@ -142,6 +145,16 @@ effets opposés, volontairement dissymétriques :
   d'autant plus qu'elle est récente ;
 - une pièce oubliée est **remontée** : +1,4 si elle n'est jamais sortie du
   placard, +1,1 au-delà de deux mois, +0,7 au-delà d'un mois.
+
+**Motif.** Un imprimé se porte seul : un seul motif dans la tenue vaut +0,5,
+deux ou plus coûtent 1,8. Une pièce sans motif renseigné ne compte ni pour ni
+contre.
+
+> Ce terme comble un angle mort mesuré. Le moteur ne voyait que des couleurs :
+> il pénalisait un imprimé sur un uni — une bonne association — et laissait
+> passer deux motifs de même gamme, qu'aucune règle de couleur ne distingue.
+> Après correction : imprimé + uni **0,70**, uni + uni **−0,50**, deux motifs
+> **−2,30**.
 
 **Style contemporain.** Un corpus de règles daté (voir section 6) :
 contraste de silhouette entre le haut et le bas, camaïeu, accent unique sur

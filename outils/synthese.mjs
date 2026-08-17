@@ -16,6 +16,9 @@ const COULEURS = ["noir", "blanc", "gris", "beige", "marine", "denim", "marron",
                   "rouge", "orange", "jaune", "vert", "bleu", "violet", "rose"];
 const COUPES = ["ajuste", "droit", "ample"];
 const CATEGORIES = ["haut", "bas", "robe", "pull", "manteau", "chaussures", "accessoire"];
+const MOTIFS = ["uni", "raye", "carreaux", "imprime"];
+const LONGUEURS = ["court", "genoux", "long"];
+const MATIERES = ["coton", "lin", "laine", "denim", "maille", "cuir", "soie", "synthetique"];
 
 const SCHEMA = {
   type: "object",
@@ -30,14 +33,15 @@ const SCHEMA = {
       items: {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["silhouette", "couleur", "association", "categorie"] },
+          type: { type: "string", enum: ["silhouette", "couleur", "association", "categorie", "motif", "longueur", "matiere", "descriptive"] },
           haut: { type: "string", enum: COUPES, description: "type silhouette uniquement" },
           bas: { type: "string", enum: COUPES, description: "type silhouette uniquement" },
-          valeur: { type: "string", description: "type couleur : une couleur ; type categorie : une catégorie" },
+          valeur: { type: "string", description: "couleur : une couleur ; categorie : une catégorie ; motif, longueur, matiere : une valeur de la liste correspondante" },
           couleurs: { type: "array", items: { type: "string" }, description: "type association : exactement deux couleurs" },
           coupe: { type: "string", enum: COUPES, description: "type categorie : coupe attendue, facultatif" },
           poids: { type: "number", description: "entre -2 et 2" },
           note: { type: "string", description: "quatre à huit mots en français, affichés dans l'application" },
+          texte: { type: "string", description: "type descriptive uniquement : la tendance formulée en une phrase, telle qu'on la reconnaîtrait dans la description d'un vêtement. Chaîne vide pour les autres types." },
         },
         required: ["type", "poids", "note"],
         additionalProperties: false,
@@ -52,20 +56,27 @@ const CONSIGNE = `Tu es styliste. On te donne les titres et chapôs de la presse
 
 Ta tâche : en dégager les tendances vestimentaires du moment, puis les traduire dans le vocabulaire fermé d'une application de garde-robe. C'est une traduction, pas une invention : chaque règle doit s'appuyer sur ce que tu lis, et une tendance que le vocabulaire ne sait pas exprimer doit être écartée plutôt que déformée.
 
-Le vocabulaire disponible, et rien d'autre :
+Le vocabulaire disponible :
 - couleurs : ${COULEURS.join(", ")}
 - coupes : ${COUPES.join(", ")}
 - catégories : ${CATEGORIES.join(", ")}
+- motifs : ${MOTIFS.join(", ")}
+- longueurs : ${LONGUEURS.join(", ")}
+- matières : ${MATIERES.join(", ")}
 
-Les quatre formes de règle :
+Les formes de règle :
 - silhouette : une combinaison de coupes haut/bas qui fonctionne (ou pas, si le poids est négatif)
 - couleur : une couleur qui monte (poids positif) ou qui reflue (poids négatif)
 - association : deux couleurs qui vont bien ensemble cette saison
+- motif : un motif qui monte ou reflue — uni, rayé, carreaux, imprimé
+- longueur : une longueur qui monte ou reflue — court, genoux, long
+- matiere : une matière qui monte ou reflue
+- descriptive : une tendance que rien de ce qui précède ne sait dire (voir plus bas)
 - categorie : une catégorie de vêtement mise en avant, éventuellement dans une coupe précise. **Uniquement parmi manteau, pull, robe et accessoire** : toute tenue comporte déjà un haut, un bas et des chaussures, si bien qu'une règle sur ces trois-là s'applique à tout et ne départage rien.
 
 Le poids dit la force de la tendance, de -2 à 2. Réserve les valeurs au-delà de 1,5 aux tendances vraiment dominantes ; une tendance mentionnée une seule fois mérite 0,5.
 
-Une tendance que ce vocabulaire ne sait pas dire — une matière, un motif, un détail de coupe, un type de chaussure — doit être **abandonnée**, pas rabattue sur l'approximation la plus proche. Mieux vaut dix règles justes que douze dont deux sont fausses.
+Une tendance que ce vocabulaire ne sait toujours pas dire — un col, une coupe de chaussure, un détail de construction — ne doit **jamais** être rabattue sur l'approximation la plus proche. Donne-lui le type **descriptive** et écris-la en clair dans le champ texte, telle qu'on la reconnaîtrait dans la description d'un vêtement : « bottines à bout carré », « manches ballon ». Ces règles-là ne sont pas appliquées par le moteur ; elles sont conservées pour être rapprochées plus tard des descriptions de la garde-robe. Mieux vaut une tendance mise de côté qu'une tendance déformée.
 
 Ne reprends aucune phrase des articles. La note est ta formulation, courte et concrète.
 
@@ -137,6 +148,10 @@ const valides = regles.filter((r) => {
   const ok = connu(r.haut, COUPES) && connu(r.bas, COUPES) && connu(r.coupe, COUPES)
     && (r.type !== "couleur" || COULEURS.includes(r.valeur))
     && (r.type !== "categorie" || (CATEGORIES.includes(r.valeur) && !TOUJOURS_PRESENTES.includes(r.valeur)))
+    && (r.type !== "motif" || MOTIFS.includes(r.valeur))
+    && (r.type !== "longueur" || LONGUEURS.includes(r.valeur))
+    && (r.type !== "matiere" || MATIERES.includes(r.valeur))
+    && (r.type !== "descriptive" || (r.texte || "").length > 3)
     && (r.type !== "association" || (Array.isArray(r.couleurs) && r.couleurs.length === 2
         && r.couleurs.every((c) => COULEURS.includes(c))))
     && Math.abs(r.poids) <= 2;

@@ -475,6 +475,20 @@
       <div class="curseur" id="choix-dehors"></div>
     </div>
 
+    <details id="details-pieces">
+      <summary style="font-size:13px;color:var(--texte-doux);cursor:pointer;padding:6px 0">
+        Détails — remplis par l'analyse, rien à saisir
+      </summary>
+      <div style="display:flex;flex-direction:column;gap:14px;padding-top:10px">
+        <div class="champ"><span class="legende">Motif</span>
+          <div class="curseur" id="choix-motif"></div></div>
+        <div class="champ" id="bloc-longueur"><span class="legende">Longueur</span>
+          <div class="curseur" id="choix-longueur"></div></div>
+        <div class="champ"><span class="legende">Matière</span>
+          <div class="choix" id="choix-matiere"></div></div>
+      </div>
+    </details>
+
     <div class="bas-fiche">
       <button type="button" class="primaire" id="btn-enregistrer">Enregistrer</button>
       <button type="button" class="secondaire danger" id="btn-supprimer" hidden>Supprimer</button>
@@ -558,6 +572,29 @@ const COUPES = [
   { id: "droit",  nom: "Droit" },
   { id: "ample",  nom: "Ample" },
 ];
+
+/* Trois champs que personne n'est censé remplir : l'analyse par photo s'en
+   charge, et « non précisé » reste neutre pour le moteur. Ils existent pour
+   que les tendances aient prise sur autre chose que la couleur. */
+const MOTIFS = [
+  { id: "", nom: "Non précisé" }, { id: "uni", nom: "Uni" },
+  { id: "raye", nom: "Rayé" }, { id: "carreaux", nom: "Carreaux" },
+  { id: "imprime", nom: "Imprimé" },
+];
+const LONGUEURS = [
+  { id: "", nom: "Non précisé" }, { id: "court", nom: "Court" },
+  { id: "genoux", nom: "Genoux" }, { id: "long", nom: "Long" },
+];
+const MATIERES = [
+  { id: "", nom: "Non précisé" }, { id: "coton", nom: "Coton" },
+  { id: "lin", nom: "Lin" }, { id: "laine", nom: "Laine" },
+  { id: "denim", nom: "Denim" }, { id: "maille", nom: "Maille" },
+  { id: "cuir", nom: "Cuir" }, { id: "soie", nom: "Soie" },
+  { id: "synthetique", nom: "Synthétique" },
+];
+
+/* La longueur ne veut rien dire sur un accessoire ou des chaussures. */
+const A_UNE_LONGUEUR = ["bas", "robe", "manteau"];
 
 /* Codes temps de l'OMM, ramenés aux quatre boutons de l'application. */
 function meteoDuCode(code) {
@@ -936,6 +973,14 @@ function noteStyle(pieces) {
      n'en autorise qu'un, donc on récompense simplement sa présence. */
   if (pieces.some((p) => p.categorie === "accessoire")) bonus += 0.3;
 
+  /* Un imprimé se porte seul. Avant ce terme, le moteur ne voyait que des
+     couleurs : il pénalisait un imprimé sur un uni — une bonne association —
+     et laissait passer deux motifs de même gamme. Les pièces sans motif
+     renseigné ne comptent ni pour ni contre. */
+  const motifs = pieces.filter((p) => p.motif && p.motif !== "uni");
+  if (motifs.length === 1) { bonus += 0.5; detail.push("un motif qui ressort"); }
+  else if (motifs.length >= 2) bonus -= 1.8;
+
   return { bonus, detail };
 }
 
@@ -1089,6 +1134,14 @@ function noteTendances(pieces) {
       const p = de(r.valeur);
       touche = !!p && (!r.coupe || coupe(p) === r.coupe);
     }
+    /* Les trois champs remplis par l'analyse. Une pièce dont le champ n'est
+       pas renseigné ne déclenche rien : « non précisé » reste neutre. */
+    else if (r.type === "motif")    touche = pieces.some((p) => p.motif === r.valeur);
+    else if (r.type === "longueur") touche = pieces.some((p) => p.longueur === r.valeur);
+    else if (r.type === "matiere")  touche = pieces.some((p) => p.matiere === r.valeur);
+    /* `descriptive` : une tendance que le vocabulaire ne sait pas dire. Elle
+       est conservée dans le corpus pour être rapprochée un jour des
+       descriptions des pièces, mais le moteur ne sait pas l'appliquer. */
     if (!touche) continue;
     brut += r.poids;
     if (r.poids > 0) retenues.push({ note: r.note, poids: r.poids });
@@ -1599,6 +1652,16 @@ function ouvrirFiche(piece) {
   curseur($("#choix-chaleur"), CHALEURS, brouillon.chaleur - 1, (i) => { brouillon.chaleur = i + 1; });
   majFormalite();
   curseur($("#choix-dehors"), ["Non", "Résiste à la pluie"], brouillon.dehors ? 1 : 0, (i) => { brouillon.dehors = i === 1; });
+
+  const liste = (hote, options, champ) => {
+    const actif = Math.max(0, options.findIndex((o) => o.id === (brouillon[champ] || "")));
+    curseur($(hote), options.map((o) => o.nom), actif, (i) => { brouillon[champ] = options[i].id; });
+  };
+  liste("#choix-motif", MOTIFS, "motif");
+  liste("#choix-longueur", LONGUEURS, "longueur");
+  liste("#choix-matiere", MATIERES, "matiere");
+  $("#bloc-longueur").hidden = !A_UNE_LONGUEUR.includes(brouillon.categorie);
+  $("#details-pieces").open = false;
 
   $("#fiche").showModal();
 }

@@ -136,13 +136,32 @@ l'a rabattue sur l'approximation la plus proche plutôt que de l'abandonner. La
 consigne lui demande maintenant explicitement de **renoncer** à une tendance
 inexprimable : mieux vaut dix règles justes que douze dont deux sont fausses.
 
-### Ce que le vocabulaire actuel ne sait pas dire
+### Le vocabulaire s'est agrandi, sans rien demander à personne
 
-Une tendance porte souvent sur la **matière** (lin, cuir, maille), le
-**motif** (uni, rayé, imprimé) ou un **détail** (col, poche, taille haute).
-Ces trois dimensions manquent au modèle de données. Les ajouter est simple
-côté code, mais coûte trois champs à renseigner sur chaque pièce — décision à
-prendre en connaissance de cause sur une garde-robe de 500 pièces.
+Motif, longueur et matière ont été ajoutés le 17 août 2026. Les règles de
+tendance peuvent désormais dire « les jupes longues montent » ou « le lin
+domine », là où elles se rabattaient sur la catégorie.
+
+Ces trois champs **ne sont demandés à personne** : l'analyse par photo les
+remplit, « non précisé » reste neutre pour le moteur, et ils sont rangés dans
+une section repliée de la fiche.
+
+### Ce qui échappe encore au vocabulaire
+
+Un col, une coupe de chaussure, un détail de construction : rien ne les
+exprime. Ces tendances ne sont plus **abandonnées** pour autant — elles
+reçoivent le type `descriptive` et sont conservées en clair dans le corpus :
+
+```json
+{ "type": "descriptive", "texte": "bottines à bout carré",
+  "poids": 1.2, "note": "le bout carré revient" }
+```
+
+Le moteur ne sait pas les appliquer et les ignore. Elles attendent l'étape
+suivante : un rapprochement entre ces phrases et les **descriptions** des
+pièces, produites par l'analyse photo. Cette étape tournera sur l'ordinateur,
+comme l'analyse, et écrira une affinité par pièce que l'application n'aura
+plus qu'à lire.
 
 ## 5. Tendance et goût personnel : qui l'emporte ?
 
