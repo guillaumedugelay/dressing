@@ -69,21 +69,25 @@ téléphone, puis Journal → `Fusionner un fichier`.
 | `chaleur` | oui | jugée sur la matière et l'épaisseur, pas sur la couleur |
 | `formaliteMin` / `formaliteMax` | oui | un **intervalle** : une jupe unie est « décontracté à soigné ». Les pièces univoques ont min = max |
 | `coupe` | oui | ajusté, droit, ample |
+| `motif` | oui | uni, rayé, carreaux, imprimé |
+| `longueur` | oui | court, genoux, long — **vide** sur un haut, un pull, des chaussures ou un accessoire, où la notion n'a pas de sens |
+| `matiere` | oui | la famille dominante et visible : coton, lin, laine, denim, maille, cuir, soie, synthétique |
 | `saisons` | oui | vide = toute l'année, et c'est le cas courant |
 | `dehors` | oui | vrai seulement si la pièce résiste réellement à l'eau |
-| `description` | oui | deux phrases : matière, longueur, motif, détails de construction — voir ci-dessous |
+| `description` | oui | deux phrases : tissage, coupe précise, détails de construction — voir ci-dessous |
 | `confiance` | oui | haute, moyenne ou basse — voir ci-dessous |
 
-**La description est une assurance sur l'avenir.** Les champs de la fiche ne
-retiennent qu'une fraction de ce que le modèle voit : ni la matière, ni la
-longueur, ni le motif n'y ont de place aujourd'hui. Une fois l'analyse faite,
-cette information serait perdue — sur ta jupe, le modèle avait vu « évasée
+**La description est une assurance sur l'avenir.** La fiche retient désormais
+la matière, la longueur et le motif, mais elle les réduit chacun à un mot
+d'une liste fermée. Le tissage, la coupe précise, les détails de construction
+n'y ont toujours pas de place : sur ta jupe, le modèle avait vu « évasée
 plissée », la fiche n'a gardé que « ample ».
 
 La description en garde trace, en deux phrases stockées avec la pièce. Le jour
-où le modèle de données gagnera un champ — `longueur` est déjà prévu — il
-pourra en être déduit **sans renvoyer les photos** : plus rapide, dix fois
-moins cher, et faisable même sans les images sous la main.
+où le modèle de données gagnera un champ, il pourra en être déduit **sans
+renvoyer les photos** : plus rapide, dix fois moins cher, et faisable même
+sans les images sous la main. C'est exactement ce qui s'est passé le 17 août
+2026, quand `longueur` est arrivé.
 
 Elle coûte une cinquantaine de jetons par pièce, soit environ 10 % de plus, et
 s'affiche dans la fiche : sur plusieurs centaines de vêtements, elle aide aussi
@@ -112,8 +116,19 @@ refaire. `--forcer` recommence quand même.
 **Tes corrections sont protégées.** Une fiche que tu as ouverte et enregistrée
 après son analyse porte une date de correction, et `--forcer` la saute : ton
 arbitrage vaut mieux qu'une nouvelle hypothèse. C'est ce qui rend sûre une
-réanalyse générale — par exemple le jour où le modèle de données gagnera un
-champ. `--tout` passe outre, en connaissance de cause.
+réanalyse générale. `--tout` passe outre, en connaissance de cause.
+
+C'est la manœuvre du jour où le modèle de données gagne un champ — `longueur`
+le 17 août 2026. Un essai à blanc d'abord, puis le vrai passage :
+
+```bash
+node outils/analyse-photos.mjs export.json --forcer --limite 5 --simuler
+node outils/analyse-photos.mjs export.json --forcer
+```
+
+Les fiches corrigées à la main resteront sans le nouveau champ : c'est le prix
+de la protection, et il se paie en les rouvrant une par une plutôt qu'en
+lançant `--tout`.
 
 ## Quand le modèle déraille
 
