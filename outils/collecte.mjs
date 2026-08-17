@@ -23,8 +23,21 @@ const FLUX = [
 const REDDIT = [];
 
 const UA = "dressing-tendances/1.0 (collecte hebdomadaire, usage personnel)";
-const PLAFOND = 30;   // articles retenus par source
-const EXTRAIT = 400;  // caractères conservés par article
+
+/* Ces deux plafonds décident de ce que la synthèse aura sous les yeux, et donc
+   de ce qu'elle pourra mettre de côté en `descriptive` — le journal des mots
+   que le vocabulaire ne sait pas encore dire. Ce qui est coupé ici est perdu
+   pour toujours : un flux RSS est une fenêtre glissante, la semaine passée ne
+   se rattrape pas. Mieux vaut donc collecter large et laisser la synthèse
+   trier, d'autant que la garde-robe grandira et rendra exploitables des
+   nuances qu'elle ignore aujourd'hui.
+
+   400 caractères tronquaient le chapô en plein milieu, là où se trouvent
+   justement les précisions concrètes — « bout carré », « manches ballon ».
+   Le surcoût est en jetons d'entrée sur la synthèse, quelques dizaines de
+   centimes par an. */
+const PLAFOND = 40;    // articles retenus par source
+const EXTRAIT = 1500;  // caractères conservés par article
 
 const propre = (s) => (s || "")
   .replace(/<!\[CDATA\[|\]\]>/g, "")
