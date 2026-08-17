@@ -58,10 +58,22 @@ Ce que cela donne :
 
 ### Gratuites et légitimes — le socle
 
-- **Flux RSS de la presse mode.** Vogue, Hypebeast, Who What Wear, WWD. Un
-  flux RSS est publié *pour* être consommé par des programmes : aucune
-  ambiguïté juridique. **Mesuré le 14 août 2026 : les quatre répondent, pour
-  90 articles par passage.**
+- **Flux RSS de la presse mode.** Vogue, Hypebeast, Who What Wear, WWD,
+  Fashionista, Harper's Bazaar, Elle, Refinery29, Glamour. Un flux RSS est
+  publié *pour* être consommé par des programmes : aucune ambiguïté juridique.
+  **Mesuré le 17 août 2026 : les neuf répondent, pour 259 articles et 79 000
+  caractères par passage.**
+
+  Cinq flux ont été ajoutés le 17 août, sur le principe qu'un corpus tronqué
+  est perdu pour toujours — une fenêtre RSS ne se rattrape pas la semaine
+  suivante — et que la garde-robe grandira jusqu'à rendre exploitables des
+  nuances aujourd'hui ignorées.
+
+  Quatre candidats essayés et écartés le même jour : **Business of Fashion**
+  répond, mais publie cent articles par semaine de nominations et de levées
+  de fonds, qui auraient noyé le reste ; **Dazed** et **i-D** sont trop
+  éditoriaux pour une garde-robe de tous les jours ; **Highsnobiety** fait
+  double emploi avec Hypebeast. **The Cut** ne répond plus — 404.
 - **Reddit — écarté après essai.** Les points d'accès JSON publics répondent
   désormais `403` sans jeton OAuth. Les rebrancher demanderait de créer une
   application Reddit et d'en déposer les identifiants en secrets GitHub ;
@@ -113,6 +125,11 @@ projeter sur ce vocabulaire. Le résultat attendu :
       "note": "les bruns dominent la rentrée" },
     { "type": "association","couleurs": ["marine", "marron"], "poids": 0.9 },
     { "type": "categorie",  "valeur": "manteau", "coupe": "ample", "poids": 0.7 }
+  ],
+  "vocabulaire": [
+    { "terme": "taille basse",  "axe": "taille",   "occurrences": 3 },
+    { "terme": "col polo",      "axe": "col",      "occurrences": 2 },
+    { "terme": "coupe cigarette","axe": "tombé",   "occurrences": 1 }
   ]
 }
 ```
@@ -120,6 +137,37 @@ projeter sur ce vocabulaire. Le résultat attendu :
 L'application charge ce fichier et lui applique les mêmes mécanismes de
 notation que ses règles de composition. Le moteur n'a presque pas changé :
 seule la table des règles est devenue mobile.
+
+### Le relevé de vocabulaire — le journal des manques
+
+`vocabulaire` n'entre dans aucun calcul, et c'est voulu. Il relève **tout mot
+concret de vêtement que le vocabulaire fermé ne sait pas dire**, qu'il fasse
+tendance ou non, cité une fois ou vingt. Là où le type de règle `descriptive`
+ne retient que les tendances inexprimables, le relevé ratisse plus large : il
+ne sert pas à habiller quelqu'un cette semaine, mais à savoir **quels champs
+manquent au modèle de données**.
+
+C'est la réponse systématique à une question qui s'était posée à la main. En
+août 2026, une règle avait rabattu « robe longue fluide » sur `categorie: robe`
+faute de pouvoir dire la longueur, et il avait fallu le remarquer en relisant
+onze notes. Le relevé rend ce constat automatique et cumulatif.
+
+Il est **archivé sans rien faire** : chaque `tendances.json` hebdomadaire est
+un commit de la tâche programmée, donc git en garde l'historique complet. Et
+comme il s'agit d'un dérivé — des termes, jamais des phrases d'articles — il
+est publiable sans la réserve qui interdit de republier la prose collectée.
+
+Premier relevé réel, 17 août 2026 : **30 termes sur 12 axes.** Les plus
+fournis étaient `texture` (dentelle, transparence, satin, daim, fourrure),
+`détail` (bord coupé franc, découpes, capuche) et `chaussure` (bout fermé,
+ballerines plates, sabots). Deux enseignements immédiats : la liste des
+matières est trop courte — dentelle, satin, daim, fourrure et velours en sont
+absents — et celle des motifs rabat pois, fleuri et vichy sur le seul
+`imprime`. Élargir deux listes existantes coûte moins qu'ajouter un champ.
+
+**Une réserve de méthode** : un relevé, c'est une semaine. Les occurrences
+tournent autour de 1 à 3, et la mode a des semaines à thème. Attendre
+plusieurs relevés avant de faire évoluer le modèle sur cette base.
 
 ### Deux garde-fous appris du premier passage réel
 
@@ -189,28 +237,33 @@ Les deux ne doivent pas se disputer le même terrain.
 
 ## 7. Ce que ça coûte, et pourquoi
 
-Mesuré sur une collecte réelle du 14 août 2026 : **90 articles, 22 786
-caractères, environ 6 200 jetons d'entrée.**
+Mesuré sur un passage réel du 17 août 2026, neuf sources et relevé de
+vocabulaire compris : **259 articles, 79 194 caractères, 36 758 jetons
+d'entrée et 6 898 de sortie.**
 
 | Poste | Volume | Tarif Claude Opus 5 | Coût |
 |---|---|---|---|
-| Téléchargement des flux | 90 articles | — | **0 $** |
-| Entrée (la collecte envoyée au modèle) | ≈ 6 200 jetons | 5 $ / million | ≈ 0,03 $ |
-| Sortie (les règles, plus le raisonnement) | ≈ 5 000 jetons | 25 $ / million | ≈ 0,13 $ |
-| **Total par passage** | | | **≈ 0,16 $** |
+| Téléchargement des flux | 259 articles | — | **0 $** |
+| Entrée (la collecte envoyée au modèle) | 36 758 jetons | 5 $ / million | ≈ 0,18 $ |
+| Sortie (les règles, le relevé, le raisonnement) | 6 898 jetons | 25 $ / million | ≈ 0,17 $ |
+| **Total par passage** | | | **≈ 0,36 $** |
 
-Soit **≈ 0,67 $ par mois** et **≈ 8 $ par an**.
+Soit **≈ 1,50 $ par mois** et **≈ 19 $ par an**.
 
-### Le coût ne suit pas les flux téléchargés
+### La prévision de coût était fausse, et voici pourquoi
 
-C'est le point contre-intuitif. Télécharger les flux ne coûte rien — c'est du
-HTTP ordinaire. Et le texte collecté ne représente que **20 % de la facture** :
-les 80 % restants sont ce que le modèle *produit*, essentiellement sa propre
-réflexion avant d'écrire les règles, dont le volume est à peu près constant.
+Ce document annonçait qu'un doublement des sources ferait passer le passage de
+0,16 $ à 0,19 $, au motif que la sortie serait constante et dominerait la
+facture. Le passage à neuf sources l'a démenti sur les deux termes : l'entrée
+a été multipliée par six, et **la sortie a doublé elle aussi**, le relevé de
+vocabulaire étant trente entrées à écrire en plus des règles.
 
-Conséquence : doubler le nombre de sources ferait passer un passage de 0,16 $ à
-0,19 $. Ajouter des flux est donc presque gratuit ; c'est la fréquence des
-passages qui compte.
+Le vrai enseignement tient donc en une ligne : **l'entrée et la sortie
+grandissent ensemble**, parce qu'un corpus plus riche donne plus à dire. La
+répartition est aujourd'hui de moitié-moitié, et non de 20/80.
+
+Cela reste 19 $ par an pour une veille hebdomadaire. Le levier qui compte
+demeure la fréquence des passages, pas le nombre de flux.
 
 ### Les leviers, si le coût devenait un sujet
 

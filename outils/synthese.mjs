@@ -47,8 +47,22 @@ const SCHEMA = {
         additionalProperties: false,
       },
     },
+    vocabulaire: {
+      type: "array",
+      description: "Entre 10 et 30 termes. Le relevé des mots concrets de la semaine que le vocabulaire fermé ne sait pas dire, qu'ils forment une tendance ou non.",
+      items: {
+        type: "object",
+        properties: {
+          terme: { type: "string", description: "le mot ou la locution, en français, tel qu'on décrirait le vêtement : « bout carré », « manches ballon », « taille basse », « maille ajourée »." },
+          axe: { type: "string", description: "ce dont le terme parle, en un mot : tombé, col, manche, encolure, taille, chaussure, détail, genre, texture, imprimé, couleur…" },
+          occurrences: { type: "number", description: "combien d'articles distincts l'emploient, au moins 1" },
+        },
+        required: ["terme", "axe", "occurrences"],
+        additionalProperties: false,
+      },
+    },
   },
-  required: ["resume", "regles"],
+  required: ["resume", "regles", "vocabulaire"],
   additionalProperties: false,
 };
 
@@ -77,6 +91,12 @@ Les formes de règle :
 Le poids dit la force de la tendance, de -2 à 2. Réserve les valeurs au-delà de 1,5 aux tendances vraiment dominantes ; une tendance mentionnée une seule fois mérite 0,5.
 
 Une tendance que ce vocabulaire ne sait toujours pas dire — un col, une coupe de chaussure, un détail de construction — ne doit **jamais** être rabattue sur l'approximation la plus proche. Donne-lui le type **descriptive** et écris-la en clair dans le champ texte, telle qu'on la reconnaîtrait dans la description d'un vêtement : « bottines à bout carré », « manches ballon ». Ces règles-là ne sont pas appliquées par le moteur ; elles sont conservées pour être rapprochées plus tard des descriptions de la garde-robe. Mieux vaut une tendance mise de côté qu'une tendance déformée.
+
+**Le relevé de vocabulaire** est distinct des règles, et son critère est plus large. Les règles retiennent ce qui fait tendance ; le relevé retient **tout mot concret de vêtement que le vocabulaire fermé ne sait pas dire**, qu'il soit tendance ou non, mentionné une fois ou vingt. Un col Claudine cité en passant y a sa place autant qu'une silhouette dominante.
+
+Il ne sert pas à habiller quelqu'un cette semaine : il sert à savoir quels champs manquent au modèle de données. Une garde-robe qui grandit rendra exploitables des nuances que l'application ignore aujourd'hui — c'est ainsi que la longueur a été ajoutée, après qu'une règle eut rabattu « robe longue fluide » sur toutes les robes. Relève donc large et ne juge pas de l'utilité.
+
+Deux choses n'y ont pas leur place : ce que le vocabulaire sait déjà dire — inutile d'y noter « rayé » ou « en laine » — et les noms de marque, de créateur, de boutique ou de collection, qui ne décrivent aucun vêtement. L'axe range le terme par ce dont il parle, pour que les manques se voient par paquets.
 
 Ne reprends aucune phrase des articles. La note est ta formulation, courte et concrète.
 
@@ -135,7 +155,7 @@ if (!texte) {
   process.exit(1);
 }
 
-const { resume, regles } = JSON.parse(texte);
+const { resume, regles, vocabulaire } = JSON.parse(texte);
 
 /* Garde-fou : le moteur ne sait appliquer que le vocabulaire fermé. Une règle
    hors vocabulaire est écartée ici plutôt que ignorée silencieusement dans
@@ -165,6 +185,18 @@ if (!valides.length) {
 }
 
 process.stderr.write(`${valides.length} règles retenues sur ${regles.length}.\n`);
+
+/* Le relevé de vocabulaire ne passe pas par le garde-fou ci-dessus : il est
+   fait pour contenir ce que le vocabulaire fermé ignore, l'y confronter le
+   viderait. On écarte seulement l'inverse — un terme que l'application sait
+   déjà dire n'apprend rien — et on borne la longueur, un « terme » de deux
+   lignes étant le signe que le modèle a recopié une phrase d'article. */
+const DEJA_DIT = new Set([...COULEURS, ...COUPES, ...CATEGORIES, ...MOTIFS, ...LONGUEURS, ...MATIERES]);
+const mots = (vocabulaire || []).filter((v) => {
+  const t = (v.terme || "").trim();
+  return t.length > 1 && t.length <= 40 && !DEJA_DIT.has(t.toLowerCase());
+});
+process.stderr.write(`${mots.length} termes relevés hors vocabulaire.\n`);
 process.stderr.write(`Jetons : ${reponse.usage.input_tokens} entrée, ${reponse.usage.output_tokens} sortie.\n`);
 
 process.stdout.write(JSON.stringify({
@@ -173,4 +205,8 @@ process.stdout.write(JSON.stringify({
   sources: corpus.sources,
   resume,
   regles: valides,
+  /* Non appliqué par le moteur. Archivé semaine après semaine par les commits
+     de la tâche hebdomadaire : c'est le journal des champs qui manquent au
+     modèle de données, et il grossira avec la garde-robe. */
+  vocabulaire: mots,
 }, null, 2) + "\n");

@@ -8,11 +8,25 @@
  *   node outils/collecte.mjs > corpus.json
  */
 
+/* Des titres qui parlent de vêtements portables, pas de défilés ni du
+   commerce de la mode. Business of Fashion a été essayé et écarté : il publie
+   cent articles par semaine, presque tous sur des levées de fonds et des
+   nominations, et il aurait noyé le reste. Dazed et i-D, écartés aussi —
+   trop éditoriaux pour une garde-robe de tous les jours. Highsnobiety fait
+   double emploi avec Hypebeast. The Cut ne répond plus (404).
+
+   Un flux qui meurt ne casse rien : `lire` avale l'erreur et la collecte
+   continue avec les autres. Elle n'échoue que si toutes tombent. */
 const FLUX = [
-  { nom: "Vogue",          url: "https://www.vogue.com/feed/rss" },
-  { nom: "Hypebeast",      url: "https://hypebeast.com/feed" },
-  { nom: "Who What Wear",  url: "https://www.whowhatwear.com/rss" },
-  { nom: "WWD",            url: "https://wwd.com/feed/" },
+  { nom: "Vogue",           url: "https://www.vogue.com/feed/rss" },
+  { nom: "Hypebeast",       url: "https://hypebeast.com/feed" },
+  { nom: "Who What Wear",   url: "https://www.whowhatwear.com/rss" },
+  { nom: "WWD",             url: "https://wwd.com/feed/" },
+  { nom: "Fashionista",     url: "https://fashionista.com/.rss/full" },
+  { nom: "Harper's Bazaar", url: "https://www.harpersbazaar.com/rss/all.xml" },
+  { nom: "Elle",            url: "https://www.elle.com/rss/all.xml" },
+  { nom: "Refinery29",      url: "https://www.refinery29.com/en-us/fashion/rss.xml" },
+  { nom: "Glamour",         url: "https://www.glamour.com/feed/rss" },
 ];
 
 /* Reddit a fermé ses points d'accès JSON publics : ils répondent 403 sans
