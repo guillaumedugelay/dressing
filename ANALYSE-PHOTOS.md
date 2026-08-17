@@ -71,7 +71,29 @@ téléphone, puis Journal → `Fusionner un fichier`.
 | `coupe` | oui | ajusté, droit, ample |
 | `saisons` | oui | vide = toute l'année, et c'est le cas courant |
 | `dehors` | oui | vrai seulement si la pièce résiste réellement à l'eau |
+| `description` | oui | deux phrases : matière, longueur, motif, détails de construction — voir ci-dessous |
 | `confiance` | oui | haute, moyenne ou basse — voir ci-dessous |
+
+**La description est une assurance sur l'avenir.** Les champs de la fiche ne
+retiennent qu'une fraction de ce que le modèle voit : ni la matière, ni la
+longueur, ni le motif n'y ont de place aujourd'hui. Une fois l'analyse faite,
+cette information serait perdue — sur ta jupe, le modèle avait vu « évasée
+plissée », la fiche n'a gardé que « ample ».
+
+La description en garde trace, en deux phrases stockées avec la pièce. Le jour
+où le modèle de données gagnera un champ — `longueur` est déjà prévu — il
+pourra en être déduit **sans renvoyer les photos** : plus rapide, dix fois
+moins cher, et faisable même sans les images sous la main.
+
+Elle coûte une cinquantaine de jetons par pièce, soit environ 10 % de plus, et
+s'affiche dans la fiche : sur plusieurs centaines de vêtements, elle aide aussi
+à s'y retrouver.
+
+**Attention à ce qu'elle n'est pas.** Le moteur de suggestion ne lit pas de
+texte : c'est une fonction de score sur des nombres et des listes fermées, qui
+tourne hors ligne dans le téléphone. La description ne participe donc à aucune
+suggestion. Elle sert à faire grandir le vocabulaire à moindre coût — et c'est
+l'agrandissement du vocabulaire, lui, qui permettra aux tendances de mordre.
 
 **La confiance est le point utile.** Le modèle signale lui-même les pièces
 dont il n'est pas sûr, et dit **en une phrase ce dont il doute** — photo floue,

@@ -74,10 +74,11 @@ const SCHEMA = {
       description: "Liste vide = toute l'année, et c'est la réponse attendue dans la grande majorité des cas. Ne coche des saisons que si la pièce elle-même l'impose physiquement.",
     },
     dehors: { type: "boolean", description: "Vrai seulement si la pièce résiste réellement à la pluie ou à la neige (imperméable, ciré, bottines étanches, doudoune déperlante)." },
+    description: { type: "string", description: "Deux phrases décrivant la pièce telle qu'on la verrait en main : matière et tissage, longueur, coupe précise, motif, détails de construction — col, poches, boutons, taille, doublure, fermeture. Consigne le concret et l'observable, pas le jugement : « coton épais non extensible » plutôt que « jolie matière ». C'est la mémoire de ce que la fiche ne sait pas encore stocker." },
     confiance: { type: "string", enum: ["haute", "moyenne", "basse"], description: "Ton degré de certitude sur l'ensemble, pour signaler les pièces à revérifier." },
     doute: { type: "string", description: "Si la confiance n'est pas haute : une phrase courte disant ce dont tu doutes et pourquoi, assez précise pour que le propriétaire sache quoi regarder — « la matière pourrait être du lin ou du coton mélangé », « la jupe est posée à plat, la coupe est difficile à juger ». Chaîne vide si la confiance est haute." },
   },
-  required: ["nom", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "saisons", "dehors", "confiance", "doute"],
+  required: ["nom", "description", "categorie", "couleurs", "chaleur", "formaliteMin", "formaliteMax", "coupe", "saisons", "dehors", "confiance", "doute"],
   additionalProperties: false,
 };
 
@@ -91,6 +92,8 @@ Trois pièges à éviter :
 - **Le registre est un intervalle, pas un chiffre.** Beaucoup de vêtements se portent de plusieurs façons selon le reste de la tenue : une jupe unie est décontractée avec des baskets et soignée avec des escarpins, une chemise blanche va du décontracté à l'habillé, un jean brut du sport au soigné. Donne alors deux bornes différentes. Ne les égalise que pour une pièce réellement univoque — un sweat à capuche, un smoking, des tongs. Dans le doute, élargis : une pièce décrite trop étroitement sera écartée à tort de la moitié des tenues.
 - **La chaleur se juge à la matière et à l'épaisseur**, pas à la couleur. Un pull noir fin n'est pas chaud parce qu'il est noir.
 - **Les saisons se restreignent très rarement.** La liste vide est la réponse par défaut, pas un aveu d'ignorance. Applique ce test : la pièce est-elle *impossible* à porter dans les autres saisons, une fois la tenue complétée ? Une jupe se porte en hiver avec des collants, une robe sans manches sous un gilet, une chemise fine sous un pull : toutes ces pièces sont **toute l'année**. Ne coche des saisons que si la pièce elle-même l'impose — doudoune, sandales, short de bain, manteau d'hiver. Ne te laisse pas guider par le motif ou la couleur : un imprimé fleuri n'est pas une pièce d'été.
+
+La **description** mérite un mot. Les champs de la fiche ne retiennent qu'une fraction de ce que tu vois : ni la matière, ni la longueur, ni le motif, ni un détail de construction n'y ont de place aujourd'hui. La description est ce qui en garde trace, pour qu'un champ ajouté plus tard puisse en être déduit sans repasser par les photos. Écris donc ce que tu observes, pas ce que la fiche sait déjà.
 
 Le nom doit être utile dans une liste de plusieurs centaines de vêtements : ce qui distingue cette pièce des autres du même type. « Chemise blanche Oxford » plutôt que « chemise ».`;
 
@@ -193,6 +196,7 @@ async function analyser(piece) {
 function appliquer(piece, lu) {
   const avant = { ...piece };
   if (!piece.nom) piece.nom = lu.nom;
+  piece.description = lu.description;
   piece.categorie = lu.categorie;
   piece.couleurs = lu.couleurs.slice(0, 2);
   piece.chaleur = Math.min(5, Math.max(1, lu.chaleur));

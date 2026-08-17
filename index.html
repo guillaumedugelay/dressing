@@ -424,6 +424,8 @@
     </div>
 
     <p class="doute" id="doute" hidden></p>
+    <p id="description" hidden
+       style="margin:0;font-size:13px;line-height:1.45;color:var(--texte-doux);font-style:italic"></p>
 
     <div class="champ">
       <img class="apercu" id="apercu" alt="">
@@ -1567,6 +1569,11 @@ function ouvrirFiche(piece) {
       brouillon.doute ? echapper(brouillon.doute) : "L'analyse n'était pas sûre d'elle sur cette pièce."}
       <br><span style="color:var(--texte-doux)">Corrige ce qui ne va pas, puis enregistre : la marque disparaîtra.</span>`;
   }
+
+  /* La description vient de l'analyse et ne s'édite pas : elle décrit la
+     pièce, elle ne la classe pas. Elle aide surtout à s'y retrouver. */
+  $("#description").hidden = !brouillon.description;
+  if (brouillon.description) $("#description").textContent = brouillon.description;
 
   $("#lu-photo").hidden = true;
   majPastilles();

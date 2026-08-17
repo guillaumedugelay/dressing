@@ -34,6 +34,7 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `dehors` | oui / non | résiste à la pluie et à la neige |
 | `photo` | JPEG redimensionné à 640 px | reconnaissance visuelle ; les couleurs y sont lues automatiquement |
 | `porteLe` | liste de dates | récence et statistiques |
+| `description` | deux phrases, posées par l'analyse | mémoire de ce que la fiche ne sait pas stocker — matière, longueur, motif, détails |
 | `confiance` / `doute` | posés par l'analyse par photo | signalent une fiche à relire ; effacés à l'enregistrement |
 
 ### Tenue portée
