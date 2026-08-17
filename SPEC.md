@@ -320,24 +320,26 @@ relance. La pénalité correspondante s'applique dans la notation des tenues et
 non dans la seule présélection — sans quoi une petite garde-robe, où la
 présélection ne filtre rien, reproposerait à l'identique.
 
-## 8. Décidé, mais reporté : la longueur
+## 8. La longueur, ajoutée le 17 août 2026
 
 Un champ `longueur` — court, aux genoux, long — sur les bas, robes et
-manteaux. Reporté volontairement le 15 août 2026 : mieux vaut saisir la
-garde-robe avec le modèle actuel que retarder la saisie.
+manteaux, et lui seul : la notion n'a pas de sens sur un haut, des chaussures
+ou un accessoire, où le champ reste caché à la saisie et vide à l'analyse.
 
-**Ce qu'il débloquerait.** Le premier corpus de tendances réel a produit une
+**Ce qu'il débloque.** Le premier corpus de tendances réel avait produit une
 règle `categorie: robe` dont la note était « robe longue fluide ou
 robe-chemise » : la presse parlait de longueur, le vocabulaire ne sachant pas
-la dire, la règle a valorisé *toutes* les robes. La longueur rendrait aussi les
-proportions calculables — jupe longue et bottines, mini et manteau long — et
-resserrerait la cohérence saisonnière.
+la dire, la règle valorisait *toutes* les robes. Les règles de tendance
+peuvent désormais porter sur `longueur`.
 
-**Ce que coûtera l'ajout tardif.** Une réanalyse complète des photos, quelques
-dollars, plutôt que le remplissage à la main de centaines de champs. C'est
-précisément pourquoi les corrections manuelles sont désormais protégées d'une
-réanalyse (`corrigeeLe`) : sans cela, cet ajout différé aurait effacé le
-travail de relecture.
+**Ce qu'a coûté l'ajout tardif.** Une réanalyse des photos plutôt que le
+remplissage à la main de centaines de champs. Les corrections manuelles
+étaient protégées d'une réanalyse (`corrigeeLe`) : sans cela, cet ajout
+différé aurait effacé le travail de relecture.
+
+Ce qui reste hors du modèle : les proportions calculées — jupe longue avec
+bottines, mini avec manteau long. La longueur les rend possibles ; la règle
+n'est pas écrite.
 
 ## 9. Hors périmètre de cette version
 
