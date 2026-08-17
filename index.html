@@ -1661,7 +1661,11 @@ function ouvrirFiche(piece) {
   liste("#choix-longueur", LONGUEURS, "longueur");
   liste("#choix-matiere", MATIERES, "matiere");
   $("#bloc-longueur").hidden = !A_UNE_LONGUEUR.includes(brouillon.categorie);
-  $("#details-pieces").open = false;
+  /* Repliée d'ordinaire — personne n'a à remplir ces champs. Mais quand
+     l'analyse signale un doute, il porte souvent sur la matière ou la
+     longueur : les laisser cachés reviendrait à demander une correction sans
+     montrer quoi corriger. */
+  $("#details-pieces").open = aVerifier(brouillon);
 
   $("#fiche").showModal();
 }
