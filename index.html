@@ -158,6 +158,20 @@
     font-size: 11.5px; line-height: 1.25; margin-top: 5px; color: var(--texte-doux);
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
+  .pourquoi { margin-top: 11px; }
+  .pourquoi summary {
+    font-size: 12.5px; color: var(--accent); cursor: pointer;
+    padding: 4px 0; list-style: none; font-weight: 600;
+  }
+  .pourquoi summary::-webkit-details-marker { display: none; }
+  .pourquoi summary::before { content: "▸ "; }
+  .pourquoi[open] summary::before { content: "▾ "; }
+  .pourquoi p {
+    margin: 8px 0 0; font-size: 13px; line-height: 1.5;
+    padding-left: 11px; border-left: 2px solid var(--trait);
+  }
+  .pourquoi p b { color: var(--texte); }
+
   .actions { display: flex; gap: 8px; margin-top: 12px; }
   .actions button { flex: 0 0 auto; }
   .actions .porte { flex: 1 1 auto; background: var(--accent-fond); border-color: var(--accent); font-weight: 600; }
@@ -1148,8 +1162,82 @@ function noteTendances(pieces) {
   }
 
   const bonus = Math.max(-3, Math.min(3, brut)) * etat.poidsTendance;
-  const meilleure = retenues.sort((a, b) => b.poids - a.poids)[0];
-  return { bonus, detail: bonus >= 0.8 && meilleure ? [meilleure.note] : [] };
+  const classees = retenues.sort((a, b) => b.poids - a.poids);
+  return { bonus, touchees: classees,
+           detail: bonus >= 0.8 && classees[0] ? [classees[0].note] : [] };
+}
+
+/* ═══════════ Mettre le calcul en mots ═══════════
+   L'application ne peut pas rédiger : elle n'a ni réseau ni modèle. Mais elle
+   sait pourquoi elle a choisi — chaque terme du score porte une raison. Ce
+   sont ces raisons qu'on formule ici, en s'appuyant sur les mêmes fonctions
+   que la notation, pour que l'explication ne puisse pas diverger du calcul. */
+
+function argumenter(pieces) {
+  const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
+  const cibleTemp = TEMPS.find((t) => t.id === etat.temp);
+  const nomsDe = (l) => l.map((p) => p.nom.toLowerCase());
+  const enumere = (l) => l.length > 1 ? l.slice(0, -1).join(", ") + " et " + l.at(-1) : l[0];
+  const args = [];
+
+  /* L'occasion */
+  const bride = pieces.filter((p) => formaliteMax(p) < cibleForme - 0.5);
+  const occasion = { travail: "Au travail", loisir: "En loisir", vacances: "En vacances" }[etat.activite];
+  args.push({ titre: occasion, texte: bride.length
+    ? `${enumere(nomsDe(bride))} rest${bride.length > 1 ? "ent" : "e"} en deçà du registre attendu — à porter seulement si tu assumes le décalage.`
+    : `Chaque pièce sait monter jusqu'au registre attendu : aucune ne tire la tenue vers le bas, aucune n'a besoin d'être rattrapée par les autres.` });
+
+  /* Le temps */
+  const ecart = chaleurTenue(pieces) - cibleTemp.cible;
+  const protegees = pieces.filter((p) => p.dehors);
+  let temps = Math.abs(ecart) <= 1 ? `Le compte de chaleur tombe juste pour un temps ${cibleTemp.nom.toLowerCase()}.`
+    : ecart > 1 ? `Un peu couvert pour ${cibleTemp.nom.toLowerCase()} — la coupe et la matière rattrapent souvent ce que le calcul ne voit pas.`
+    : `Plutôt léger pour ${cibleTemp.nom.toLowerCase()} : prévois de quoi te couvrir.`;
+  if ((etat.meteo === "pluie" || etat.meteo === "neige") && protegees.length)
+    temps += ` ${enumere(nomsDe(protegees))} tien${protegees.length > 1 ? "nent" : "t"} face aux intempéries.`;
+  args.push({ titre: "Face au temps", texte: temps });
+
+  /* Les couleurs */
+  const vives = pieces.filter((p) => (p.couleurs || []).some((c) => !COULEURS.find((x) => x.id === c)?.neutre));
+  const teintes = pieces.flatMap((p) => p.couleurs || []).filter((c) => familleDe(c) !== "achrome");
+  const familles = new Set(teintes.map(familleDe));
+  let couleurs;
+  if (!vives.length) couleurs = `Rien que des neutres : ils s'accordent entre eux par construction, et la tenue tient sur les matières et les coupes.`;
+  else if (vives.length === 1) couleurs = `Le reste étant neutre, ${nomsDe(vives)[0]} devient le seul point de couleur — donc le seul point de regard. C'est ce qui distingue une tenue composée d'une tenue subie.`;
+  else if (teintes.length >= 2 && familles.size === 1) couleurs = `Les couleurs relèvent d'une même famille : elles se répondent au lieu de se disputer.`;
+  else couleurs = `Plusieurs couleurs marquées se côtoient — à vérifier devant le miroir.`;
+  args.push({ titre: "Les couleurs", texte: couleurs });
+
+  /* La silhouette et le motif */
+  const coupe = (p) => (p && p.coupe) || "droit";
+  const haut = pieces.find((p) => p.categorie === "haut") || pieces.find((p) => p.categorie === "robe");
+  const bas = pieces.find((p) => p.categorie === "bas");
+  if (haut && bas) {
+    const ch = coupe(haut), cb = coupe(bas);
+    const mot = { ajuste: "ajusté", droit: "droit", ample: "ample" };
+    args.push({ titre: "La silhouette", texte:
+      (ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample")
+        ? `${haut.nom} ${mot[ch]} sur ${bas.nom.toLowerCase()} ${mot[cb]} : un volume, un seul. C'est la proportion la plus fiable, et la plus flatteuse.`
+        : ch === "ample" && cb === "ample" ? `Deux volumes larges : la silhouette s'efface. À assumer, ou à casser avec une ceinture.`
+        : ch === "ajuste" && cb === "ajuste" ? `Tout près du corps : cohérent, mais sans respiration.`
+        : `Des coupes droites qui ne se contrarient pas.` });
+  }
+  const motifs = pieces.filter((p) => p.motif && p.motif !== "uni");
+  if (motifs.length === 1) args.push({ titre: "Le motif", texte: `${motifs[0].nom} est la seule pièce à motif : elle porte la tenue sans avoir à lutter contre une autre.` });
+  else if (motifs.length >= 2) args.push({ titre: "Le motif", texte: `${enumere(nomsDe(motifs))} portent chacune un motif : ils se concurrencent.` });
+
+  /* Les tendances */
+  const t = noteTendances(pieces);
+  if (t.touchees && t.touchees.length && etat.poidsTendance)
+    args.push({ titre: `Ce qui se porte — ${TENDANCES.revision}`,
+      texte: enumere(t.touchees.slice(0, 3).map((r) => r.note.toLowerCase())) + "." });
+
+  /* Tes habitudes et la rotation */
+  const jamais = pieces.filter((p) => !(p.porteLe || []).length);
+  if (jamais.length >= 2)
+    args.push({ titre: "À ressortir", texte: `${enumere(nomsDe(jamais))} n'${jamais.length > 1 ? "ont" : "a"} jamais quitté le placard.` });
+
+  return args;
 }
 
 function chaleurTenue(pieces) {
@@ -1405,6 +1493,11 @@ function rendreJour() {
             <div class="etiq">${echapper(p.nom)}</div>
           </div>`).join("")}
       </div>
+      <details class="pourquoi">
+        <summary>Pourquoi cette tenue ?</summary>
+        ${argumenter(t.pieces).map((a) =>
+          `<p><b>${echapper(a.titre)}</b> — ${echapper(a.texte)}</p>`).join("")}
+      </details>
       <div class="actions">
         <button class="secondaire porte" data-porte="${i}">Je porte ça</button>
         <button class="secondaire avis" data-avis="${i}" data-sens="1" aria-pressed="false" aria-label="J'aime">👍</button>

@@ -184,6 +184,13 @@ vignettes, avec `j'aime`, `je n'aime pas` et `Je porte ça`. En dessous,
 `Montre-moi autre chose` relance en écartant les pièces déjà vues, et la
 révision du corpus de style est rappelée.
 
+Chaque proposition porte un repli **« Pourquoi cette tenue ? »** qui met le
+calcul en mots : adéquation à l'occasion et au temps, harmonie des couleurs,
+proportion de la silhouette, motif, règles de tendance touchées, pièces
+oubliées qui ressortent. L'application n'ayant ni réseau ni modèle de langage,
+ces phrases ne sont pas rédigées : elles sont **dérivées des mêmes fonctions
+que la notation**, ce qui interdit à l'explication de diverger du score.
+
 **Garde-robe** — grille de photos filtrable par catégorie, ajout et
 modification d'une pièce. Une pièce que l'analyse par photo n'a pas su décrire
 avec certitude porte une pastille **à vérifier**, et un filtre du même nom les
