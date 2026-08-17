@@ -105,6 +105,31 @@ La **description** mérite un mot. Les champs de la fiche ne retiennent qu'une f
 
 Le nom doit être utile dans une liste de plusieurs centaines de vêtements : ce qui distingue cette pièce des autres du même type. « Chemise blanche Oxford » plutôt que « chemise ».`;
 
+
+/* ═══════════ Contrôle de la réponse ═══════════
+   Une réponse structurée reste du texte engendré : elle peut dérailler. Un
+   essai du 17 août 2026 a produit, dans le champ « doute » de deux jupes, une
+   question sans rapport sur un chauffe-eau et une phrase en chinois. Sans ce
+   contrôle, ces textes seraient entrés dans la garde-robe — et comme leur
+   confiance était « haute », rien ne les aurait signalés.
+   Une pièce dont la réponse est suspecte est comptée en échec : mieux vaut la
+   réanalyser que salir la fiche. */
+
+const ECRITURES_ETRANGERES = /[　-鿿Ѐ-ӿ؀-ۿ가-힯]/;
+
+function reponseSaine(lu) {
+  const griefs = [];
+  const texte = `${lu.doute || ""} ${lu.description || ""} ${lu.nom || ""}`;
+  if (ECRITURES_ETRANGERES.test(texte)) griefs.push("écriture non latine");
+  if ((lu.doute || "").length > 300) griefs.push("doute anormalement long");
+  if ((lu.description || "").length > 600) griefs.push("description anormalement longue");
+  if ((lu.nom || "").length > 90) griefs.push("nom anormalement long");
+  /* Un doute sur une pièce jugée sûre n'a pas lieu d'être : c'est le signe
+     que le champ a été rempli par autre chose que du jugement. */
+  if (lu.confiance === "haute" && (lu.doute || "").trim()) griefs.push("doute alors que la confiance est haute");
+  return griefs;
+}
+
 /* ═══════════ Arguments ═══════════ */
 
 const args = process.argv.slice(2);
@@ -196,7 +221,10 @@ async function analyser(piece) {
   if (reponse.stop_reason === "refusal") throw new Error("analyse déclinée");
   const texte = reponse.content.find((b) => b.type === "text")?.text;
   if (!texte) throw new Error("réponse vide");
-  return JSON.parse(texte);
+  const lu = JSON.parse(texte);
+  const griefs = reponseSaine(lu);
+  if (griefs.length) throw new Error(`réponse suspecte (${griefs.join(", ")}) — à réanalyser`);
+  return lu;
 }
 
 /* Le nom tapé par le propriétaire est le seul champ qu'on ne remplace pas :

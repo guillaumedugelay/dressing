@@ -115,6 +115,24 @@ arbitrage vaut mieux qu'une nouvelle hypothèse. C'est ce qui rend sûre une
 réanalyse générale — par exemple le jour où le modèle de données gagnera un
 champ. `--tout` passe outre, en connaissance de cause.
 
+## Quand le modèle déraille
+
+Une réponse structurée reste du texte engendré, et elle peut partir en vrille.
+Un essai du 17 août 2026 a produit, dans le champ « doute » de deux jupes en
+jean, une question sans rapport sur un chauffe-eau et une phrase en chinois —
+avec une confiance « haute », donc sans le moindre signalement.
+
+Le script **refuse désormais une réponse suspecte** et compte la pièce en
+échec, à réanalyser : écriture non latine, textes anormalement longs, ou doute
+exprimé alors que la confiance est haute. Mieux vaut une pièce à refaire qu'une
+fiche salie.
+
+Si les échecs se multiplient, le premier levier est l'effort :
+
+```bash
+EFFORT=high node outils/analyse-photos.mjs export.json --limite 8 --simuler
+```
+
 ## Ce que ça coûte
 
 Le script affiche le compte exact à la fin — jetons consommés, coût du
