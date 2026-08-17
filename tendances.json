@@ -5,81 +5,257 @@
     "Vogue",
     "Hypebeast",
     "Who What Wear",
-    "WWD"
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
   ],
-  "resume": "La semaine est clairement tournée vers la transition vers l'automne : vestes et trenchs, mailles fines et jeans forment la base, avec des accessoires soignés en point final. Côté couleur, le rouge franc s'impose sur les pantalons et les robes, tandis que le beige d'esprit workwear et une touche de lilas complètent la palette.",
+  "resume": "La semaine tourne autour d'une rentrée douce : pulls et mailles reviennent en force, portés avec du denim sous toutes ses coupes et une pièce en cuir. Les bruns et le rouge réchauffent les tenues, les accessoires (sacs, casquettes, serre-tête) font le reste, et les shorts courts prolongent l'été.",
   "regles": [
     {
       "type": "categorie",
-      "valeur": "manteau",
-      "coupe": "droit",
+      "valeur": "pull",
       "poids": 1.5,
-      "note": "Veste ou trench droit, pièce clé"
+      "note": "le pull, pièce phare de l'automne",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 1.2,
+      "note": "mailles partout, fines ou épaisses",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 1.5,
+      "note": "denim omniprésent, toutes coupes confondues",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 1,
+      "note": "une pièce en cuir par tenue",
+      "texte": ""
     },
     {
       "type": "categorie",
-      "valeur": "pull",
+      "valeur": "manteau",
       "poids": 1,
-      "note": "Pull en coton pour la mi-saison"
+      "note": "trenchs et vestes de mi-saison",
+      "texte": ""
     },
     {
       "type": "categorie",
       "valeur": "accessoire",
-      "poids": 1.2,
-      "note": "Sac structuré et montre bien choisie"
-    },
-    {
-      "type": "categorie",
-      "valeur": "robe",
-      "poids": 1,
-      "note": "Robe longue fluide, du jour au soir"
+      "poids": 1.5,
+      "note": "sacs, casquettes et serre-tête décisifs",
+      "texte": ""
     },
     {
       "type": "couleur",
-      "valeur": "denim",
-      "poids": 1.5,
-      "note": "Le jean reste la base quotidienne"
+      "valeur": "marron",
+      "poids": 1,
+      "note": "bruns et camels réchauffent tout",
+      "texte": ""
     },
     {
       "type": "couleur",
       "valeur": "rouge",
-      "poids": 1.5,
-      "note": "Rouge franc sur pantalon et robe"
-    },
-    {
-      "type": "couleur",
-      "valeur": "beige",
-      "poids": 0.8,
-      "note": "Beige workwear, esprit vestiaire militaire"
-    },
-    {
-      "type": "couleur",
-      "valeur": "violet",
-      "poids": 0.5,
-      "note": "Lilas en touche, vu sur tapis rouge"
-    },
-    {
-      "type": "association",
-      "couleurs": [
-        "rouge",
-        "denim"
-      ],
       "poids": 1,
-      "note": "Le rouge réveille un jean brut"
+      "note": "touche de rouge très demandée",
+      "texte": ""
+    },
+    {
+      "type": "motif",
+      "valeur": "uni",
+      "poids": 0.8,
+      "note": "tenues ton sur ton, unies",
+      "texte": ""
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 0.5,
+      "note": "carreaux sur jupes et lainages",
+      "texte": ""
+    },
+    {
+      "type": "longueur",
+      "valeur": "court",
+      "poids": 1,
+      "note": "shorts et minis prolongent l'été",
+      "texte": ""
     },
     {
       "type": "silhouette",
       "haut": "droit",
-      "bas": "droit",
-      "poids": 1.2,
-      "note": "Veste droite, tee-shirt, jean droit"
+      "bas": "ample",
+      "poids": 1,
+      "note": "haut net sur pantalon large",
+      "texte": ""
     },
     {
-      "type": "silhouette",
-      "haut": "ample",
-      "bas": "ajuste",
-      "poids": 0.5,
-      "note": "Haut ample sur bas très ajusté"
+      "type": "descriptive",
+      "poids": 1,
+      "note": "bottes souples plutôt que rigides",
+      "texte": "bottes à tige souple et affaissée, portées avec jupes et jeans"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "taille basse",
+      "axe": "taille",
+      "occurrences": 3
+    },
+    {
+      "terme": "capri",
+      "axe": "longueur",
+      "occurrences": 2
+    },
+    {
+      "terme": "coupe cigarette",
+      "axe": "tombé",
+      "occurrences": 1
+    },
+    {
+      "terme": "baggy",
+      "axe": "tombé",
+      "occurrences": 2
+    },
+    {
+      "terme": "oversize",
+      "axe": "tombé",
+      "occurrences": 3
+    },
+    {
+      "terme": "ton sur ton",
+      "axe": "couleur",
+      "occurrences": 2
+    },
+    {
+      "terme": "pois",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "fleuri",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "vichy",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "dentelle",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "transparence",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "satin",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "daim",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "fourrure",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "bord coupé franc",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "plissé",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "découpes",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "détail froncé",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "capuche",
+      "axe": "détail",
+      "occurrences": 3
+    },
+    {
+      "terme": "col polo",
+      "axe": "col",
+      "occurrences": 2
+    },
+    {
+      "terme": "chemise boutonnée",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "col V",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bout fermé",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "ballerines plates",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "tongs",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "sabots",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "sneakers de trail",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "robe nuisette",
+      "axe": "genre",
+      "occurrences": 2
+    },
+    {
+      "terme": "robe prairie",
+      "axe": "genre",
+      "occurrences": 1
+    },
+    {
+      "terme": "serre-tête",
+      "axe": "accessoire",
+      "occurrences": 3
     }
   ]
 }

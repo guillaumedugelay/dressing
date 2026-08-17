@@ -963,9 +963,18 @@ function noteStyle(pieces) {
   const coupe = (p) => (p && p.coupe) || "droit";
 
   /* Contraste de silhouette : un volume, un seul. Deux pièces amples
-     empâtent, deux pièces ajustées raidissent. */
-  if (haut && bas) {
-    const ch = coupe(haut), cb = coupe(bas);
+     empâtent, deux pièces ajustées raidissent.
+
+     La règle lit la couche que l'on voit, pas celle qu'elle recouvre. Un
+     gilet ample sur un t-shirt ajusté, c'est une silhouette ample : tant que
+     cette ligne lisait le haut, la tenue était notée « silhouette
+     contrastée » alors qu'on voyait de l'ample sur de l'ample. Faute d'un
+     champ disant qu'une pièce se porte ouverte, on prend la plus extérieure
+     telle quelle. Réserve connue : un manteau s'enlève en arrivant, donc il
+     décide de la silhouette du trajet plus que de celle de la journée. */
+  const buste = de("manteau") || de("pull") || haut;
+  if (buste && bas) {
+    const ch = coupe(buste), cb = coupe(bas);
     if ((ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample")) {
       bonus += 1.2; detail.push("silhouette contrastée");
     } else if (ch === "ample" && cb === "ample") bonus -= 1.0;
@@ -1239,12 +1248,15 @@ function argumenter(pieces) {
   const coupe = (p) => (p && p.coupe) || "droit";
   const haut = pieces.find((p) => p.categorie === "haut") || pieces.find((p) => p.categorie === "robe");
   const bas = pieces.find((p) => p.categorie === "bas");
-  if (haut && bas) {
-    const ch = coupe(haut), cb = coupe(bas);
+  /* Comme dans la notation : c'est la couche visible qui fait la silhouette. */
+  const buste = pieces.find((p) => p.categorie === "manteau")
+    || pieces.find((p) => p.categorie === "pull") || haut;
+  if (buste && bas) {
+    const ch = coupe(buste), cb = coupe(bas);
     const mot = { ajuste: "ajusté", droit: "droit", ample: "ample" };
     args.push({ titre: "La silhouette", texte:
       (ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample")
-        ? `${haut.nom} ${mot[ch]} sur ${bas.nom.toLowerCase()} ${mot[cb]} : un volume, un seul. C'est la proportion la plus fiable, et la plus flatteuse.`
+        ? `${buste.nom} ${mot[ch]} sur ${bas.nom.toLowerCase()} ${mot[cb]} : un volume, un seul. C'est la proportion la plus fiable, et la plus flatteuse.`
         : ch === "ample" && cb === "ample" ? `Deux volumes larges : la silhouette s'efface. À assumer, ou à casser avec une ceinture.`
         : ch === "ajuste" && cb === "ajuste" ? `Tout près du corps : cohérent, mais sans respiration.`
         : `Des coupes droites qui ne se contrarient pas.` });

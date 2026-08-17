@@ -272,7 +272,7 @@ indépendants de la saison :
 
 | Règle | Effet |
 |---|---|
-| Contraste de silhouette | +1,2 si un volume ample répond à une coupe ajustée ; −1,0 si tout est ample, −0,5 si tout est ajusté |
+| Contraste de silhouette | +1,2 si un volume ample répond à une coupe ajustée ; −1,0 si tout est ample, −0,5 si tout est ajusté. Se lit sur la **couche visible** — manteau, sinon pull, sinon le haut — et non sur ce qu'elle recouvre |
 | Camaïeu | +1,0 si toutes les couleurs marquées relèvent d'une même famille chromatique |
 | Accent unique | +0,7 pour une seule couleur vive sur une base neutre |
 | Ancrage par la chaussure | +0,4 si la chaussure est au moins aussi habillée que le reste ; −0,8 si elle le tire nettement vers le bas |
