@@ -66,8 +66,26 @@ Chaque tenue candidate reçoit un score, somme de six termes.
 cible dérivée de la température déclarée : chaud → 4, doux → 7, frais → 11,
 froid → 14. Chaque point d'écart coûte 1,5.
 
-**Formalité.** L'activité fixe une cible : travail → 3, loisir → 2,
-vacances → 1,5.
+**Formalité.** L'activité fixe deux seuils, et ils ne se déduisent pas l'un de
+l'autre :
+
+| Activité | Cible | Plancher |
+|---|---|---|
+| Travail | 3 | **3** |
+| Loisir | 2 | 1 |
+| Vacances | 1,5 | 1 |
+
+Le **plancher** est un *filtre*, pas une pénalité : une pièce qui ne peut pas
+atteindre le registre exigé est écartée de la sélection. Le travail en impose
+un — un minishort reste un minishort quoi qu'on mette au-dessus — alors qu'un
+loisir accepte tout, du survêtement à la chemise.
+
+> Cette règle est née d'un bug réel. Un minishort tagué « décontracté » était
+> proposé en second choix pour une journée de travail, et la tenue s'affichait
+> même « le bon registre ». En cause : la moyenne. Un cran d'écart sur une
+> pièce, divisé par trois, ne coûtait que 0,47 point — moins que l'écart de
+> chaleur entre un short et une jupe en jean. Le moyennage laisse une pièce
+> inadaptée se cacher derrière les autres ; le plancher l'en empêche.
 
 Le registre d'un vêtement n'est **pas un chiffre mais un intervalle** : une
 jupe unie est décontractée avec des baskets et soignée avec des escarpins, un

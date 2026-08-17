@@ -502,10 +502,15 @@ const TEMPS = [
   { id: "froid", nom: "Froid",  pict: "🥶", cible: 14, detail: "< 3°" },
 ];
 
+/* `cible` est le registre visé ; `plancher` est celui en dessous duquel une
+   pièce devient inacceptable. Les deux ne se déduisent pas l'un de l'autre :
+   le travail impose un plancher — un minishort reste un minishort quoi qu'on
+   mette au-dessus — alors qu'un loisir accepte tout, du survêtement à la
+   chemise. */
 const ACTIVITES = [
-  { id: "travail",  nom: "Travail",  pict: "💼", cible: 3 },
-  { id: "loisir",   nom: "Loisir",   pict: "🚲", cible: 2 },
-  { id: "vacances", nom: "Vacances", pict: "🌴", cible: 1.5 },
+  { id: "travail",  nom: "Travail",  pict: "💼", cible: 3,   plancher: 3 },
+  { id: "loisir",   nom: "Loisir",   pict: "🚲", cible: 2,   plancher: 1 },
+  { id: "vacances", nom: "Vacances", pict: "🌴", cible: 1.5, plancher: 1 },
 ];
 
 const CATEGORIES = [
@@ -1113,6 +1118,16 @@ function noterTenue(pieces, affinites) {
   const moyenne = formalites.reduce((a, b) => a + b, 0) / formalites.length;
   const ecartForme = Math.abs(moyenne - cibleForme);
   score -= 1.4 * ecartForme;
+
+  /* La moyenne noie une pièce inadaptée derrière les autres : un minishort
+     tagué « décontracté » ne coûtait que 0,47 point pour une journée de
+     travail, et la tenue s'affichait même « le bon registre ». On regarde donc
+     aussi la pièce la plus en dessous du plancher de l'occasion — celle qui,
+     à elle seule, rend la tenue impossible. */
+  const plancher = ACTIVITES.find((a) => a.id === etat.activite).plancher;
+  const manque = pieces.reduce((pire, p) =>
+    Math.max(pire, Math.max(0, plancher - formaliteMax(p))), 0);
+  score -= 2.4 * manque;
   /* L'incompatibilité se juge sur les intervalles, pas sur les valeurs
      adaptées : deux pièces dont les registres se recouvrent vont ensemble,
      deux pièces dont les registres sont écartés jurent — quelle que soit
@@ -1127,7 +1142,7 @@ function noterTenue(pieces, affinites) {
       if (trou > ecartRegistres) ecartRegistres = trou;
     }
   if (ecartRegistres > 1) score -= 2.5 * (ecartRegistres - 1);
-  if (ecartForme <= 0.5 && ecartRegistres <= 1) detail.push("le bon registre");
+  if (ecartForme <= 0.5 && ecartRegistres <= 1 && !manque) detail.push("le bon registre");
 
   /* La somme des chaleurs peut tomber juste sur un assemblage absurde : un
      short sous une doudoune, des sandales sous une parka. Une pièce d'été aux
@@ -1214,8 +1229,15 @@ function proposerTenues(combien = 3) {
     if (etat.ecartees.has(p.id)) n -= 2;
     return n + Math.random() * 1.3;
   };
+  /* Le plancher de l'occasion est un filtre, pas une pénalité : une pièce qui
+     ne peut pas atteindre le registre exigé n'est pas une option moins bonne,
+     elle n'est pas une option. C'est ce qui écarte un minishort d'une journée
+     de travail, quoi qu'on lui associe. */
+  const plancher = ACTIVITES.find((a) => a.id === etat.activite).plancher;
+  const admissible = (p) => formaliteMax(p) >= plancher;
+
   const par = (c, garder) => {
-    const liste = etat.pieces.filter((p) => p.categorie === c && portable(p));
+    const liste = etat.pieces.filter((p) => p.categorie === c && portable(p) && admissible(p));
     if (liste.length <= garder) return liste;
     return liste.map((p) => ({ p, n: promesse(p) }))
                 .sort((a, b) => b.n - a.n).slice(0, garder).map((x) => x.p);
@@ -1226,9 +1248,13 @@ function proposerTenues(combien = 3) {
   const chaussures = par("chaussures", 5), accessoires = par("accessoire", 4);
 
   const horsSaison = etat.pieces.length - etat.pieces.filter(portable).length;
-  const rappel = horsSaison
-    ? ` ${horsSaison} pièce${horsSaison > 1 ? "s sont écartées" : " est écartée"} car hors ${saison} — corrige leurs saisons dans la garde-robe si besoin.`
-    : "";
+  const tropDecontractees = etat.pieces.filter((p) => portable(p) && !admissible(p)).length;
+  const rappel = (horsSaison
+    ? ` ${horsSaison} pièce${horsSaison > 1 ? "s sont écartées" : " est écartée"} car hors ${saison}.`
+    : "")
+    + (tropDecontractees
+      ? ` ${tropDecontractees} pièce${tropDecontractees > 1 ? "s sont écartées" : " est écartée"} car trop décontractée${tropDecontractees > 1 ? "s" : ""} pour cette occasion.`
+      : "");
 
   if (!chaussures.length)
     return { erreur: `Aucune paire de chaussures disponible pour cette saison.${rappel}` };
