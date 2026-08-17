@@ -92,6 +92,8 @@ const CONSIGNE = `Tu regardes la photo d'un vêtement, prise chez son propriéta
 
 Décris la pièce **telle qu'elle est**, pas telle qu'elle devrait être. Si la photo est mauvaise, mal éclairée, ou si la pièce est pliée au point d'être ambiguë, choisis l'option la plus probable et baisse ta confiance.
 
+La **matière** se juge à la famille dominante et visible : coton, lin, laine, denim, maille, cuir, soie, synthétique. Distinguer un coton pur d'un mélange coton-synthétique est impossible sur une photo et **sans conséquence** pour s'habiller : choisis la famille la plus probable et n'en fais pas un doute. Une confiance abaissée doit signaler quelque chose que le propriétaire peut corriger et qui change l'usage de la pièce — une catégorie douteuse, un registre mal cerné, une longueur invisible — pas une nuance de fibre que personne ne tranchera jamais.
+
 Quand tu n'es pas sûr, **dis où exactement**. Le propriétaire a plusieurs centaines de vêtements à relire : « confiance moyenne » l'oblige à tout réexaminer, tandis qu'une phrase précise lui dit quoi regarder. Nomme le champ qui te pose problème et la raison.
 
 Trois pièges à éviter :
@@ -247,6 +249,8 @@ async function ouvrier() {
       const marque = lu.confiance === "basse" ? " ⚠ à revérifier" : lu.confiance === "moyenne" ? " ·" : "";
       console.error(`  [${faits + echecs}/${aTraiter.length}] ${lu.nom} — ${lu.categorie}, ${lu.couleurs.join("+")}, `
         + `chaleur ${lu.chaleur}, ${registreLisible(lu)}, ${lu.coupe}`
+        + `${lu.motif && lu.motif !== "uni" ? ", " + lu.motif : ""}`
+        + `${lu.longueur ? ", " + lu.longueur : ""}${lu.matiere ? ", " + lu.matiere : ""}`
         + `${lu.saisons.length ? `, ${lu.saisons.join("/")}` : ", toute l'année"}${lu.dehors ? ", imperméable" : ""}${marque}`);
       if (lu.doute) console.error(`        ↳ ${lu.doute}`);
       rapport.push({ id: piece.id, nom: lu.nom, confiance: lu.confiance, doute: lu.doute, change });
