@@ -31,11 +31,14 @@ const MOTIFS = ["uni", "raye", "carreaux", "imprime"];
 const LONGUEURS = ["court", "genoux", "long"];
 const MATIERES = ["coton", "lin", "laine", "denim", "maille", "cuir", "soie", "synthetique"];
 
-/* Sonnet 5 à effort moyen : choix de l'utilisateur, pour un rapport
-   qualité-prix adapté à une extraction structurée répétée cinq cents fois.
-   Se change au coup par coup avec MODELE= et EFFORT=. */
+/* Sonnet 5 à effort élevé. L'effort moyen, essayé d'abord, s'est révélé
+   instable : sur huit pièces il a produit deux réponses aberrantes — une
+   question sans rapport sur un chauffe-eau, une phrase en chinois — et ignoré
+   trois fois la consigne demandant de ne pas douter d'une nuance de fibre.
+   À effort élevé, plus d'aberration et des doutes qui apprennent quelque
+   chose, pour 14 % de plus. Se change avec MODELE= et EFFORT=. */
 const MODELE = process.env.MODELE || "claude-sonnet-5";
-const EFFORT = process.env.EFFORT || "medium";
+const EFFORT = process.env.EFFORT || "high";
 const PARALLELE = 4;
 
 /* Tarifs par million de jetons, pour le décompte final. Claude Sonnet 5 est

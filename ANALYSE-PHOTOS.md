@@ -127,10 +127,14 @@ Le script **refuse désormais une réponse suspecte** et compte la pièce en
 exprimé alors que la confiance est haute. Mieux vaut une pièce à refaire qu'une
 fiche salie.
 
-Si les échecs se multiplient, le premier levier est l'effort :
+Une pièce en échec ne reçoit pas de date d'analyse : **le passage suivant la
+reprend automatiquement**, sans rien à noter.
+
+Si les échecs se multiplient malgré l'effort élevé, le levier suivant est le
+modèle :
 
 ```bash
-EFFORT=high node outils/analyse-photos.mjs export.json --limite 8 --simuler
+MODELE=claude-opus-5 node outils/analyse-photos.mjs export.json --limite 8 --simuler
 ```
 
 ## Ce que ça coûte
@@ -138,13 +142,15 @@ EFFORT=high node outils/analyse-photos.mjs export.json --limite 8 --simuler
 Le script affiche le compte exact à la fin — jetons consommés, coût du
 passage, coût par pièce, et projection sur cinq cents pièces.
 
-Par défaut, **Claude Sonnet 5 à effort moyen** : le bon compromis pour une
-extraction structurée répétée cinq cents fois.
+Par défaut, **Claude Sonnet 5 à effort élevé**. L'effort moyen, essayé
+d'abord, s'est révélé instable — voir ci-dessus.
 
-| Réglage | 500 pièces |
+| Réglage | 500 pièces, mesuré |
 |---|---|
-| Sonnet 5, effort moyen — **par défaut** | ≈ 3,70 $ au tarif de lancement, ≈ 5,60 $ ensuite |
-| Opus 5, effort élevé | ≈ 9,30 $ |
+| Sonnet 5, effort élevé — **par défaut** | ≈ 5,85 $ |
+| Sonnet 5, effort moyen | ≈ 5,15 $, mais deux réponses aberrantes sur huit |
+
+Les 70 centimes d'écart ne se discutent pas au regard de la fiabilité.
 
 Sonnet 5 est en tarif de lancement jusqu'au 31 août 2026 ; passée cette date
 le script bascule tout seul sur le tarif normal, sans rien à changer.
