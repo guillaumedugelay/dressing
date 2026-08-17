@@ -277,6 +277,8 @@ indépendants de la saison :
 | Accent unique | +0,7 pour une seule couleur vive sur une base neutre |
 | Ancrage par la chaussure | +0,4 si la chaussure est au moins aussi habillée que le reste ; −0,8 si elle le tire nettement vers le bas |
 | Accessoire | +0,3 — un accessoire signe une tenue ; la composition n'en autorise qu'un |
+| Motif | +0,5 pour un seul imprimé qui ressort ; −1,8 dès que deux se concurrencent |
+| Proportion du manteau | +0,4 s'il descend au moins un cran plus bas que le bas ou la robe ; −0,3 pour un cran au-dessus, −0,7 pour deux |
 
 **Les tendances** sont un corpus mobile, chargé depuis `tendances.json` et
 régénéré chaque semaine hors de l'application (voir [TENDANCES.md](TENDANCES.md)
@@ -284,8 +286,9 @@ pour la chaîne complète). L'application le télécharge au lancement, le range
 dans IndexedDB, et continue de fonctionner hors ligne sur la dernière version
 connue.
 
-Quatre formes de règle, toutes exprimées dans le vocabulaire fermé de
-l'application — 14 couleurs, 3 coupes, 7 catégories :
+Sept formes de règle, toutes exprimées dans le vocabulaire fermé de
+l'application — 14 couleurs, 3 coupes, 7 catégories, 4 motifs, 3 longueurs,
+8 matières :
 
 | Forme | Ce qu'elle dit |
 |---|---|
@@ -293,6 +296,14 @@ l'application — 14 couleurs, 3 coupes, 7 catégories :
 | `couleur` | une couleur qui monte, ou qui reflue si le poids est négatif |
 | `association` | deux couleurs qui s'accordent cette saison |
 | `categorie` | une catégorie mise en avant, éventuellement dans une coupe précise |
+| `motif` | un imprimé de la saison |
+| `longueur` | une longueur qui domine — c'est ce que le vocabulaire ne savait pas dire avant le 17 août 2026 |
+| `matiere` | une matière mise en avant |
+
+Une huitième valeur, `descriptive`, existe dans le schéma de synthèse : elle
+recueille ce que la presse dit et que le moteur ne sait pas noter. Elle
+n'entre dans aucun calcul et sert à ne pas forcer une règle inexprimable dans
+une forme qui la trahirait.
 
 La somme des règles est bornée à ±3, puis multipliée par le réglage
 **classique ↔ tendance** du Journal — de 0 (ignorer) à 2 (suivre franchement).

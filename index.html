@@ -1006,6 +1006,22 @@ function noteStyle(pieces) {
   if (motifs.length === 1) { bonus += 0.5; detail.push("un motif qui ressort"); }
   else if (motifs.length >= 2) bonus -= 1.8;
 
+  /* Proportion du manteau. Un manteau qui s'arrête juste au-dessus d'un ourlet
+     plus long coupe la silhouette à l'endroit le plus large et laisse dépasser
+     ce qu'il devrait couvrir ; un manteau qui descend au moins aussi bas que
+     le bas tient une ligne verticale continue. Le vocabulaire à trois crans ne
+     dit rien de plus fin — pas la taille marquée, pas l'ourlet à mi-mollet —
+     donc on s'en tient à l'écart d'un cran, le seul qui soit lisible. Une
+     pièce sans longueur renseignée ne compte ni pour ni contre. */
+  const RANG = { court: 0, genoux: 1, long: 2 };
+  const manteau = de("manteau"), dessous = bas || de("robe");
+  if (manteau && dessous && manteau.longueur in RANG && dessous.longueur in RANG) {
+    const ecart = RANG[manteau.longueur] - RANG[dessous.longueur];
+    if (ecart <= -2) bonus -= 0.7;
+    else if (ecart === -1) bonus -= 0.3;
+    else if (ecart >= 1) { bonus += 0.4; detail.push("ligne allongée par le manteau"); }
+  }
+
   return { bonus, detail };
 }
 
@@ -1236,6 +1252,18 @@ function argumenter(pieces) {
   const motifs = pieces.filter((p) => p.motif && p.motif !== "uni");
   if (motifs.length === 1) args.push({ titre: "Le motif", texte: `${motifs[0].nom} est la seule pièce à motif : elle porte la tenue sans avoir à lutter contre une autre.` });
   else if (motifs.length >= 2) args.push({ titre: "Le motif", texte: `${enumere(nomsDe(motifs))} portent chacune un motif : ils se concurrencent.` });
+
+  /* La proportion du manteau */
+  const RANGS = { court: 0, genoux: 1, long: 2 };
+  const manteau = pieces.find((p) => p.categorie === "manteau");
+  const dessous = bas || pieces.find((p) => p.categorie === "robe");
+  if (manteau && dessous && manteau.longueur in RANGS && dessous.longueur in RANGS) {
+    const ecart = RANGS[manteau.longueur] - RANGS[dessous.longueur];
+    if (ecart >= 1)
+      args.push({ titre: "La proportion", texte: `${manteau.nom} descend plus bas que ${dessous.nom.toLowerCase()} : la ligne reste continue de l'épaule à l'ourlet.` });
+    else if (ecart <= -1)
+      args.push({ titre: "La proportion", texte: `${manteau.nom} s'arrête au-dessus de ${dessous.nom.toLowerCase()}, qui dépasse : la silhouette se coupe en deux. Ouvert plutôt que fermé, ça se tient mieux.` });
+  }
 
   /* Les tendances */
   const t = noteTendances(pieces);
