@@ -225,6 +225,7 @@ async function analyser(piece) {
   const texte = reponse.content.find((b) => b.type === "text")?.text;
   if (!texte) throw new Error("réponse vide");
   const lu = JSON.parse(texte);
+  normaliserDoute(lu);
   const griefs = reponseSaine(lu);
   if (griefs.length) throw new Error(`réponse suspecte (${griefs.join(", ")}) — à réanalyser`);
   return lu;
@@ -232,6 +233,23 @@ async function analyser(piece) {
 
 /* Le nom tapé par le propriétaire est le seul champ qu'on ne remplace pas :
    c'est le seul qu'il a forcément saisi volontairement. */
+/* Sur 49 pièces réelles, 19 des 25 doutes portaient sur la fibre exacte —
+   coton pur ou mélange, viscose ou polyester. La consigne demandait déjà de ne
+   pas en faire un doute ; le modèle ne l'a pas suivie. Plutôt que d'insister,
+   on le normalise ici : un doute qui ne parle que de matière est écarté, et la
+   pièce n'est plus signalée. L'information reste dans la description, et
+   personne ne relit 500 fiches pour une nuance que la photo ne dira jamais. */
+const DOUTE_MATIERE = /mati[èe]re|coton|viscose|polyester|synth[ée]tique|lin|laine|fibre|tissu|maille/i;
+const DOUTE_AUTRE = /couleur|teinte|coupe|longueur|cat[ée]gorie|registre|saison|surcouche|superpos|pli[ée]|froiss|flou|cadr|sombre|à plat/i;
+
+function normaliserDoute(lu) {
+  if (lu.confiance === "haute" || !lu.doute) return;
+  if (DOUTE_MATIERE.test(lu.doute) && !DOUTE_AUTRE.test(lu.doute)) {
+    lu.confiance = "haute";
+    lu.doute = "";
+  }
+}
+
 function appliquer(piece, lu) {
   const avant = { ...piece };
   if (!piece.nom) piece.nom = lu.nom;
