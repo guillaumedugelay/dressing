@@ -998,10 +998,10 @@ function noteStyle(pieces, manques) {
       : ch === "ample" && cb === "ample" ? -1.0
       : ch === "ajuste" && cb === "ajuste" ? -0.5 : ch !== cb ? 0.6 : 0;
     rate(1.0 - acquis, ch === cb && ch === "ample"
-      ? `resserrer le bas, ou le haut : deux volumes amples effacent la silhouette`
+      ? `resserrer le haut ou le bas — deux pièces larges ensemble, la silhouette se perd`
       : ch === cb && ch === "ajuste"
-      ? `un volume ample quelque part — tout est près du corps`
-      : `un volume ample répondant à une coupe ajustée`);
+      ? `un peu de volume quelque part : tout est près du corps, ça manque de respiration`
+      : `du volume en haut sur ce bas ajusté, ou l'inverse — c'est ce qui dessine une silhouette`);
   } else if (!bas && de("robe")) {
     /* Une robe est une silhouette à elle seule : elle ne peut pas contraster,
        mais elle ne peut pas non plus se contredire. Sans ce terme, toute tenue
@@ -1015,14 +1015,14 @@ function noteStyle(pieces, manques) {
   const familles = new Set(teintes.map(familleDe));
   const camaieu = teintes.length >= 2 && familles.size === 1;
   if (camaieu) { bonus += 1.0; detail.push("camaïeu"); }
-  else if (familles.size >= 2) rate(1.0, `des couleurs d'une même famille — ici ${familles.size} familles se côtoient`);
+  else if (familles.size >= 2) rate(1.0, `rester dans une même famille de couleurs : elles se répondraient au lieu de se disputer`);
 
   /* Un seul accent sur une base neutre : la valeur sûre. */
   const vives = new Set(pieces.flatMap((p) => p.couleurs || [])
     .filter((c) => !COULEURS.find((x) => x.id === c)?.neutre));
   if (vives.size === 1 && teintes.length <= 2) { bonus += 0.7; detail.push("un seul accent"); }
-  else if (vives.size > 1) rate(0.7, `une seule couleur vive sur une base neutre`);
-  else if (!vives.size) rate(0.7, `une touche de couleur : tout est neutre`);
+  else if (vives.size > 1) rate(0.7, `n'en garder qu'une vive sur une base neutre, c'est ce qui fait le point de regard`);
+  else if (!vives.size) rate(0.7, `une touche de couleur, tout est neutre ici`);
 
   /* La chaussure tire la tenue vers le haut plutôt qu'elle ne la tire vers
      le bas — le réflexe qui distingue une tenue habillée d'une tenue subie. */
@@ -1033,14 +1033,14 @@ function noteStyle(pieces, manques) {
     const moyenne = reste.reduce((s, p) => s + formaliteEffective(p, cible), 0) / (reste.length || 1);
     const dela = formaliteEffective(ch, cible);
     if (dela >= moyenne) bonus += 0.4;
-    else if (dela <= moyenne - 2) { bonus -= 0.8; rate(1.2, `des chaussures au moins aussi habillées que le reste — ${ch.nom.toLowerCase()} tire la tenue vers le bas`); }
-    else rate(0.4, `des chaussures un cran plus habillées`);
+    else if (dela <= moyenne - 2) { bonus -= 0.8; rate(1.2, `des chaussures à la hauteur du reste : ${ch.nom.toLowerCase()}, ça tire tout vers le bas`); }
+    else rate(0.4, `des chaussures un cran plus soignées, elles remonteraient l'ensemble`);
   }
 
   /* Un accessoire signe une tenue ; trois la surchargent — la composition
      n'en autorise qu'un, donc on récompense simplement sa présence. */
   if (pieces.some((p) => p.categorie === "accessoire")) bonus += 0.3;
-  else rate(0.3, `un accessoire, qui signe une tenue`);
+  else rate(0.3, `un accessoire, c'est souvent ce qui fait la différence`);
 
   /* Un imprimé se porte seul. Avant ce terme, le moteur ne voyait que des
      couleurs : il pénalisait un imprimé sur un uni — une bonne association —
@@ -1048,8 +1048,8 @@ function noteStyle(pieces, manques) {
      renseigné ne comptent ni pour ni contre. */
   const motifs = pieces.filter((p) => p.motif && p.motif !== "uni");
   if (motifs.length === 1) { bonus += 0.5; detail.push("un motif qui ressort"); }
-  else if (motifs.length >= 2) { bonus -= 1.8; rate(2.3, `un seul imprimé : ` + motifs.map((p) => p.nom.toLowerCase()).join(" et ") + ` se concurrencent`); }
-  else rate(0.5, `une pièce à motif, qui porterait la tenue`);
+  else if (motifs.length >= 2) { bonus -= 1.8; rate(2.3, `n'en garder qu'une à motif : ` + motifs.map((p) => p.nom.toLowerCase()).join(" et ") + ` se disputent le regard`); }
+  else rate(0.5, `un imprimé quelque part, pour accrocher l'œil`);
 
   /* Proportion du manteau. Un manteau qui s'arrête juste au-dessus d'un ourlet
      plus long coupe la silhouette à l'endroit le plus large et laisse dépasser
@@ -1062,10 +1062,10 @@ function noteStyle(pieces, manques) {
   const manteau = de("manteau"), dessous = bas || de("robe");
   if (manteau && dessous && manteau.longueur in RANG && dessous.longueur in RANG) {
     const ecart = RANG[manteau.longueur] - RANG[dessous.longueur];
-    if (ecart <= -2) { bonus -= 0.7; rate(1.1, `un manteau plus long : ` + dessous.nom.toLowerCase() + ` dépasse largement`); }
-    else if (ecart === -1) { bonus -= 0.3; rate(0.7, `un manteau qui couvre ` + dessous.nom.toLowerCase()); }
+    if (ecart <= -2) { bonus -= 0.7; rate(1.1, `un manteau plus long : ` + dessous.nom.toLowerCase() + ` dépasse en dessous, et ça coupe la silhouette`); }
+    else if (ecart === -1) { bonus -= 0.3; rate(0.7, `un manteau qui descende plus bas que ` + dessous.nom.toLowerCase()); }
     else if (ecart >= 1) { bonus += 0.4; detail.push("ligne allongée par le manteau"); }
-    else rate(0.4, `un manteau descendant plus bas que ` + dessous.nom.toLowerCase());
+    else rate(0.4, `un manteau un peu plus long, pour tenir la ligne`);
   }
 
   return { bonus, detail };
@@ -1202,6 +1202,42 @@ function synchroniserJour() {
 
 /* Chaque règle est indépendante ; leur somme est bornée pour qu'aucune saison
    ne puisse à elle seule dicter une tenue. */
+/* Traduire une règle de tendance en conseil dit à voix haute. Le vocabulaire
+   de l application est fermé, donc la traduction l est aussi : c est une
+   table, pas une génération. */
+const NOM_COULEUR = (id) => (COULEURS.find((c) => c.id === id)?.nom || id).toLowerCase();
+const ARTICLE_MATIERE = { coton: "du coton", lin: "du lin", laine: "de la laine",
+  denim: "du denim", maille: "de la maille", cuir: "du cuir", soie: "de la soie",
+  synthetique: "une matière technique" };
+const NOM_CATEGORIE = { manteau: "une veste ou un manteau", pull: "un pull ou un gilet",
+  robe: "une robe", accessoire: "un accessoire", haut: "un autre haut",
+  bas: "un autre bas", chaussures: "d autres chaussures" };
+const NOM_COUPE = { ajuste: "ajusté", droit: "droit", ample: "ample" };
+const NOM_MOTIF = { raye: "des rayures", carreaux: "des carreaux", imprime: "un imprimé", uni: "une pièce unie" };
+const NOM_LONGUEUR = { court: "une pièce courte", genoux: "une longueur aux genoux", long: "une pièce longue" };
+
+function conseilDeTendance(r) {
+  if (r.type === "couleur")     return `une touche de ${NOM_COULEUR(r.valeur)}`;
+  if (r.type === "association") return `associer ${NOM_COULEUR(r.couleurs[0])} et ${NOM_COULEUR(r.couleurs[1])}`;
+  if (r.type === "matiere")     return ARTICLE_MATIERE[r.valeur] || null;
+  if (r.type === "motif")       return NOM_MOTIF[r.valeur] || null;
+  if (r.type === "longueur")    return NOM_LONGUEUR[r.valeur] || null;
+  if (r.type === "categorie") {
+    /* Une tendance peut porter sur une pièce que la situation exclut : le
+       corpus d'août 2026 valorisait le pull de mi-saison, et le conseil
+       tombait sur des tenues d'été à 25 degrés. On ne suggère pas d'ajouter
+       une couche quand il fait chaud — un conseil qui contredit la météo
+       décrédibilise tous les autres. */
+    if (etat.temp === "chaud" && (r.valeur === "pull" || r.valeur === "manteau")) return null;
+    const quoi = NOM_CATEGORIE[r.valeur];
+    if (!quoi) return null;
+    return r.coupe && NOM_COUPE[r.coupe] ? `${quoi}, de coupe ${NOM_COUPE[r.coupe]}` : quoi;
+  }
+  if (r.type === "silhouette" && NOM_COUPE[r.haut] && NOM_COUPE[r.bas])
+    return `un haut ${NOM_COUPE[r.haut]} sur un bas ${NOM_COUPE[r.bas]}`;
+  return null;   /* descriptive, ou forme inconnue : on ne conseille pas ce qu on ne sait pas noter */
+}
+
 function noteTendances(pieces, manques) {
   if (!TENDANCES.regles.length || !etat.poidsTendance) return { bonus: 0, detail: [] };
 
@@ -1250,15 +1286,17 @@ function noteTendances(pieces, manques) {
   const atteignable = TENDANCES.regles.reduce((s, r) => s + Math.max(0, r.poids), 0);
   const rapporte = atteignable ? 3 * brut / atteignable : 0;
   const bonus = Math.max(-3, Math.min(3, rapporte)) * etat.poidsTendance;
-  /* Ce que la tenue n a pas coché, valorisé dans la même unité que la note :
-     c est la forme la plus concrète de « comment faire mieux », puisqu il
-     suffit de nommer la pièce qui manque. Les règles `descriptive` sont
-     écartées — le moteur ne sait pas les appliquer, les proposer serait
-     donner un conseil qu il ne saurait pas noter. */
+  /* Ce que la tenue n a pas coché. Le conseil se construit sur les champs de
+     la règle, jamais sur sa note : celle-ci est écrite pour décrire ce que
+     dit la presse — « denim omniprésent, toutes coupes confondues » — et
+     recopiée telle quelle, elle donnerait un conseil qui ne ressemble à rien
+     de ce qu on dirait à quelqu un qui s habille. Les règles `descriptive`
+     sont écartées : le moteur ne sait pas les appliquer, les suggérer
+     reviendrait à conseiller ce qu il ne saurait pas noter ensuite. */
   if (manques && atteignable) for (const r of ratees) {
-    if (r.type === "descriptive") continue;
-    manques.push({ gain: 3 * r.poids / atteignable * etat.poidsTendance,
-                   texte: r.note.charAt(0).toLowerCase() + r.note.slice(1), tendance: true });
+    const dit = conseilDeTendance(r);
+    if (dit) manques.push({ gain: 3 * r.poids / atteignable * etat.poidsTendance,
+                            texte: dit, tendance: true });
   }
 
   const classees = retenues.sort((a, b) => b.poids - a.poids);
@@ -1362,13 +1400,27 @@ function argumenter(pieces) {
   noteTendances(pieces, manques);
   const retenus = manques.sort((a, b) => b.gain - a.gain).slice(0, 2);
   if (retenus.length) {
-    /* Les notes de tendance sont écrites comme des constats de presse, pas
-       comme des conseils : on les cite plutôt que de les énoncer. */
-    const dit = retenus.map((m) => m.tendance
-      ? `suivre « ${m.texte} » (+${m.gain.toFixed(1)})`
-      : `${m.texte} (+${m.gain.toFixed(1)})`);
-    args.push({ titre: "Ce qui l'aurait améliorée",
-      texte: `${enumere(dit)}. La note ne dit pas qu'une tenue est ratée — elle dit ce qu'elle n'a pas.` });
+    /* Pas de chiffres ici. Le point n'est pas de justifier une note, mais de
+       dire ce qu'on ferait — comme le dirait quelqu'un dont c'est le métier.
+       Quand il ne reste que des manques de mode, on le dit franchement : rien
+       ne cloche, c'est seulement l'air du temps. Suivre une tendance n'engage
+       pas comme un principe de composition, et confondre les deux ferait
+       passer une tenue juste pour une tenue ratée. */
+    const queMode = retenus.every((m) => m.tendance);
+    const majuscule = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+    if (queMode) {
+      /* Des tendances : des groupes nominaux, qu'on énumère naturellement. */
+      args.push({ titre: "Ce qui l'aurait améliorée",
+        texte: `Rien ne cloche dans cette tenue. Pour coller à ce qui se porte en ce moment : ${enumere(retenus.map((m) => m.texte))}.` });
+    } else {
+      /* Un conseil de composition est une phrase, pas un groupe nominal : les
+         relier par « et » donnait « ...c'est ce qui dessine une silhouette et
+         du denim ». Deux phrases, donc. */
+      args.push({ titre: "Ce qui l'aurait améliorée",
+        texte: retenus.map((m, i) => i && m.tendance
+          ? `Et, côté mode, ${m.texte}.`
+          : `${majuscule(m.texte)}.`).join(" ") });
+    }
   }
 
   return args;
