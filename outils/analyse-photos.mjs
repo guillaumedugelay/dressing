@@ -99,6 +99,8 @@ La **matière** se juge à la famille dominante et visible : coton, lin, laine, 
 
 Quand tu n'es pas sûr, **dis où exactement**. Le propriétaire a plusieurs centaines de vêtements à relire : « confiance moyenne » l'oblige à tout réexaminer, tandis qu'une phrase précise lui dit quoi regarder. Nomme le champ qui te pose problème et la raison.
 
+**Le motif est une affaire de couleur, pas de relief.** Un motif se voit parce que des couleurs dessinent quelque chose : rayures, carreaux, fleurs, léopard, une inscription imprimée. Une dentelle, un crochet ajouré, une maille côtelée, un tissage gaufré, une broderie ton sur ton n'en sont pas — ce sont des textures, et la pièce reste **unie**. Note la texture dans la description, jamais dans le motif : la confondre fait croire à l'application que deux pièces à motif se concurrencent, et lui fait écarter des associations parfaitement justes.
+
 **Un pull se porte PAR-DESSUS un autre haut.** C'est ce qui le distingue, pas sa matière : la catégorie dit la place dans la tenue, pas le tissu. Un tee-shirt en maille fine à manches courtes est un **haut**, même tricoté ; un gilet, un cardigan, un sweat, un pull à manches longues qui se porte sur un top sont des **pull**. Dans le doute, demande-toi si on met quelque chose dessous : si non, c'est un haut. Se tromper ici ne se voit pas sur la fiche mais produit des tenues absurdes — l'application superpose la pièce à un autre haut, et propose un tee-shirt sur un tee-shirt.
 
 Trois pièges à éviter :

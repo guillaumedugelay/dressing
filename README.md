@@ -37,6 +37,26 @@ facultatif.
 
 Détail complet dans [ANALYSE-PHOTOS.md](ANALYSE-PHOTOS.md).
 
+### Éprouver le moteur de suggestion
+
+```bash
+npm run banc
+```
+
+Rejoue le moteur sur une garde-robe synthétique de 33 pièces couvrant les sept
+catégories, les cinq crans de chaleur et les quatre saisons, à travers les 192
+situations possibles. Treize détecteurs : neuf structurels qui ne tolèrent rien
+— une tenue sans chaussures, une pièce hors saison, une fuite du filtre de
+chaleur — et quatre qualitatifs avec un seuil. Sort en code 1 si l'un échoue.
+
+Le moteur tourne dans le navigateur : le modifier ne coûte rien, contrairement
+aux consignes envoyées à un modèle. Autant en mesurer les effets plutôt que de
+juger à l'œil sur trois tirages — c'est ainsi qu'on a découvert que le sac à
+main sortait dans 68 % des tenues parce qu'il comptait comme une pièce de plus.
+
+Sur la vraie garde-robe : `node outils/banc-tenues.mjs export.json`.
+Pour voir des tenues plutôt que des chiffres : `--montrer`.
+
 ### Ce qui reste à activer
 
 | | État |

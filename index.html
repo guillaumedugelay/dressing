@@ -976,9 +976,23 @@ function noteStyle(pieces) {
   if (buste && bas) {
     const ch = coupe(buste), cb = coupe(bas);
     if ((ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample")) {
-      bonus += 1.2; detail.push("silhouette contrastée");
+      bonus += 1.0; detail.push("silhouette contrastée");
     } else if (ch === "ample" && cb === "ample") bonus -= 1.0;
     else if (ch === "ajuste" && cb === "ajuste") bonus -= 0.5;
+    /* La coupe droite ne contraste pas, mais elle ne jure avec rien — c'est
+       ce qui en fait la pièce la plus portable d'une garde-robe. Ne rien lui
+       accorder revenait à la punir de 1,2 face à toute tenue contrastée : un
+       banc d'essai du 18 août 2026 sur garde-robe équilibrée sortait le jean
+       droit dans 4 % des tenues et le pantalon de costume dans 1 %, contre
+       44 % pour une jupe ample. Un droit associé à autre chose qu'un droit
+       vaut donc un demi-contraste. */
+    else if (ch !== cb) { bonus += 0.6; detail.push("une coupe droite qui équilibre"); }
+  } else if (!bas && de("robe")) {
+    /* Une robe est une silhouette à elle seule : elle ne peut pas contraster,
+       mais elle ne peut pas non plus se contredire. Sans ce terme, toute tenue
+       en robe partait 1,2 derrière une tenue contrastée et n'était jamais
+       proposée — 0 % sur deux robes du banc, 4 % sur la troisième. */
+    bonus += 0.5; detail.push("la robe fait la silhouette");
   }
 
   /* Camaïeu : toutes les couleurs marquées dans une même famille. */
@@ -1442,11 +1456,19 @@ function noterTenue(pieces, affinites) {
      tenues mesurées s'affichaient toutes « excellente ». Le classement
      utilise le score, l'affichage montre la note. */
   const note = score;
-  score += pieces.reduce((s, p) => s + penaliteRecence(p), 0);
+
+  /* Ces termes se calculent **en moyenne par pièce**, et non en somme. En
+     somme, chaque pièce jamais portée valant 1,4, une tenue de cinq pièces
+     partait avec 2,8 d'avance sur une tenue de trois : le moteur ajoutait un
+     sac ou un gilet non parce qu'il allait bien, mais parce qu'il faisait une
+     pièce de plus. Un banc d'essai du 18 août 2026 sortait le sac à main dans
+     68 % des tenues. La rotation doit départager des tenues, pas les allonger. */
+  const moyenne = (f) => pieces.reduce((s, p) => s + f(p), 0) / pieces.length;
+  score += moyenne(penaliteRecence);
   score -= 1.6 * pieces.filter((p) => etat.ecartees.has(p.id)).length;
-  const oubli = pieces.reduce((s, p) => s + bonusOubli(p), 0);
+  const oubli = moyenne(bonusOubli);
   score += oubli;
-  if (oubli >= 3) detail.push("des pièces que tu oublies");
+  if (oubli >= 1.2) detail.push("des pièces que tu oublies");
 
   return { score, note, detail };
 }
@@ -1575,6 +1597,13 @@ function proposerTenues(combien = 3) {
     if (assezDifferente) retenues.push(c);
     if (retenues.length === combien) break;
   }
+  /* Le tri de sélection utilise le score complet, rotation comprise : c'est
+     lui qui fait tourner la garde-robe. L'affichage, lui, montre la note de
+     style, et une liste triée sur un chiffre pour en afficher un autre se
+     contredit — un banc d'essai du 18 août 2026 a trouvé des tirages où la
+     deuxième proposition affichait 2,10 sous la première à 0,90. On choisit
+     donc sur le score, on présente sur la note. */
+  retenues.sort((a, b) => b.note - a.note);
   return { tenues: retenues };
 }
 

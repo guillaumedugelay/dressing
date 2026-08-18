@@ -128,6 +128,19 @@ coûtent 3.
 
 **Composition.** Les principes durables du § 6, silhouette et motif compris.
 
+> Les poids de silhouette ont été révisés le 18 août 2026 au banc d'essai. La
+> coupe **droite** ne rapportait rien : ne jamais contraster équivalait à une
+> pénalité de 1,2 face à toute tenue contrastée, alors que le droit est
+> justement la coupe la plus portable. Sur garde-robe équilibrée, le jean brut
+> sortait dans 3 % des tenues et le pantalon de costume dans 0 %. Et une
+> **robe**, n'ayant pas de bas, ne déclenchait jamais la règle : les trois
+> robes du banc sortaient à 0 %, 0 % et 4 %.
+>
+> Après correction — contraste ramené à 1,0, droit crédité de 0,6, robe de
+> 0,5 — le jean passe à 9 % et les robes à 9-10 % chacune. Le balayage a
+> montré qu'au-delà, aplatir davantage fait remonter la jupe ample : 1,0 / 0,6
+> est le point d'équilibre.
+
 **Tendances.** Le corpus hebdomadaire du § 6, borné à ±3 puis multiplié par le
 curseur *classique ↔ tendance*.
 
@@ -144,9 +157,19 @@ polo-baskets pour aller travailler :
   18 août 2026 avec le passage aux deux temps : une tenue qui ne convient pas
   n'arrive plus jusqu'à la note, il n'y a donc plus rien à racheter.
 
-**Rotation — hors de la note.** L'objectif est que la garde-robe tourne
-entièrement, mais **faire tourner n'est pas une qualité de tenue**. La rotation
-départage donc des tenues d'égale allure sans entrer dans la note affichée.
+**Rotation — hors de la note, et en moyenne par pièce.** Ces termes se
+calculent en **moyenne**, jamais en somme.
+
+> En somme, chaque pièce jamais portée valant 1,4, une tenue de cinq pièces
+> partait avec 2,8 d'avance sur une tenue de trois. Le moteur ajoutait donc un
+> sac ou un gilet non parce qu'il allait bien, mais parce qu'il faisait une pièce
+> de plus : le banc du 18 août 2026 sortait le sac à main dans 68 % des tenues.
+> Ramené à une moyenne, il tombe à 37 %. C'était le biais dominant du moteur,
+> et il masquait tous les autres — trois hypothèses successives sur la
+> silhouette se sont révélées fausses tant qu'il était là.
+
+L'objectif reste que la garde-robe tourne entièrement, mais **faire tourner
+n'est pas une qualité de tenue**. La rotation départage des tenues d'égale allure sans entrer dans la note affichée.
 
 > Les mêler rendait la jauge muette. Aucune pièce n'ayant encore été portée,
 > chaque tenue recevait le même gros bonus d'oubli : les 432 tenues mesurées
@@ -286,7 +309,7 @@ indépendants de la saison :
 
 | Règle | Effet |
 |---|---|
-| Contraste de silhouette | +1,2 si un volume ample répond à une coupe ajustée ; −1,0 si tout est ample, −0,5 si tout est ajusté. Se lit sur la **couche visible** — manteau, sinon pull, sinon le haut — et non sur ce qu'elle recouvre |
+| Contraste de silhouette | +1,0 si un volume ample répond à une coupe ajustée ; **+0,6 si une coupe droite en rencontre une autre** ; −1,0 si tout est ample, −0,5 si tout est ajusté ; **+0,5 pour une robe**, qui est une silhouette à elle seule. Se lit sur la **couche visible** — manteau, sinon pull, sinon le haut |
 | Camaïeu | +1,0 si toutes les couleurs marquées relèvent d'une même famille chromatique |
 | Accent unique | +0,7 pour une seule couleur vive sur une base neutre |
 | Ancrage par la chaussure | +0,4 si la chaussure est au moins aussi habillée que le reste ; −0,8 si elle le tire nettement vers le bas |
