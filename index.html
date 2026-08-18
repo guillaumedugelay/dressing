@@ -1226,8 +1226,10 @@ function argumenter(pieces) {
   /* Le temps */
   const ecart = chaleurTenue(pieces) - cibleTemp.cible;
   const protegees = pieces.filter((p) => p.dehors);
-  let temps = Math.abs(ecart) <= 1 ? `Le compte de chaleur tombe juste pour un temps ${cibleTemp.nom.toLowerCase()}.`
-    : ecart > 1 ? `Un peu couvert pour ${cibleTemp.nom.toLowerCase()} — la coupe et la matière rattrapent souvent ce que le calcul ne voit pas.`
+  /* Meme tolerance que la notation : en deca de deux crans on ne commente pas
+     un ecart qui ne se sent pas. */
+  let temps = Math.abs(ecart) <= 2 ? `Le compte de chaleur tombe juste pour un temps ${cibleTemp.nom.toLowerCase()}.`
+    : ecart > 2 ? `Un peu couvert pour ${cibleTemp.nom.toLowerCase()} — la coupe et la matière rattrapent souvent ce que le calcul ne voit pas.`
     : `Plutôt léger pour ${cibleTemp.nom.toLowerCase()} : prévois de quoi te couvrir.`;
   if ((etat.meteo === "pluie" || etat.meteo === "neige") && protegees.length)
     temps += ` ${enumere(nomsDe(protegees))} tien${protegees.length > 1 ? "nent" : "t"} face aux intempéries.`;
@@ -1291,8 +1293,16 @@ function argumenter(pieces) {
   return args;
 }
 
+/* Les accessoires ne comptent pas dans la somme. Un sac, une montre ou un
+   serre-tete ne tiennent pas chaud, et leur note de chaleur — que l analyse
+   remplit quand meme — deplacait le total d un cran, donc la tenue entiere,
+   sans rien dire du temps qu il fait. Une echarpe en janvier releve du meme
+   probleme en sens inverse : la trancher demande de savoir de quel accessoire
+   il s agit, ce que le modele ne sait pas encore dire. En attendant, mieux
+   vaut ne rien compter que compter n importe quoi. */
 function chaleurTenue(pieces) {
-  return pieces.reduce((somme, p) => somme + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
+  return pieces.reduce((somme, p) => p.categorie === "accessoire" ? somme
+    : somme + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
 }
 
 function noterTenue(pieces, affinites) {
@@ -1301,9 +1311,26 @@ function noterTenue(pieces, affinites) {
   const detail = [];
   let score = 0;
 
-  const ecartChaleur = Math.abs(chaleurTenue(pieces) - cibleChaleur);
-  score -= 1.5 * ecartChaleur;
-  if (ecartChaleur <= 1) detail.push("bien couvert");
+  /* La chaleur se compte en somme, mais elle se juge avec une tolerance.
+     Sans elle, un seul cran d ecart sur une seule piece coutait 1,5 point —
+     autant que le contraste de silhouette en rapporte — si bien qu en ete un
+     haut « fin » plutot que « leger » suffisait a faire chuter une tenue par
+     ailleurs juste. Entre leger et fin au mois d aout, personne ne sent la
+     difference : le calcul tranchait la ou l on ne tranche pas.
+
+     Deux crans sont donc gratuits. Le temps ne se mesure pas au point pres, et
+     la matiere, la coupe, le fait d ouvrir ou non un gilet rattrapent ce que
+     la somme ignore. Au-dela, l ecart se paie — plus cher quand la tenue est
+     trop legere pour le froid que trop couverte pour la chaleur : on remonte
+     des manches, on n invente pas une veste.
+
+     Le seuil d annonce suit la meme regle : l application ne dit plus « bien
+     couvert » tout en retirant des points, ce qu elle faisait des un cran. */
+  const TOLERANCE_CHALEUR = 2;
+  const ecartSigne = chaleurTenue(pieces) - cibleChaleur;
+  const ecartChaleur = Math.max(0, Math.abs(ecartSigne) - TOLERANCE_CHALEUR);
+  score -= (ecartSigne < 0 ? 1.2 : 0.9) * ecartChaleur;
+  if (!ecartChaleur) detail.push("bien couvert");
 
   /* Chaque pièce adopte la formalité que l'occasion appelle, dans les limites
      de ce qu'elle sait faire. Une pièce polyvalente ne coûte donc rien ; une

@@ -60,15 +60,32 @@ Une tenue valide est l'une de ces deux bases :
 à laquelle s'ajoutent obligatoirement des chaussures, puis, selon la
 température, une couche intermédiaire (pull), une couche extérieure (manteau)
 et au plus un accessoire. Aucune de ces trois additions n'est imposée : c'est
-la note de chaleur qui met l'écharpe en janvier et la casquette en juillet.
+la note de chaleur qui décide du pull et du manteau. **L'accessoire, lui, ne
+compte plus dans la chaleur** : un sac ou un serre-tête ne tient pas chaud, et
+sa note déplaçait le total d'un cran sans rien dire du temps qu'il fait. Une
+écharpe en janvier pose le problème inverse — le trancher suppose de savoir de
+quel accessoire il s'agit, ce que le modèle ne sait pas encore dire.
 
 ## 4. Moteur de suggestion
 
 Chaque tenue candidate reçoit un score, somme de six termes.
 
-**Chaleur.** La somme des indices de chaleur des pièces est comparée à une
-cible dérivée de la température déclarée : chaud → 4, doux → 7, frais → 11,
-froid → 14. Chaque point d'écart coûte 1,5.
+**Chaleur.** La somme des indices de chaleur des pièces — accessoires exclus —
+est comparée à une cible dérivée de la température déclarée : chaud → 4,
+doux → 7, frais → 11, froid → 14.
+
+**Deux points d'écart sont gratuits.** Au-delà, chaque point coûte 1,2 si la
+tenue est trop légère, 0,9 si elle est trop couverte : on remonte des manches,
+on n'invente pas une veste.
+
+Cette tolérance vient d'un essai de terrain du 18 août 2026. Sans elle, un
+seul cran sur une seule pièce coûtait 1,5 — autant que le contraste de
+silhouette en rapporte. En été, un haut « fin » plutôt que « léger » suffisait
+donc à faire chuter une tenue par ailleurs juste, et corriger la pièce faisait
+basculer toutes les autres notes d'un coup. Or entre léger et fin au mois
+d'août, personne ne sent la différence : le calcul tranchait là où l'on ne
+tranche pas. La coupe, la matière et le fait d'ouvrir ou non un gilet
+rattrapent largement deux crans.
 
 **Formalité.** L'activité fixe deux seuils, et ils ne se déduisent pas l'un de
 l'autre :
