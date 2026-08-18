@@ -955,9 +955,16 @@ const familleDe = (couleur) =>
    restent vrais quoi que dise la presse. Les tendances du moment sont un
    terme séparé, chargé depuis tendances.json (voir plus bas). */
 
-function noteStyle(pieces) {
+/* `manques` est un collecteur facultatif : quand on le passe, chaque règle qui
+   n'a pas donné son maximum y dépose ce qu'elle aurait rapporté et pourquoi.
+   L'explication affichée s'en sert pour dire ce qui retient la note, sans
+   recalculer les règles à côté — deux calculs parallèles finissent toujours
+   par diverger. Le coût dans la boucle de notation est nul : on ne le passe
+   que pour les trois tenues retenues. */
+function noteStyle(pieces, manques) {
   const detail = [];
   let bonus = 0;
+  const rate = (gain, texte) => { if (manques && gain > 0.01) manques.push({ gain, texte }); };
   const de = (c) => pieces.find((p) => p.categorie === c);
   const haut = de("haut") || de("robe"), bas = de("bas");
   const coupe = (p) => (p && p.coupe) || "droit";
@@ -987,6 +994,14 @@ function noteStyle(pieces) {
        44 % pour une jupe ample. Un droit associé à autre chose qu'un droit
        vaut donc un demi-contraste. */
     else if (ch !== cb) { bonus += 0.6; detail.push("une coupe droite qui équilibre"); }
+    const acquis = (ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample") ? 1.0
+      : ch === "ample" && cb === "ample" ? -1.0
+      : ch === "ajuste" && cb === "ajuste" ? -0.5 : ch !== cb ? 0.6 : 0;
+    rate(1.0 - acquis, ch === cb && ch === "ample"
+      ? `resserrer le bas, ou le haut : deux volumes amples effacent la silhouette`
+      : ch === cb && ch === "ajuste"
+      ? `un volume ample quelque part — tout est près du corps`
+      : `un volume ample répondant à une coupe ajustée`);
   } else if (!bas && de("robe")) {
     /* Une robe est une silhouette à elle seule : elle ne peut pas contraster,
        mais elle ne peut pas non plus se contredire. Sans ce terme, toute tenue
@@ -998,12 +1013,16 @@ function noteStyle(pieces) {
   /* Camaïeu : toutes les couleurs marquées dans une même famille. */
   const teintes = pieces.flatMap((p) => p.couleurs || []).filter((c) => familleDe(c) !== "achrome");
   const familles = new Set(teintes.map(familleDe));
-  if (teintes.length >= 2 && familles.size === 1) { bonus += 1.0; detail.push("camaïeu"); }
+  const camaieu = teintes.length >= 2 && familles.size === 1;
+  if (camaieu) { bonus += 1.0; detail.push("camaïeu"); }
+  else if (familles.size >= 2) rate(1.0, `des couleurs d'une même famille — ici ${familles.size} familles se côtoient`);
 
   /* Un seul accent sur une base neutre : la valeur sûre. */
   const vives = new Set(pieces.flatMap((p) => p.couleurs || [])
     .filter((c) => !COULEURS.find((x) => x.id === c)?.neutre));
   if (vives.size === 1 && teintes.length <= 2) { bonus += 0.7; detail.push("un seul accent"); }
+  else if (vives.size > 1) rate(0.7, `une seule couleur vive sur une base neutre`);
+  else if (!vives.size) rate(0.7, `une touche de couleur : tout est neutre`);
 
   /* La chaussure tire la tenue vers le haut plutôt qu'elle ne la tire vers
      le bas — le réflexe qui distingue une tenue habillée d'une tenue subie. */
@@ -1014,12 +1033,14 @@ function noteStyle(pieces) {
     const moyenne = reste.reduce((s, p) => s + formaliteEffective(p, cible), 0) / (reste.length || 1);
     const dela = formaliteEffective(ch, cible);
     if (dela >= moyenne) bonus += 0.4;
-    else if (dela <= moyenne - 2) bonus -= 0.8;
+    else if (dela <= moyenne - 2) { bonus -= 0.8; rate(1.2, `des chaussures au moins aussi habillées que le reste — ${ch.nom.toLowerCase()} tire la tenue vers le bas`); }
+    else rate(0.4, `des chaussures un cran plus habillées`);
   }
 
   /* Un accessoire signe une tenue ; trois la surchargent — la composition
      n'en autorise qu'un, donc on récompense simplement sa présence. */
   if (pieces.some((p) => p.categorie === "accessoire")) bonus += 0.3;
+  else rate(0.3, `un accessoire, qui signe une tenue`);
 
   /* Un imprimé se porte seul. Avant ce terme, le moteur ne voyait que des
      couleurs : il pénalisait un imprimé sur un uni — une bonne association —
@@ -1027,7 +1048,8 @@ function noteStyle(pieces) {
      renseigné ne comptent ni pour ni contre. */
   const motifs = pieces.filter((p) => p.motif && p.motif !== "uni");
   if (motifs.length === 1) { bonus += 0.5; detail.push("un motif qui ressort"); }
-  else if (motifs.length >= 2) bonus -= 1.8;
+  else if (motifs.length >= 2) { bonus -= 1.8; rate(2.3, `un seul imprimé : ` + motifs.map((p) => p.nom.toLowerCase()).join(" et ") + ` se concurrencent`); }
+  else rate(0.5, `une pièce à motif, qui porterait la tenue`);
 
   /* Proportion du manteau. Un manteau qui s'arrête juste au-dessus d'un ourlet
      plus long coupe la silhouette à l'endroit le plus large et laisse dépasser
@@ -1040,9 +1062,10 @@ function noteStyle(pieces) {
   const manteau = de("manteau"), dessous = bas || de("robe");
   if (manteau && dessous && manteau.longueur in RANG && dessous.longueur in RANG) {
     const ecart = RANG[manteau.longueur] - RANG[dessous.longueur];
-    if (ecart <= -2) bonus -= 0.7;
-    else if (ecart === -1) bonus -= 0.3;
+    if (ecart <= -2) { bonus -= 0.7; rate(1.1, `un manteau plus long : ` + dessous.nom.toLowerCase() + ` dépasse largement`); }
+    else if (ecart === -1) { bonus -= 0.3; rate(0.7, `un manteau qui couvre ` + dessous.nom.toLowerCase()); }
     else if (ecart >= 1) { bonus += 0.4; detail.push("ligne allongée par le manteau"); }
+    else rate(0.4, `un manteau descendant plus bas que ` + dessous.nom.toLowerCase());
   }
 
   return { bonus, detail };
@@ -1179,7 +1202,7 @@ function synchroniserJour() {
 
 /* Chaque règle est indépendante ; leur somme est bornée pour qu'aucune saison
    ne puisse à elle seule dicter une tenue. */
-function noteTendances(pieces) {
+function noteTendances(pieces, manques) {
   if (!TENDANCES.regles.length || !etat.poidsTendance) return { bonus: 0, detail: [] };
 
   const couleurs = new Set(pieces.flatMap((p) => p.couleurs || []));
@@ -1188,7 +1211,7 @@ function noteTendances(pieces) {
   const haut = de("haut") || de("robe"), bas = de("bas");
 
   let brut = 0;
-  const retenues = [];
+  const retenues = [], ratees = [];
   for (const r of TENDANCES.regles) {
     let touche = false;
     if (r.type === "silhouette") touche = haut && bas && coupe(haut) === r.haut && coupe(bas) === r.bas;
@@ -1206,7 +1229,7 @@ function noteTendances(pieces) {
     /* `descriptive` : une tendance que le vocabulaire ne sait pas dire. Elle
        est conservée dans le corpus pour être rapprochée un jour des
        descriptions des pièces, mais le moteur ne sait pas l'appliquer. */
-    if (!touche) continue;
+    if (!touche) { if (r.poids > 0) ratees.push(r); continue; }
     brut += r.poids;
     if (r.poids > 0) retenues.push({ note: r.note, poids: r.poids });
   }
@@ -1227,6 +1250,17 @@ function noteTendances(pieces) {
   const atteignable = TENDANCES.regles.reduce((s, r) => s + Math.max(0, r.poids), 0);
   const rapporte = atteignable ? 3 * brut / atteignable : 0;
   const bonus = Math.max(-3, Math.min(3, rapporte)) * etat.poidsTendance;
+  /* Ce que la tenue n a pas coché, valorisé dans la même unité que la note :
+     c est la forme la plus concrète de « comment faire mieux », puisqu il
+     suffit de nommer la pièce qui manque. Les règles `descriptive` sont
+     écartées — le moteur ne sait pas les appliquer, les proposer serait
+     donner un conseil qu il ne saurait pas noter. */
+  if (manques && atteignable) for (const r of ratees) {
+    if (r.type === "descriptive") continue;
+    manques.push({ gain: 3 * r.poids / atteignable * etat.poidsTendance,
+                   texte: r.note.charAt(0).toLowerCase() + r.note.slice(1), tendance: true });
+  }
+
   const classees = retenues.sort((a, b) => b.poids - a.poids);
   return { bonus, touchees: classees,
            detail: bonus >= 0.8 && classees[0] ? [classees[0].note] : [] };
@@ -1317,6 +1351,25 @@ function argumenter(pieces) {
   const jamais = pieces.filter((p) => !(p.porteLe || []).length);
   if (jamais.length >= 2)
     args.push({ titre: "À ressortir", texte: `${enumere(nomsDe(jamais))} n'${jamais.length > 1 ? "ont" : "a"} jamais quitté le placard.` });
+
+  /* Ce qui retient la note. Une note resserrée n'apprend rien si elle ne dit
+     pas ce qui lui manque : les règles déposent donc ce qu'elles n'ont pas
+     accordé, et on garde les deux plus coûteuses. On distingue le style, qui
+     est un principe durable, de la tendance, qui ne vaut que cette semaine —
+     suivre l'un ou l'autre n'engage pas de la même façon. */
+  const manques = [];
+  noteStyle(pieces, manques);
+  noteTendances(pieces, manques);
+  const retenus = manques.sort((a, b) => b.gain - a.gain).slice(0, 2);
+  if (retenus.length) {
+    /* Les notes de tendance sont écrites comme des constats de presse, pas
+       comme des conseils : on les cite plutôt que de les énoncer. */
+    const dit = retenus.map((m) => m.tendance
+      ? `suivre « ${m.texte} » (+${m.gain.toFixed(1)})`
+      : `${m.texte} (+${m.gain.toFixed(1)})`);
+    args.push({ titre: "Ce qui l'aurait améliorée",
+      texte: `${enumere(dit)}. La note ne dit pas qu'une tenue est ratée — elle dit ce qu'elle n'a pas.` });
+  }
 
   return args;
 }

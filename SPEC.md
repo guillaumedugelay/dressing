@@ -210,6 +210,26 @@ pleinement.
 Les trois tenues affichées diffèrent entre elles d'au moins deux pièces,
 pour proposer un choix et non trois variantes de la même idée.
 
+### Ce qui retient la note
+
+Une note resserrée n'apprend rien si elle ne dit pas ce qui lui manque. Chaque
+règle dépose donc, dans un collecteur facultatif, **ce qu'elle n'a pas accordé**
+et pourquoi ; l'explication affiche les deux manques les plus coûteux, chiffrés
+dans l'unité de la note.
+
+> « Un volume ample répondant à une coupe ajustée (+0,4) et suivre « denim
+> omniprésent » (+0,3). »
+
+Le collecteur est **facultatif par construction** : la boucle de notation ne le
+passe pas, seules les trois tenues retenues le demandent. Le coût est donc nul
+à l'échelle des milliers de candidates, et surtout il n'y a **qu'un seul calcul** —
+un second, écrit à côté pour l'explication, aurait fini par diverger du premier.
+
+Le style et la tendance sont distingués à l'affichage : l'un est un principe
+durable, l'autre ne vaut que cette semaine. Les règles `descriptive` sont
+écartées des suggestions — le moteur ne sait pas les appliquer, les proposer
+reviendrait à donner un conseil qu'il ne saurait pas noter.
+
 ## 5. Écrans
 
 **Aujourd'hui** — si un lieu est configuré, un bandeau donne la prévision du
