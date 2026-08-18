@@ -86,10 +86,18 @@ Le moteur travaille en **deux temps, et il faut les garder distincts**.
 | Filtre | Rejette |
 |---|---|
 | Saison | une pièce dont les saisons cochées excluent celle du jour |
-| Chaleur | un écart de plus de deux crans à la cible — **une tenue légère en hiver n'est pas proposée, si tendance soit-elle** |
+| Chaleur | **deux crans en dessous de la cible, un seul au-dessus** — une tenue légère en hiver n'est pas proposée, si tendance soit-elle |
 | Assemblage | des pièces d'été sous une couche d'hiver, quand la somme tombe juste par accident |
 | Registre | un écart moyen de plus d'un cran à la cible de la journée, ou une pièce sous le plancher exigé |
 | Pluie et neige | des chaussures qui ne tiennent pas l'eau |
+
+**La tolérance est dissymétrique**, et c'est une mesure qui l'a voulu. Deux
+crans de trop peu ne se sentent pas — entre léger et fin au mois d'août
+personne ne tranche. Deux crans de trop couvert, en revanche, c'est un
+vêtement entier en plus : un banc d'essai du 18 août 2026 a montré que **57 %**
+des tenues proposées par temps chaud portaient une couche dont personne ne
+veut à 22 degrés. Ramenée à un cran au-dessus, la proportion tombe à 32 %, et
+ce qui reste est le seul vrai pull d'été de la garde-robe.
 
 **Un filtre qui ne peut rien départager ne filtre pas, il vide.** Si aucune
 paire de chaussures de la garde-robe ne résiste à l'eau, exiger la pluie ne

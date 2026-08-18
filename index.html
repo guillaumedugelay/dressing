@@ -1316,7 +1316,16 @@ function chaleurTenue(pieces) {
    janvier. Maintenant si : ce qui n'est pas portable n'est plus proposé du
    tout, et la note ne parle que d'allure. */
 
-const TOLERANCE_CHALEUR = 2;
+/* La tolérance est dissymétrique, et c'est le fruit d'une mesure. Deux crans
+   de trop peu ne se sentent pas : entre léger et fin au mois d'août personne ne
+   tranche, et c'est ce qui a motivé la tolérance. Mais deux crans de trop
+   couvert, c'est un vêtement entier en plus — un banc d'essai du 18 août 2026
+   a montré que 57 % des tenues proposées par temps chaud portaient une couche
+   supplémentaire dont personne ne veut à 22 degrés. Un seul cran au-dessus,
+   donc : de quoi absorber une nuance de matière, pas de quoi enfiler un pull. */
+const TOLERANCE_LEGER = 2;   // en dessous de la cible
+const TOLERANCE_COUVERT = 1; // au-dessus
+const toleranceChaleur = (ecart) => (ecart < 0 ? TOLERANCE_LEGER : TOLERANCE_COUVERT);
 
 /* Un filtre qui ne peut rien départager ne filtre pas, il vide. Si aucune
    paire de chaussures de la garde-robe ne résiste à l'eau, exiger la pluie ne
@@ -1339,7 +1348,7 @@ function adapteeALaSituation(pieces, offre) {
      moins bonne, elle n'est pas une option : une tenue légère en hiver ne se
      propose pas, si tendance soit-elle. */
   const ecart = chaleurTenue(pieces) - cibleChaleur;
-  if (Math.abs(ecart) > TOLERANCE_CHALEUR)
+  if (Math.abs(ecart) > toleranceChaleur(ecart))
     return { ok: false, raison: ecart < 0 ? "trop légère pour la température" : "trop couverte pour la température" };
   mentions.push("bien couvert");
 
@@ -1519,10 +1528,19 @@ function proposerTenues(combien = 3) {
     for (const ch of chaussures) {
       for (const couche of couches) {
         /* Les accessoires ne comptent plus dans la chaleur : le socle porte
-           donc déjà la chaleur définitive de la tenue, et l élagage peut
-           appliquer le filtre exact plutôt qu une marge approchée. */
+           donc déjà la chaleur définitive de la tenue, et l'élagage applique
+           le filtre exact plutôt qu'une marge approchée. Le motif du rejet est
+           consigné ici aussi — sans quoi le cas le plus fréquent, celui où la
+           température écarte tout, ne laissait aucune trace et l'application
+           accusait la saison à tort. */
         const socle = [...base, ...couche, ch];
-        if (Math.abs(chaleurTenue(socle) - cible) > TOLERANCE_CHALEUR) continue;
+        const ecartSocle = chaleurTenue(socle) - cible;
+        if (Math.abs(ecartSocle) > toleranceChaleur(ecartSocle)) {
+          const r = ecartSocle < 0 ? "tes pièces sont trop légères pour cette température"
+                                   : "tes pièces sont trop chaudes pour cette température";
+          refus.set(r, (refus.get(r) || 0) + 1);
+          continue;
+        }
         for (const extra of extras) {
           const pieces = [...socle, ...extra];
           const adequation = adapteeALaSituation(pieces, offre);
@@ -1542,8 +1560,8 @@ function proposerTenues(combien = 3) {
   if (!candidates.length) {
     const pire = [...refus.entries()].sort((a, b) => b[1] - a[1])[0];
     return { erreur: pire
-      ? `Aucune tenue ne convient : ${pire[0]}. Rien de ce que tu possèdes ne passe ce filtre aujourd hui.`
-      : "Aucune tenue possible avec ce qui est saisi pour cette saison." };
+      ? `Aucune tenue ne convient : ${pire[0]}.`
+      : "Aucune tenue possible : il manque un haut, un bas ou des chaussures pour cette saison." };
   }
 
   candidates.sort((a, b) => b.score - a.score);

@@ -99,6 +99,8 @@ La **matière** se juge à la famille dominante et visible : coton, lin, laine, 
 
 Quand tu n'es pas sûr, **dis où exactement**. Le propriétaire a plusieurs centaines de vêtements à relire : « confiance moyenne » l'oblige à tout réexaminer, tandis qu'une phrase précise lui dit quoi regarder. Nomme le champ qui te pose problème et la raison.
 
+**Un pull se porte PAR-DESSUS un autre haut.** C'est ce qui le distingue, pas sa matière : la catégorie dit la place dans la tenue, pas le tissu. Un tee-shirt en maille fine à manches courtes est un **haut**, même tricoté ; un gilet, un cardigan, un sweat, un pull à manches longues qui se porte sur un top sont des **pull**. Dans le doute, demande-toi si on met quelque chose dessous : si non, c'est un haut. Se tromper ici ne se voit pas sur la fiche mais produit des tenues absurdes — l'application superpose la pièce à un autre haut, et propose un tee-shirt sur un tee-shirt.
+
 Trois pièges à éviter :
 - **Le registre est un intervalle, pas un chiffre.** Beaucoup de vêtements se portent de plusieurs façons selon le reste de la tenue : une jupe unie est décontractée avec des baskets et soignée avec des escarpins, une chemise blanche va du décontracté à l'habillé, un jean brut du sport au soigné. Donne alors deux bornes différentes. Ne les égalise que pour une pièce réellement univoque — un sweat à capuche, un smoking, des tongs. Dans le doute, élargis : une pièce décrite trop étroitement sera écartée à tort de la moitié des tenues.
 - **La chaleur se juge à la matière et à l'épaisseur**, pas à la couleur. Un pull noir fin n'est pas chaud parce qu'il est noir.
