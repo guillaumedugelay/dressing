@@ -75,13 +75,29 @@ const BRUT = [
   ["Sac structuré en cuir",       "accessoire", ["marron"],   1, [2,4], TOUTES, "droit",  "uni"],
 ];
 
+/* Les règles de tendance portent sur la matière autant que sur la couleur :
+   une garde-robe toute en coton ne peut rien en départager. Le corpus du
+   17 août 2026 comptait trois règles `matiere` sur treize. */
+const MATIERES = {
+  "Blouse en soie ivoire": "soie", "Marinière écrue": "maille",
+  "Chemise flanelle à carreaux": "laine", "Jean brut droit": "denim",
+  "Pantalon de costume marine": "laine", "Pantalon large en lin": "lin",
+  "Jupe crayon noire": "laine", "Robe fourreau noire": "synthetique",
+  "Robe longue fluide bordeaux": "soie", "Pull en laine marine": "laine",
+  "Gilet fin gris": "maille", "Cardigan long beige": "maille",
+  "Doudoune noire": "synthetique", "Manteau long en laine gris": "laine",
+  "Sandales en cuir camel": "cuir", "Derbies en cuir noir": "cuir",
+  "Bottines en cuir marron": "cuir", "Escarpins noirs": "cuir",
+  "Sac structuré en cuir": "cuir", "Écharpe en laine grise": "laine",
+};
+
 function gardeRobeSynthetique() {
   return BRUT.map(([nom, categorie, couleurs, chaleur, f, saisons, coupe, motif, longueur, dehors], i) => ({
     id: "s" + i, nom, categorie, couleurs, chaleur,
     formaliteMin: Array.isArray(f) ? f[0] : f,
     formaliteMax: Array.isArray(f) ? f[1] : f,
     saisons: saisons || [],
-    coupe, motif, longueur: longueur || "", matiere: "coton",
+    coupe, motif, longueur: longueur || "", matiere: MATIERES[nom] || "coton",
     dehors: !!dehors, porteLe: [], description: "",
   }));
 }
@@ -110,7 +126,8 @@ function chargerMoteur() {
   `;
   const out = {};
   new Function("__out", stubs + sc +
-    "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;")(out);
+    "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;" +
+    "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteTendances = noteTendances;")(out);
   if (typeof out.proposerTenues !== "function") throw new Error("moteur : proposerTenues introuvable");
   return out;
 }
@@ -159,8 +176,16 @@ const DETECTEURS = [
 
 /* ═══════════ Exécution ═══════════ */
 const M = chargerMoteur();
+
+/* Le banc coupe le réseau, si bien que le moteur retombait sur le corpus de
+   secours — zéro règle — et que noteTendances sortait immédiatement. Les
+   premiers balayages ont donc tous tourné **terme de tendance mort**, calage
+   des poids de silhouette compris. On injecte le corpus depuis le disque. */
+const corpus = JSON.parse(readFileSync(new URL("../tendances.json", import.meta.url), "utf8"));
+M.poserTendances(corpus);
+const POIDS = Number(option("--tendance", 1));
 const pieces = fichier ? JSON.parse(readFileSync(fichier, "utf8")).pieces : gardeRobeSynthetique();
-M.etat.pieces = pieces; M.etat.tenues = []; M.etat.avis = [];
+M.etat.pieces = pieces; M.etat.tenues = []; M.etat.avis = []; M.etat.poidsTendance = POIDS;
 
 const SITUATIONS = [];
 for (const saison of ["printemps","ete","automne","hiver"])
@@ -170,6 +195,7 @@ for (const saison of ["printemps","ete","automne","hiver"])
         SITUATIONS.push({ saison, meteo, temp, activite });
 
 const compte = new Map(), exemples = new Map(), usage = new Map(), echantillon = [];
+const tendances = [], trios = [], declenchees = new Set();
 let total = 0, vides = 0, tirages = 0;
 const noter = (cle, quoi) => {
   compte.set(cle, (compte.get(cle) || 0) + 1);
@@ -200,8 +226,19 @@ for (let n = 0; n < TIRAGES; n++) {
       noter("classement d'affichage non décroissant",
         `${liste[i-1].note.toFixed(2)} puis ${liste[i].note.toFixed(2)}`);
 
+  /* Le terme de tendance, relevé pour le trio entier : la question n'est pas
+     seulement « le corpus est-il chargé » mais « départage-t-il les trois
+     propositions ». Un terme identique sur les trois est aussi inutile qu'un
+     terme absent. */
+  trios.push(liste.map((t) => {
+    const r = M.noteTendances(t.pieces);
+    for (const x of (r.touchees || [])) declenchees.add(x.note);
+    return r.bonus;
+  }));
+
   for (const t of liste) {
     total++;
+    tendances.push(M.noteTendances(t.pieces).bonus);
     for (const p of t.pieces) usage.set(p.nom, (usage.get(p.nom) || 0) + 1);
     if (echantillon.length < 8 && Math.random() < 0.06) echantillon.push({ s, t });
     for (const d of DETECTEURS) if (d.test(t, s, ctx))
@@ -232,6 +269,29 @@ for (const [k, v] of compte) if (!DETECTEURS.some((d) => d.nom === k)) {
   console.log(` ÉCHEC  ${String(v).padStart(4)}           ${k}`);
   if (exemples.has(k)) console.log(`            ↳ ${exemples.get(k)}`);
 }
+
+console.log("\n═══ TENDANCE ═══");
+console.log(`  corpus ${corpus.revision} — ${corpus.regles.length} règles, curseur à ${POIDS}`);
+const nonNuls = tendances.filter((x) => Math.abs(x) > 1e-9);
+console.log(`  tenues touchées par au moins une règle : ${nonNuls.length}/${tendances.length}` +
+  ` (${(100 * nonNuls.length / (tendances.length || 1)).toFixed(0)} %)`);
+if (nonNuls.length) {
+  const tri = [...nonNuls].sort((a, b) => a - b);
+  console.log(`  bonus : min ${tri[0].toFixed(2)} | médiane ${tri[Math.floor(tri.length/2)].toFixed(2)}` +
+    ` | max ${tri[tri.length-1].toFixed(2)}`);
+}
+const ecarts = trios.filter((t) => t.length > 1).map((t) => Math.max(...t) - Math.min(...t));
+const plats = ecarts.filter((e) => e < 1e-9).length;
+console.log(`  trios où les trois propositions ont la même note de tendance :` +
+  ` ${plats}/${ecarts.length} (${(100 * plats / (ecarts.length || 1)).toFixed(0)} %)`);
+if (ecarts.length) console.log(`  écart de tendance dans un trio : moyen ${(ecarts.reduce((a,b)=>a+b,0)/ecarts.length).toFixed(2)},` +
+  ` max ${Math.max(...ecarts).toFixed(2)}`);
+/* Les regles `descriptive` ne sont pas applicables par le moteur : elles
+   attendent d etre rapprochees des descriptions des pieces. Les compter
+   comme muettes serait un faux positif. */
+const muettes = corpus.regles.filter((r) => r.type !== "descriptive" && !declenchees.has(r.note));
+console.log(`  règles jamais déclenchées : ${muettes.length}/${corpus.regles.length}`);
+for (const r of muettes) console.log(`    · [${r.type}] ${r.note}`);
 
 console.log("\n═══ CONCENTRATION ═══");
 console.log(`  ${usage.size} pièces distinctes proposées sur ${pieces.length}`);

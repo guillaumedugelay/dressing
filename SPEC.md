@@ -342,8 +342,25 @@ recueille ce que la presse dit et que le moteur ne sait pas noter. Elle
 n'entre dans aucun calcul et sert à ne pas forcer une règle inexprimable dans
 une forme qui la trahirait.
 
-La somme des règles est bornée à ±3, puis multipliée par le réglage
-**classique ↔ tendance** du Journal — de 0 (ignorer) à 2 (suivre franchement).
+La note de tendance est **rapportée au total des poids positifs du corpus**,
+puis multipliée par le réglage **classique ↔ tendance** du Journal — de 0
+(ignorer) à 2 (suivre franchement). Une tenue qui coche tout vaut 3, une qui
+ne coche rien vaut 0, et la note reste comparable d'une semaine à l'autre :
+un corpus de vingt règles ne pèse pas plus lourd qu'un corpus de huit.
+
+> Ce rapport a remplacé un simple écrêtage à ±3 le 18 août 2026, après une
+> mesure sans appel. Les 13 règles du corpus pesant 13 points en tout,
+> presque toute tenue dépassait le plafond : la note de tendance médiane
+> valait **3,00**, soit le plafond, et **98 % des trios proposaient trois
+> tenues à la note de tendance identique**. Le terme n'ajoutait qu'une
+> constante — être tendance ne changeait rien à ce qui était proposé.
+>
+> Après normalisation : note étalée de 0,39 à 2,25, et 9 % de trios plats.
+>
+> Ce défaut était invisible jusque-là parce que le banc d'essai coupe le
+> réseau : le moteur retombait sur le corpus de secours, vide, et le terme
+> était purement mort. Le banc charge désormais tendances.json depuis le
+> disque.
 La date du corpus est rappelée sous les propositions, et l'application indique
 si les règles ont été relevées automatiquement ou écrites à la main.
 

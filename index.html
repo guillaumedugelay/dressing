@@ -1211,7 +1211,22 @@ function noteTendances(pieces) {
     if (r.poids > 0) retenues.push({ note: r.note, poids: r.poids });
   }
 
-  const bonus = Math.max(-3, Math.min(3, brut)) * etat.poidsTendance;
+  /* La note se rapporte à ce que le corpus rend atteignable, elle ne se
+     contente pas d'écrêter une somme. Écrêtée, elle saturait : les 13 règles
+     du corpus du 17 août pesant 13 points en tout, presque toute tenue
+     dépassait le plafond de 3. Un banc d'essai du 18 août 2026 a mesuré une
+     note de tendance médiane de 3,00 — le plafond — et **98 % des trios où
+     les trois propositions avaient exactement la même note**. Le terme ne
+     départageait donc rien : il ajoutait une constante.
+
+     Rapportée au total des poids positifs, la note vaut 3 pour une tenue qui
+     coche tout, 0 pour une qui ne coche rien, et elle reste comparable d'une
+     semaine à l'autre — un corpus de vingt règles ne pèse pas plus lourd
+     qu'un corpus de huit. L'écrêtage subsiste en garde-fou pour les poids
+     négatifs. */
+  const atteignable = TENDANCES.regles.reduce((s, r) => s + Math.max(0, r.poids), 0);
+  const rapporte = atteignable ? 3 * brut / atteignable : 0;
+  const bonus = Math.max(-3, Math.min(3, rapporte)) * etat.poidsTendance;
   const classees = retenues.sort((a, b) => b.poids - a.poids);
   return { bonus, touchees: classees,
            detail: bonus >= 0.8 && classees[0] ? [classees[0].note] : [] };
