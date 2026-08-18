@@ -176,7 +176,16 @@ const noter = (cle, quoi) => {
   if (quoi && !exemples.has(cle)) exemples.set(cle, quoi);
 };
 
+/* Avancement sur la sortie d'erreur : le rapport reste propre si on le
+   redirige, et un balayage de plusieurs milliers de tirages ne laisse pas
+   devant un terminal muet. */
+let jalon = 0;
 for (let n = 0; n < TIRAGES; n++) {
+  const avance = Math.floor(100 * n / TIRAGES);
+  if (avance >= jalon) {
+    process.stderr.write(`  essais… ${String(jalon).padStart(3)} %  (${n}/${TIRAGES} tirages, ${total} tenues)   `);
+    jalon += 10;
+  }
   const s = SITUATIONS[n % SITUATIONS.length];
   Object.assign(M.etat, s, { ecartees: new Set() });
   tirages++;
@@ -199,6 +208,10 @@ for (let n = 0; n < TIRAGES; n++) {
       noter(d.nom, `${s.saison}/${s.meteo}/${s.temp}/${s.activite} — ` + t.pieces.map((p) => p.nom).join(" + "));
   }
 }
+
+process.stderr.write(`  essais… 100 %  (${tirages}/${TIRAGES} tirages, ${total} tenues)   
+
+`);
 
 const pc = (n) => (100 * n / (total || 1)).toFixed(1) + " %";
 console.log(`Garde-robe : ${fichier || "synthétique"} — ${pieces.length} pièces`);
