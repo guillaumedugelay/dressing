@@ -68,79 +68,60 @@ quel accessoire il s'agit, ce que le modèle ne sait pas encore dire.
 
 ## 4. Moteur de suggestion
 
-Chaque tenue candidate reçoit un score, somme de six termes.
+Le moteur travaille en **deux temps, et il faut les garder distincts**.
 
-**Chaleur.** La somme des indices de chaleur des pièces — accessoires exclus —
-est comparée à une cible dérivée de la température déclarée : chaud → 4,
-doux → 7, frais → 11, froid → 14.
+1. **L'adéquation filtre.** La température, la saison, la météo et le type de
+   journée disent si une tenue est *possible*. Ils ne notent rien.
+2. **La note classe.** Parmi les tenues possibles, elle ne juge que le style :
+   les pièces vont ensemble, la tenue est dans l'air du temps, elle ressemble
+   à son propriétaire.
 
-**Deux points d'écart sont gratuits.** Au-delà, chaque point coûte 1,2 si la
-tenue est trop légère, 0,9 si elle est trop couverte : on remonte des manches,
-on n'invente pas une veste.
+> Ce découpage date du 18 août 2026. Auparavant tout entrait dans une même
+> somme, si bien qu'une tenue très tendance pouvait racheter son inadéquation
+> et se faire proposer pour un temps où l'on grelotte. Une note de 4 ne
+> voulait pas dire la même chose en août et en janvier ; maintenant si.
 
-Cette tolérance vient d'un essai de terrain du 18 août 2026. Sans elle, un
-seul cran sur une seule pièce coûtait 1,5 — autant que le contraste de
-silhouette en rapporte. En été, un haut « fin » plutôt que « léger » suffisait
-donc à faire chuter une tenue par ailleurs juste, et corriger la pièce faisait
-basculer toutes les autres notes d'un coup. Or entre léger et fin au mois
-d'août, personne ne sent la différence : le calcul tranchait là où l'on ne
-tranche pas. La coupe, la matière et le fait d'ouvrir ou non un gilet
-rattrapent largement deux crans.
+### Premier temps — l'adéquation, qui écarte
 
-**Formalité.** L'activité fixe deux seuils, et ils ne se déduisent pas l'un de
-l'autre :
+| Filtre | Rejette |
+|---|---|
+| Saison | une pièce dont les saisons cochées excluent celle du jour |
+| Chaleur | un écart de plus de deux crans à la cible — **une tenue légère en hiver n'est pas proposée, si tendance soit-elle** |
+| Assemblage | des pièces d'été sous une couche d'hiver, quand la somme tombe juste par accident |
+| Registre | un écart moyen de plus d'un cran à la cible de la journée, ou une pièce sous le plancher exigé |
+| Pluie et neige | des chaussures qui ne tiennent pas l'eau |
 
-| Activité | Cible | Plancher |
-|---|---|---|
-| Travail | 3 | **3** |
-| Loisir | 2 | 1 |
-| Vacances | 1,5 | 1 |
+**Un filtre qui ne peut rien départager ne filtre pas, il vide.** Si aucune
+paire de chaussures de la garde-robe ne résiste à l'eau, exiger la pluie ne
+sélectionne rien : elle supprime toutes les tenues. Les filtres de ce genre ne
+s'appliquent donc que si la garde-robe offre l'alternative. Sans cette
+réserve, l'application n'aurait plus rien proposé le jour même de sa mise en
+service, où il pleuvait sur Lyon.
 
-Le **plancher** est un *filtre*, pas une pénalité : une pièce qui ne peut pas
-atteindre le registre exigé est écartée de la sélection. Le travail en impose
-un — un minishort reste un minishort quoi qu'on mette au-dessus — alors qu'un
-loisir accepte tout, du survêtement à la chemise.
+Quand rien ne passe, l'application dit **pourquoi** — le motif de rejet le plus
+fréquent — plutôt que de constater l'échec.
 
-> Cette règle est née d'un bug réel. Un minishort tagué « décontracté » était
-> proposé en second choix pour une journée de travail, et la tenue s'affichait
-> même « le bon registre ». En cause : la moyenne. Un cran d'écart sur une
-> pièce, divisé par trois, ne coûtait que 0,47 point — moins que l'écart de
-> chaleur entre un short et une jupe en jean. Le moyennage laisse une pièce
-> inadaptée se cacher derrière les autres ; le plancher l'en empêche.
+### Second temps — la note, qui ne juge que le style
 
-Le registre d'un vêtement n'est **pas un chiffre mais un intervalle** : une
-jupe unie est décontractée avec des baskets et soignée avec des escarpins, un
-jean brut va du sport au soigné. Les pièces les plus utiles d'une garde-robe
-étant les plus polyvalentes, les décrire par une valeur unique obligeait à
-mentir à moitié.
+Somme de cinq termes.
 
-Chaque pièce adopte donc, dans une tenue donnée, la valeur de son intervalle
-la plus proche de la cible. Une pièce polyvalente ne coûte rien ; une pièce
-rigide paie son écart. L'écart moyen à la cible coûte 1,4 par point.
-
-**L'incompatibilité, elle, se juge sur les intervalles bruts** — pas sur les
-valeurs adaptées. Deux pièces dont les registres se recouvrent vont ensemble ;
-un écart de plus d'un cran entre deux registres coûte 2,5 par cran
-supplémentaire. C'est ce qui interdit le sweat à capuche sous un pantalon de
-costume, quelle que soit l'occasion déclarée.
+**Les pièces vont-elles ensemble ?** Deux pièces dont les intervalles de
+formalité sont écartés jurent, quelle que soit l'occasion : un écart de plus
+d'un cran coûte 2,5 par cran supplémentaire. C'est ce qui interdit le sweat à
+capuche sous un pantalon de costume. Se juge sur les intervalles bruts.
 
 > Ce point a failli m'échapper : rendre les pièces adaptables rapprochait
 > artificiellement une veste de costume et des baskets, et neutralisait le
-> garde-fou. Mesuré après correction, pour une tenue de travail :
-> costume + derbies **2,05** › costume + baskets blanches **0,48** ›
-> costume + sweat à capuche **−2,78** › costume + tongs **−3,98**.
-
-**Cohérence saisonnière.** La somme des chaleurs peut tomber juste sur un
-assemblage absurde — un short sous une doudoune, des sandales sous une parka.
-Un bas ou des chaussures d'été portent donc une pénalité proportionnelle à la
-couche la plus chaude de la tenue.
-
-**Météo.** Sous la pluie ou la neige, des chaussures `dehors` valent +3, un
-manteau `dehors` +2, et des chaussures non protégées coûtent 2.
+> garde-fou.
 
 **Couleurs.** Les neutres — noir, blanc, gris, beige, marine, denim, marron —
 s'accordent avec tout. Deux couleurs vives différentes coûtent 1,5 ; trois
 coûtent 3.
+
+**Composition.** Les principes durables du § 6, silhouette et motif compris.
+
+**Tendances.** Le corpus hebdomadaire du § 6, borné à ±3 puis multiplié par le
+curseur *classique ↔ tendance*.
 
 **Style appris.** Pour chaque paire de vêtements de la tenue, un score
 d'affinité : `1 × (fois portés ensemble) + 0,8 × (j'aime) − 1,2 ×
@@ -150,13 +131,21 @@ polo-baskets pour aller travailler :
 
 - une tenue portée pour une **autre activité** ne compte que pour 0,35 — une
   habitude prise au bureau ne fait pas loi en vacances ;
-- le bonus d'habitude est **atténué à mesure que la tenue s'éloigne** de la
-  formalité et de la température visées. Le style appris départage des tenues
-  déjà correctes ; il n'en rachète pas une qui ne convient pas. Les rejets,
-  eux, s'appliquent toujours pleinement.
+- un coefficient de crédibilité **atténuait** ce bonus à mesure que la tenue
+  s'éloignait de la formalité et de la température visées. Il a été retiré le
+  18 août 2026 avec le passage aux deux temps : une tenue qui ne convient pas
+  n'arrive plus jusqu'à la note, il n'y a donc plus rien à racheter.
 
-**Rotation.** L'objectif est que la garde-robe tourne entièrement. Deux
-effets opposés, volontairement dissymétriques :
+**Rotation — hors de la note.** L'objectif est que la garde-robe tourne
+entièrement, mais **faire tourner n'est pas une qualité de tenue**. La rotation
+départage donc des tenues d'égale allure sans entrer dans la note affichée.
+
+> Les mêler rendait la jauge muette. Aucune pièce n'ayant encore été portée,
+> chaque tenue recevait le même gros bonus d'oubli : les 432 tenues mesurées
+> le 18 août s'affichaient toutes « excellente ». Le classement utilise le
+> score complet, l'affichage montre la note de style seule.
+
+Deux effets opposés, volontairement dissymétriques :
 
 - une pièce portée dans les cinq derniers jours est **écartée fermement**,
   d'autant plus qu'elle est récente ;

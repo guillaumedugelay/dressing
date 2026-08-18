@@ -1226,11 +1226,10 @@ function argumenter(pieces) {
   /* Le temps */
   const ecart = chaleurTenue(pieces) - cibleTemp.cible;
   const protegees = pieces.filter((p) => p.dehors);
-  /* Meme tolerance que la notation : en deca de deux crans on ne commente pas
-     un ecart qui ne se sent pas. */
-  let temps = Math.abs(ecart) <= 2 ? `Le compte de chaleur tombe juste pour un temps ${cibleTemp.nom.toLowerCase()}.`
-    : ecart > 2 ? `Un peu couvert pour ${cibleTemp.nom.toLowerCase()} — la coupe et la matière rattrapent souvent ce que le calcul ne voit pas.`
-    : `Plutôt léger pour ${cibleTemp.nom.toLowerCase()} : prévois de quoi te couvrir.`;
+  /* L'adéquation à la température est devenue un filtre : une tenue qui
+     arrive jusqu'ici l'a forcément passée. Les deux branches qui
+     commentaient un écart trop grand étaient donc du code mort. */
+  let temps = `Le compte de chaleur tombe juste pour un temps ${cibleTemp.nom.toLowerCase()}.`;
   if ((etat.meteo === "pluie" || etat.meteo === "neige") && protegees.length)
     temps += ` ${enumere(nomsDe(protegees))} tien${protegees.length > 1 ? "nent" : "t"} face aux intempéries.`;
   args.push({ titre: "Face au temps", texte: temps });
@@ -1305,55 +1304,90 @@ function chaleurTenue(pieces) {
     : somme + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
 }
 
-function noterTenue(pieces, affinites) {
+/* ═══════════ Deux temps, et il faut les garder distincts ═══════════
+
+   D'abord l'adéquation, qui filtre : la météo, la saison et le type de
+   journée disent si une tenue est *possible*, jamais si elle est réussie.
+   Ensuite la note, qui classe : elle ne juge que le style.
+
+   Tant que tout entrait dans une même somme, une tenue très tendance pouvait
+   racheter son inadéquation et se faire proposer pour un temps où l'on
+   grelotte. Une note de 4 ne voulait pas dire la même chose en août et en
+   janvier. Maintenant si : ce qui n'est pas portable n'est plus proposé du
+   tout, et la note ne parle que d'allure. */
+
+const TOLERANCE_CHALEUR = 2;
+
+/* Un filtre qui ne peut rien départager ne filtre pas, il vide. Si aucune
+   paire de chaussures de la garde-robe ne résiste à l'eau, exiger la pluie ne
+   sélectionne rien — ça supprime toutes les tenues un jour de pluie. Les
+   filtres de ce genre ne s'appliquent donc que si la garde-robe offre
+   l'alternative. */
+function offreDeLaGardeRobe() {
+  return {
+    chaussuresDehors: etat.pieces.some((p) => p.categorie === "chaussures" && p.dehors && portable(p)),
+  };
+}
+
+function adapteeALaSituation(pieces, offre) {
   const cibleChaleur = TEMPS.find((t) => t.id === etat.temp).cible;
-  const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
+  const activite = ACTIVITES.find((a) => a.id === etat.activite);
+  const mentions = [];
+
+  /* Chaleur. Deux crans d'écart passent — entre léger et fin au mois d'août
+     personne ne sent la différence. Au-delà, la tenue n'est pas une option
+     moins bonne, elle n'est pas une option : une tenue légère en hiver ne se
+     propose pas, si tendance soit-elle. */
+  const ecart = chaleurTenue(pieces) - cibleChaleur;
+  if (Math.abs(ecart) > TOLERANCE_CHALEUR)
+    return { ok: false, raison: ecart < 0 ? "trop légère pour la température" : "trop couverte pour la température" };
+  mentions.push("bien couvert");
+
+  /* La somme peut tomber juste sur un assemblage intenable : un short sous
+     une doudoune, des sandales sous une parka. */
+  const couvrantes = pieces.filter((p) => p.categorie === "pull" || p.categorie === "manteau");
+  const plusChaude = couvrantes.length ? Math.max(...couvrantes.map((p) => p.chaleur)) : 0;
+  if (plusChaude >= 3 && pieces.some((p) =>
+      (p.categorie === "bas" || p.categorie === "chaussures") && p.chaleur === 1))
+    return { ok: false, raison: "pièces d'été sous une couche d'hiver" };
+
+  /* Registre de la journée. Le plancher est déjà appliqué pièce par pièce à
+     la présélection ; reste l'écart moyen à la cible, qui dit si la tenue est
+     du bon registre pour ce qui est prévu. */
+  const formalites = pieces.map((p) => formaliteEffective(p, activite.cible));
+  const moyenne = formalites.reduce((a, b) => a + b, 0) / formalites.length;
+  if (Math.abs(moyenne - activite.cible) > 1)
+    return { ok: false, raison: "pas le registre de la journée" };
+  if (pieces.some((p) => formaliteMax(p) < activite.plancher))
+    return { ok: false, raison: "sous le registre exigé" };
+
+  /* Pluie et neige — filtre conditionnel, voir plus haut. */
+  if (etat.meteo === "pluie" || etat.meteo === "neige") {
+    const ch = pieces.find((p) => p.categorie === "chaussures");
+    if (offre.chaussuresDehors && ch && !ch.dehors)
+      return { ok: false, raison: "chaussures qui ne tiennent pas la pluie" };
+    if (ch && ch.dehors) mentions.push(etat.meteo === "neige" ? "paré pour la neige" : "prêt pour la pluie");
+  }
+
+  return { ok: true, mentions };
+}
+
+/* ═══════════ La note : rien que le style ═══════════
+
+   Trois choses seulement, celles qui font qu'une tenue est réussie : les
+   pièces vont ensemble, elle est dans l'air du temps, elle ressemble à son
+   propriétaire. Tout ce qui relève de la situation a été tranché avant, si
+   bien qu'aucun coefficient de crédibilité n'est plus nécessaire — le style
+   appris et la tendance ne peuvent plus racheter l'irrattrapable, puisque
+   l'irrattrapable n'arrive plus jusqu'ici. */
+function noterTenue(pieces, affinites) {
   const detail = [];
   let score = 0;
 
-  /* La chaleur se compte en somme, mais elle se juge avec une tolerance.
-     Sans elle, un seul cran d ecart sur une seule piece coutait 1,5 point —
-     autant que le contraste de silhouette en rapporte — si bien qu en ete un
-     haut « fin » plutot que « leger » suffisait a faire chuter une tenue par
-     ailleurs juste. Entre leger et fin au mois d aout, personne ne sent la
-     difference : le calcul tranchait la ou l on ne tranche pas.
-
-     Deux crans sont donc gratuits. Le temps ne se mesure pas au point pres, et
-     la matiere, la coupe, le fait d ouvrir ou non un gilet rattrapent ce que
-     la somme ignore. Au-dela, l ecart se paie — plus cher quand la tenue est
-     trop legere pour le froid que trop couverte pour la chaleur : on remonte
-     des manches, on n invente pas une veste.
-
-     Le seuil d annonce suit la meme regle : l application ne dit plus « bien
-     couvert » tout en retirant des points, ce qu elle faisait des un cran. */
-  const TOLERANCE_CHALEUR = 2;
-  const ecartSigne = chaleurTenue(pieces) - cibleChaleur;
-  const ecartChaleur = Math.max(0, Math.abs(ecartSigne) - TOLERANCE_CHALEUR);
-  score -= (ecartSigne < 0 ? 1.2 : 0.9) * ecartChaleur;
-  if (!ecartChaleur) detail.push("bien couvert");
-
-  /* Chaque pièce adopte la formalité que l'occasion appelle, dans les limites
-     de ce qu'elle sait faire. Une pièce polyvalente ne coûte donc rien ; une
-     pièce rigide paie son écart, comme avant. */
-  const formalites = pieces.map((p) => formaliteEffective(p, cibleForme));
-  const moyenne = formalites.reduce((a, b) => a + b, 0) / formalites.length;
-  const ecartForme = Math.abs(moyenne - cibleForme);
-  score -= 1.4 * ecartForme;
-
-  /* La moyenne noie une pièce inadaptée derrière les autres : un minishort
-     tagué « décontracté » ne coûtait que 0,47 point pour une journée de
-     travail, et la tenue s'affichait même « le bon registre ». On regarde donc
-     aussi la pièce la plus en dessous du plancher de l'occasion — celle qui,
-     à elle seule, rend la tenue impossible. */
-  const plancher = ACTIVITES.find((a) => a.id === etat.activite).plancher;
-  const manque = pieces.reduce((pire, p) =>
-    Math.max(pire, Math.max(0, plancher - formaliteMax(p))), 0);
-  score -= 2.4 * manque;
-  /* L'incompatibilité se juge sur les intervalles, pas sur les valeurs
-     adaptées : deux pièces dont les registres se recouvrent vont ensemble,
-     deux pièces dont les registres sont écartés jurent — quelle que soit
-     l'occasion. Sans cela, rendre les pièces adaptables rapprocherait
-     artificiellement une veste de costume et des baskets de sport. */
+  /* Les registres jurent-ils entre eux ? C'est une question d'allure, pas
+     d'occasion : un sweat à capuche sous un pantalon de costume ne va pas,
+     quel que soit le programme de la journée. Se juge sur les intervalles
+     bruts, pas sur les valeurs adaptées. */
   let ecartRegistres = 0;
   for (let i = 0; i < pieces.length; i++)
     for (let j = i + 1; j < pieces.length; j++) {
@@ -1363,26 +1397,7 @@ function noterTenue(pieces, affinites) {
       if (trou > ecartRegistres) ecartRegistres = trou;
     }
   if (ecartRegistres > 1) score -= 2.5 * (ecartRegistres - 1);
-  if (ecartForme <= 0.5 && ecartRegistres <= 1 && !manque) detail.push("le bon registre");
-
-  /* La somme des chaleurs peut tomber juste sur un assemblage absurde : un
-     short sous une doudoune, des sandales sous une parka. Une pièce d'été aux
-     pieds ou aux jambes est incompatible avec une vraie couche d'hiver. */
-  const couvrantes = pieces.filter((p) => ["pull", "manteau", "accessoire"].includes(p.categorie));
-  const couchePlusChaude = couvrantes.length ? Math.max(...couvrantes.map((p) => p.chaleur)) : 0;
-  if (couchePlusChaude >= 3)
-    for (const p of pieces)
-      if ((p.categorie === "bas" || p.categorie === "chaussures") && p.chaleur === 1)
-        score -= 1.75 * (couchePlusChaude - 2);
-
-  if (etat.meteo === "pluie" || etat.meteo === "neige") {
-    const chaussures = pieces.find((p) => p.categorie === "chaussures");
-    const manteau = pieces.find((p) => p.categorie === "manteau");
-    if (chaussures) score += chaussures.dehors ? 3 : -2;
-    if (manteau && manteau.dehors) score += 2;
-    if (chaussures && chaussures.dehors)
-      detail.push(etat.meteo === "neige" ? "paré pour la neige" : "prêt pour la pluie");
-  }
+  else detail.push("des registres qui s'accordent");
 
   const vives = new Set();
   for (const p of pieces)
@@ -1390,45 +1405,41 @@ function noterTenue(pieces, affinites) {
       if (!COULEURS.find((x) => x.id === c)?.neutre) vives.add(c);
   if (vives.size === 2) score -= 1.5;
   else if (vives.size >= 3) score -= 3;
-  else if (vives.size <= 1) detail.push("couleurs qui s'accordent");
+  else detail.push("couleurs qui s'accordent");
 
   let appris = 0;
   for (let i = 0; i < pieces.length; i++)
     for (let j = i + 1; j < pieces.length; j++)
       appris += affinites.get(clePaire(pieces[i].id, pieces[j].id)) || 0;
-  /* Ni le style appris ni le désir de faire tourner la garde-robe ne peuvent
-     racheter une tenue inadaptée à l'occasion : les deux bonus s'éteignent à
-     mesure que la formalité ou la chaleur s'éloignent de la cible. Ils
-     départagent, ils n'imposent pas. Les rejets, eux, comptent pleinement. */
-  const credibilite = Math.max(0, 1 - ecartForme / 1.5) * Math.max(0, 1 - ecartChaleur / 4);
-  const bonusAppris = appris >= 0
-    ? Math.min(4.5, appris * 1.1) * credibilite
-    : Math.max(-5, appris * 1.1);
+  const bonusAppris = appris >= 0 ? Math.min(4.5, appris * 1.1) : Math.max(-5, appris * 1.1);
   score += bonusAppris;
   if (bonusAppris >= 1.5) detail.push("dans tes habitudes");
-
-  /* Rotation : le moteur doit finir par proposer toute la garde-robe. */
-  score += pieces.reduce((s, p) => s + penaliteRecence(p), 0);
-  /* Écarté d'un « montre-moi autre chose » : la pénalité vit ici, et pas
-     seulement dans la présélection, sinon une petite garde-robe — où la
-     présélection ne filtre rien — reproposerait la même tenue. */
-  score -= 1.6 * pieces.filter((p) => etat.ecartees.has(p.id)).length;
-  const oubli = pieces.reduce((s, p) => s + bonusOubli(p), 0) * credibilite;
-  score += oubli;
-  if (oubli >= 3) detail.push("des pièces que tu oublies");
 
   const style = noteStyle(pieces);
   score += style.bonus;
   detail.push(...style.detail);
 
-  /* La tendance est un ingrédient de plus, pas le chef d'orchestre : comme le
-     style appris et le bonus d'oubli, elle s'éteint dès que la tenue s'éloigne
-     de l'occasion. Aucune saison ne fera porter un short au bureau. */
   const tendance = noteTendances(pieces);
-  score += tendance.bonus >= 0 ? tendance.bonus * credibilite : tendance.bonus;
+  score += tendance.bonus;
   detail.push(...tendance.detail);
 
-  return { score, detail };
+  /* Tout ce qui précède est du style, et c'est cela que la jauge affiche :
+     deux tenues notées 3 sont aussi réussies l'une que l'autre, quel que soit
+     le jour. Ce qui suit ne juge rien — faire tourner la garde-robe départage
+     des tenues d'égale allure, ce n'est pas une qualité.
+
+     Les mêler rendait la jauge muette : aucune pièce n'ayant encore été
+     portée, chaque tenue recevait le même gros bonus d'oubli et les 432
+     tenues mesurées s'affichaient toutes « excellente ». Le classement
+     utilise le score, l'affichage montre la note. */
+  const note = score;
+  score += pieces.reduce((s, p) => s + penaliteRecence(p), 0);
+  score -= 1.6 * pieces.filter((p) => etat.ecartees.has(p.id)).length;
+  const oubli = pieces.reduce((s, p) => s + bonusOubli(p), 0);
+  score += oubli;
+  if (oubli >= 3) detail.push("des pièces que tu oublies");
+
+  return { score, note, detail };
 }
 
 /* Énumère les tenues possibles, puis garde les meilleures en imposant
@@ -1499,23 +1510,41 @@ function proposerTenues(combien = 3) {
   const extras = [[], ...accessoires.map((a) => [a])];
 
   const affinites = tableAffinites();
+  const offre = offreDeLaGardeRobe();
   const candidates = [];
+  /* Pourquoi les tenues ont été écartées, pour pouvoir le dire s il n en
+     reste aucune. */
+  const refus = new Map();
   for (const base of bases) {
     for (const ch of chaussures) {
       for (const couche of couches) {
-        /* Élagage avant les accessoires : inutile de développer une base
-           manifestement hors saison. */
+        /* Les accessoires ne comptent plus dans la chaleur : le socle porte
+           donc déjà la chaleur définitive de la tenue, et l élagage peut
+           appliquer le filtre exact plutôt qu une marge approchée. */
         const socle = [...base, ...couche, ch];
-        if (Math.abs(chaleurTenue(socle) - cible) > 6) continue;
+        if (Math.abs(chaleurTenue(socle) - cible) > TOLERANCE_CHALEUR) continue;
         for (const extra of extras) {
           const pieces = [...socle, ...extra];
-          const { score, detail } = noterTenue(pieces, affinites);
-          candidates.push({ pieces, score, detail });
+          const adequation = adapteeALaSituation(pieces, offre);
+          if (!adequation.ok) {
+            refus.set(adequation.raison, (refus.get(adequation.raison) || 0) + 1);
+            continue;
+          }
+          const { score, note, detail } = noterTenue(pieces, affinites);
+          detail.unshift(...adequation.mentions);
+          candidates.push({ pieces, score, note, detail });
         }
       }
     }
   }
-  if (!candidates.length) return { erreur: "Rien ne correspond à cette température. Ajoute des pièces plus chaudes ou plus légères." };
+  /* Dire pourquoi plutôt que constater. Le motif le plus fréquent est celui
+     qui décrit le mieux ce qui manque à la garde-robe ce jour-là. */
+  if (!candidates.length) {
+    const pire = [...refus.entries()].sort((a, b) => b[1] - a[1])[0];
+    return { erreur: pire
+      ? `Aucune tenue ne convient : ${pire[0]}. Rien de ce que tu possèdes ne passe ce filtre aujourd hui.`
+      : "Aucune tenue possible avec ce qui est saisi pour cette saison." };
+  }
 
   candidates.sort((a, b) => b.score - a.score);
   const retenues = [];
@@ -1585,7 +1614,7 @@ function rendreJour() {
     <article class="tenue">
       <div class="entete">
         <span class="rang">Tenue ${i + 1}</span>
-        ${jauge(t.score)}
+        ${jauge(t.note)}
       </div>
       <p class="note">${t.detail.slice(0, 3).join(" · ") || "au plus proche"}</p>
       <div class="portant">
