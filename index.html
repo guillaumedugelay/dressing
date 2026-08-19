@@ -148,6 +148,7 @@
   }
   .jauge i.plein { background: var(--accent); }
   .jauge .mot { font-size: 11.5px; color: var(--texte-doux); }
+  .jauge .brut i { font-style: normal; opacity: .55; font-size: .85em; }
   .jauge .brut {
     font-family: var(--mono); font-size: 10px; color: var(--texte-doux);
     opacity: .55; font-variant-numeric: tabular-nums;
@@ -1392,7 +1393,13 @@ function argumenter(pieces) {
   }
 
   /* ── Ce qui l'aurait améliorée ── */
-  const retenus = parAxe(manques).slice(0, 2);
+  /* Un axe déjà porté au crédit de la tenue ne peut pas lui être reproché
+     dans la foulée. Sur une tenue toute en neutres, le panneau affichait
+     « une gamme de neutres, qui s'accordent par construction » puis « une
+     touche de couleur, tout est neutre ici » : les deux étaient vrais, ensemble
+     ils se contredisaient. */
+  const loues = new Set(forts.map((a) => a.axe).filter(Boolean));
+  const retenus = parAxe(manques.filter((m) => !m.axe || !loues.has(m.axe))).slice(0, 2);
   if (retenus.length) {
     const queMode = retenus.every((m) => m.tendance);
     args.push({ titre: "Ce qui l'aurait améliorée",
@@ -1487,7 +1494,9 @@ function adapteeALaSituation(pieces, offre) {
   const ecart = chaleurTenue(pieces) - cibleChaleur;
   if (Math.abs(ecart) > toleranceChaleur(ecart))
     return { ok: false, raison: ecart < 0 ? "trop légère pour la température" : "trop couverte pour la température" };
-  mentions.push("bien couvert");
+  /* Pas de mention ici : passer le filtre de chaleur est vrai de toute tenue
+     proposée, et « bien couvert » ouvrait la ligne de résumé de chacune sans
+     rien y apprendre. */
 
   /* La somme peut tomber juste sur un assemblage intenable : un short sous
      une doudoune, des sandales sous une parka. */
@@ -1596,9 +1605,46 @@ function noterTenue(pieces, affinites) {
   return { score, note, detail };
 }
 
+/* ═══════════ Ce qu'une pièce vaut à elle seule, côté tendance ═══════════
+
+   La présélection ramenait 67 hauts à 7 en ne regardant que la formalité, la
+   chaleur et la rotation — rien de ce qui fait une bonne tenue. Deux blouses
+   identiques sur ces trois champs, l'une jaune unie et l'autre marine à
+   motifs, avaient donc exactement la même promesse : laquelle passait le tri
+   relevait du pur tirage au sort. Le moteur pouvait ainsi réclamer « une
+   touche de couleur » sans avoir jamais vu les 24 hauts colorés de la
+   garde-robe.
+
+   La plupart des règles de tendance se jugent pièce par pièce — une couleur,
+   une matière, un motif, une longueur, une catégorie. Seules la silhouette et
+   l'association sont combinatoires : on leur accorde un demi-crédit, une
+   pièce ne pouvant les satisfaire qu'à moitié seule.
+
+   Le résultat est rapporté au corpus, comme la note, et multiplié par le
+   curseur classique ↔ tendance : mettre le curseur à zéro doit cesser de
+   chasser la tendance jusque dans la présélection, sans quoi le réglage
+   mentirait. */
+function affiniteTendance(p) {
+  if (!TENDANCES.regles.length || !etat.poidsTendance) return 0;
+  let n = 0, atteignable = 0;
+  for (const r of TENDANCES.regles) {
+    if (r.poids <= 0) continue;
+    atteignable += r.poids;
+    const c = p.couleurs || [];
+    if (r.type === "couleur"   && c.includes(r.valeur)) n += r.poids;
+    else if (r.type === "matiere"  && p.matiere === r.valeur) n += r.poids;
+    else if (r.type === "motif"    && p.motif === r.valeur) n += r.poids;
+    else if (r.type === "longueur" && p.longueur === r.valeur) n += r.poids;
+    else if (r.type === "categorie" && p.categorie === r.valeur && (!r.coupe || p.coupe === r.coupe)) n += r.poids;
+    else if (r.type === "silhouette" && (p.coupe === r.haut || p.coupe === r.bas)) n += r.poids * 0.5;
+    else if (r.type === "association" && (r.couleurs || []).some((x) => c.includes(x))) n += r.poids * 0.5;
+  }
+  return atteignable ? (n / atteignable) * etat.poidsTendance : 0;
+}
+
 /* Énumère les tenues possibles, puis garde les meilleures en imposant
    qu'elles diffèrent d'au moins deux pièces les unes des autres. */
-function proposerTenues(combien = 3) {
+function proposerTenues(combien = 5) {
   const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
   const cibleTemp = TEMPS.find((t) => t.id === etat.temp).cible;
   const saison = SAISONS.find((s) => s.id === etat.saison).nom.toLowerCase();
@@ -1608,10 +1654,16 @@ function proposerTenues(combien = 3) {
      présélectionne donc les meilleures candidates par catégorie, avec une
      part de hasard pour que deux demandes identiques ne donnent pas deux
      fois la même tenue et que la garde-robe tourne. */
+  /* L'affinité de tendance pèse 1,6, à comparer au tirage au sort qui va
+     jusqu'à 1,3 : assez pour que les pièces dans l'air du temps remontent
+     vraiment, pas assez pour que la garde-robe cesse de tourner. Les deux
+     premiers termes restent devant — une pièce du mauvais registre ou de la
+     mauvaise saison n'a pas à être repêchée parce qu'elle est à la mode. */
   const promesse = (p) => {
     let n = -0.9 * Math.abs(formaliteEffective(p, cibleForme) - cibleForme);
     n -= 0.5 * Math.abs(p.chaleur - cibleTemp / 4);
     n += noteRotation(p);
+    n += 1.6 * affiniteTendance(p);
     if (etat.ecartees.has(p.id)) n -= 2;
     return n + Math.random() * 1.3;
   };
@@ -1709,25 +1761,39 @@ function proposerTenues(combien = 3) {
       : "Aucune tenue possible : il manque un haut, un bas ou des chaussures pour cette saison." };
   }
 
-  candidates.sort((a, b) => b.score - a.score);
-  const retenues = [];
-  for (const c of candidates) {
+  /* Deux listes, et c'est délibéré. Élargir la présélection améliore la note
+     mais effondre la variété : mesuré sur la garde-robe réelle, passer de 7 à
+     67 hauts fait monter la note médiane de 4,04 à 4,66 et tomber le nombre de
+     pièces distinctes proposées de 78 à 18. Le hasard de la présélection
+     *était* le mécanisme de variété, et l'optimiser le supprimait.
+
+     Séparer les deux objectifs lève le conflit. Les trois premières tenues
+     sont les mieux notées, point — la rotation n'a pas voix au chapitre. Les
+     deux suivantes sont les meilleures une fois la rotation prise en compte :
+     ce sont elles qui ressortent ce qui dort dans le placard. Chacune sait
+     laquelle elle est, pour que l'application puisse le dire. */
+  const assezDifferente = (c, deja) => {
     const ids = new Set(c.pieces.map((p) => p.id));
-    const assezDifferente = retenues.every((r) => {
+    return deja.every((r) => {
       const communs = r.pieces.filter((p) => ids.has(p.id)).length;
       return Math.max(r.pieces.length, c.pieces.length) - communs >= 2;
     });
-    if (assezDifferente) retenues.push(c);
-    if (retenues.length === combien) break;
-  }
-  /* Le tri de sélection utilise le score complet, rotation comprise : c'est
-     lui qui fait tourner la garde-robe. L'affichage, lui, montre la note de
-     style, et une liste triée sur un chiffre pour en afficher un autre se
-     contredit — un banc d'essai du 18 août 2026 a trouvé des tirages où la
-     deuxième proposition affichait 2,10 sous la première à 0,90. On choisit
-     donc sur le score, on présente sur la note. */
-  retenues.sort((a, b) => b.note - a.note);
-  return { tenues: retenues };
+  };
+  const prendre = (liste, combien, deja, origine) => {
+    const prises = [];
+    for (const c of liste) {
+      if (prises.length === combien) break;
+      if (!assezDifferente(c, deja.concat(prises))) continue;
+      prises.push({ ...c, origine });
+    }
+    return prises;
+  };
+
+  const surLaNote = [...candidates].sort((a, b) => b.note - a.note);
+  const surLeScore = [...candidates].sort((a, b) => b.score - a.score);
+  const meilleures = prendre(surLaNote, Math.min(3, combien), [], "note");
+  const rotation = prendre(surLeScore, combien - meilleures.length, meilleures, "rotation");
+  return { tenues: meilleures.concat(rotation) };
 }
 
 /* ═══════════ Rendu ═══════════ */
@@ -1751,13 +1817,42 @@ function boutonsChoix(hote, options, valeurActuelle, auClic) {
    ferait croire à une précision qui n'existe pas. On le range donc en cinq
    paliers, avec le mot qui va avec — et le chiffre reste lisible en petit,
    pour qui veut comprendre pourquoi une tenue passe devant une autre. */
+/* Seuils recalibrés le 19 août 2026 sur la garde-robe réelle, 107 pièces et
+   1 296 tenues mesurées : la note s'y étale de 2,69 à 5,33, médiane 4,05. Les
+   anciens seuils — 2,5 pour « excellente » — dataient d'une époque où la note
+   contenait encore les pénalités de situation et la rotation. Résultat, **100 %
+   des tenues s'affichaient « excellente », cinq barres sur cinq** : la jauge ne
+   distinguait plus rien.
+
+   Ces seuils suivent la distribution mesurée et dériveront donc avec la
+   garde-robe et le corpus. Les revérifier ne coûte rien : npm run banc sur
+   un export les remesure en quelques secondes. */
 const PALIERS = [
-  { seuil: 2.5, blocs: 5, mot: "excellente" },
-  { seuil: 1.5, blocs: 4, mot: "bonne" },
-  { seuil: 0.5, blocs: 3, mot: "correcte" },
-  { seuil: -1,  blocs: 2, mot: "passable" },
-  { seuil: -Infinity, blocs: 1, mot: "bancale" },
+  { seuil: 4.7, blocs: 5, mot: "excellente" },
+  { seuil: 4.2, blocs: 4, mot: "très bonne" },
+  { seuil: 3.6, blocs: 3, mot: "bonne" },
+  { seuil: 3.0, blocs: 2, mot: "correcte" },
+  { seuil: -Infinity, blocs: 1, mot: "passable" },
 ];
+
+/* La note interne n'a pas d'échelle lisible : elle s'étale en pratique de 3 à
+   5,3, si bien que « 3,1 » affiché brut se lisait comme un trois sur cinq. On
+   la retraduit sur dix, en passant par les mêmes seuils que les barres — le
+   chiffre et les barres disent ainsi la même chose, ce qui n'était pas le cas
+   d'un nombre brut posé à côté d'une jauge à cinq crans.
+
+   Les ancrages suivent la distribution mesurée le 19 août 2026 sur 1 296
+   tenues réelles. Entre deux ancrages, on interpole. */
+const ANCRAGES = [[-1, 0], [3.0, 4], [3.6, 6], [4.2, 8], [4.7, 9], [6.0, 10]];
+
+function noteSur10(note) {
+  if (note <= ANCRAGES[0][0]) return 0;
+  for (let i = 1; i < ANCRAGES.length; i++) {
+    const [x0, y0] = ANCRAGES[i - 1], [x1, y1] = ANCRAGES[i];
+    if (note <= x1) return y0 + (note - x0) * (y1 - y0) / (x1 - x0);
+  }
+  return 10;
+}
 
 function jauge(score) {
   const p = PALIERS.find((x) => score >= x.seuil);
@@ -1766,7 +1861,7 @@ function jauge(score) {
   return `<span class="jauge" title="score ${score.toFixed(2)}">
     <span class="blocs">${blocs}</span>
     <span class="mot">${p.mot}</span>
-    <span class="brut">${score.toFixed(1)}</span>
+    <span class="brut">${noteSur10(score).toFixed(1).replace(".", ",")}<i>/10</i></span>
   </span>`;
 }
 
@@ -1783,7 +1878,7 @@ function rendreJour() {
   hote.innerHTML = etat.propositions.map((t, i) => `
     <article class="tenue">
       <div class="entete">
-        <span class="rang">Tenue ${i + 1}</span>
+        <span class="rang">Tenue ${i + 1}${t.origine === "rotation" ? " · à ressortir" : ""}</span>
         ${jauge(t.note)}
       </div>
       <p class="note">${t.detail.slice(0, 3).join(" · ") || "au plus proche"}</p>
