@@ -145,6 +145,22 @@ fiche salie.
 Une pièce en échec ne reçoit pas de date d'analyse : **le passage suivant la
 reprend automatiquement**, sans rien à noter.
 
+**Tous les griefs ne se valent pas.** Une écriture non latine ou un texte qui
+déraille salissent vraiment la fiche : on jette. Mais un doute exprimé sous une
+confiance « haute » n'est qu'une incohérence entre deux champs, et l'analyse qui
+va avec est bonne. Le passage du 19 août 2026 a perdu trois analyses correctes
+sur ce seul motif, et deux pièces ont échoué **deux fois de suite** — le modèle
+refaisant la même incohérence, les relancer n'y changeait rien.
+
+Ce cas est donc **réparé** plutôt que jeté : la confiance retombe à « moyenne »,
+ce qui range la pièce parmi celles à revérifier, exactement là où elle a sa
+place.
+
+**Un doute doit aussi dire quelque chose.** Le 17 août, une pièce est repartie
+avec « , » pour tout doute ; le 19, une autre avec « L extest placeholder ». Ni
+l'un ni l'autre n'est une phrase, et tous deux envoient relire une fiche sans
+dire quoi regarder. Le contrôle exige désormais quelques mots.
+
 Si les échecs se multiplient malgré l'effort élevé, le levier suivant est le
 modèle :
 

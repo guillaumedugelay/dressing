@@ -120,7 +120,17 @@ Le nom doit être utile dans une liste de plusieurs centaines de vêtements : ce
    contrôle, ces textes seraient entrés dans la garde-robe — et comme leur
    confiance était « haute », rien ne les aurait signalés.
    Une pièce dont la réponse est suspecte est comptée en échec : mieux vaut la
-   réanalyser que salir la fiche. */
+   réanalyser que salir la fiche.
+
+   Tous les griefs ne se valent pas, et les traiter pareil coûtait cher. Une
+   écriture non latine ou un texte qui déraille salissent vraiment la fiche :
+   on jette. Mais un doute exprimé sous une confiance « haute » n'est qu'une
+   incohérence entre deux champs, et l'analyse qui va avec est bonne. Le
+   passage du 19 août a perdu trois analyses correctes sur ce seul motif, et
+   deux pièces ont échoué deux fois de suite — le modèle refaisant la même
+   incohérence, les relancer n'y changeait rien. On répare donc plutôt que de
+   jeter : la confiance retombe à « moyenne », ce qui range la pièce parmi
+   celles à revérifier, exactement là où elle a sa place. */
 
 const ECRITURES_ETRANGERES = /[　-鿿Ѐ-ӿ؀-ۿ가-힯]/;
 
@@ -131,10 +141,27 @@ function reponseSaine(lu) {
   if ((lu.doute || "").length > 300) griefs.push("doute anormalement long");
   if ((lu.description || "").length > 600) griefs.push("description anormalement longue");
   if ((lu.nom || "").length > 90) griefs.push("nom anormalement long");
-  /* Un doute sur une pièce jugée sûre n'a pas lieu d'être : c'est le signe
-     que le champ a été rempli par autre chose que du jugement. */
-  if (lu.confiance === "haute" && (lu.doute || "").trim()) griefs.push("doute alors que la confiance est haute");
+
+  /* Un doute doit dire quelque chose. Le 17 août, une pièce est repartie avec
+     « , » pour tout doute ; le 19, une autre avec « L extest placeholder ».
+     Ni l'un ni l'autre n'est une phrase, et tous deux envoient le propriétaire
+     relire une fiche sans lui dire quoi regarder. On exige donc quelques mots
+     et une longueur plausible. */
+  const doute = (lu.doute || "").trim();
+  if (doute && (doute.length < 15 || doute.split(/\s+/).length < 4))
+    griefs.push("doute vide de sens");
+
   return griefs;
+}
+
+/* Réparable, par opposition aux griefs ci-dessus : l'analyse est bonne, seule
+   la cohérence entre deux champs cloche. */
+function reparer(lu) {
+  if (lu.confiance === "haute" && (lu.doute || "").trim()) {
+    lu.confiance = "moyenne";
+    return "confiance ramenée à moyenne — un doute était exprimé";
+  }
+  return null;
 }
 
 /* ═══════════ Arguments ═══════════ */
@@ -232,6 +259,8 @@ async function analyser(piece) {
   normaliserDoute(lu);
   const griefs = reponseSaine(lu);
   if (griefs.length) throw new Error(`réponse suspecte (${griefs.join(", ")}) — à réanalyser`);
+  const repare = reparer(lu);
+  if (repare) lu.repare = repare;
   return lu;
 }
 
