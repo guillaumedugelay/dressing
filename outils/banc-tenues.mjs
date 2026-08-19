@@ -16,7 +16,7 @@
  * d'été, sans manteau, sans robe, sans accessoire et sans rien de chaud : la
  * moitié des règles du moteur n'y sont jamais déclenchées. Trois d'entre
  * elles ont été écrites, testées et publiées dans le vide avant qu'on ne s'en
- * aperçoive. La garde-robe ci-dessous couvre les sept catégories, les cinq
+ * aperçoive. La garde-robe ci-dessous couvre les sept catégories, les quatre
  * crans de chaleur, les quatre registres et les quatre saisons.
  */
 
@@ -35,42 +35,42 @@ const TOUTES = null;
 const ETE = ["printemps", "ete"], HIVER = ["automne", "hiver"];
 const BRUT = [
   ["Tee-shirt blanc coton",       "haut", ["blanc"],          1, [1,2], TOUTES, "ajuste", "uni"],
-  ["Chemise blanche Oxford",      "haut", ["blanc"],          2, [2,4], TOUTES, "droit",  "uni"],
+  ["Chemise blanche Oxford",      "haut", ["blanc"],          1, [2,4], TOUTES, "droit",  "uni"],
   ["Débardeur noir",              "haut", ["noir"],           1, [1,2], ETE,    "ajuste", "uni"],
-  ["Marinière écrue",             "haut", ["blanc","marine"], 2, [1,3], TOUTES, "droit",  "raye"],
+  ["Marinière écrue",             "haut", ["blanc","marine"], 1, [1,3], TOUTES, "droit",  "raye"],
   ["Blouse en soie ivoire",       "haut", ["blanc"],          1, [3,4], TOUTES, "ample",  "uni"],
-  ["Chemise flanelle à carreaux", "haut", ["rouge","noir"],   3, [1,2], HIVER,  "droit",  "carreaux"],
+  ["Chemise flanelle à carreaux", "haut", ["rouge","noir"],   2, [1,2], HIVER,  "droit",  "carreaux"],
   ["Top ajusté noir",             "haut", ["noir"],           1, [2,3], TOUTES, "ajuste", "uni"],
 
-  ["Jean brut droit",             "bas",  ["denim"],          2, [1,3], TOUTES, "droit",  "uni", "long"],
-  ["Pantalon de costume marine",  "bas",  ["marine"],         2, [3,4], TOUTES, "droit",  "uni", "long"],
+  ["Jean brut droit",             "bas",  ["denim"],          1, [1,3], TOUTES, "droit",  "uni", "long"],
+  ["Pantalon de costume marine",  "bas",  ["marine"],         1, [3,4], TOUTES, "droit",  "uni", "long"],
   ["Short en coton kaki",         "bas",  ["vert"],           1, [1,2], ETE,    "droit",  "uni", "court"],
-  ["Jupe plissée midi",           "bas",  ["beige"],          2, [2,3], TOUTES, "ample",  "uni", "genoux"],
+  ["Jupe plissée midi",           "bas",  ["beige"],          1, [2,3], TOUTES, "ample",  "uni", "genoux"],
   ["Pantalon large en lin",       "bas",  ["beige"],          1, [2,3], ETE,    "ample",  "uni", "long"],
-  ["Jupe crayon noire",           "bas",  ["noir"],           2, [3,4], TOUTES, "ajuste", "uni", "genoux"],
+  ["Jupe crayon noire",           "bas",  ["noir"],           1, [3,4], TOUTES, "ajuste", "uni", "genoux"],
 
   ["Robe fleurie d'été",          "robe", ["bleu","blanc"],   1, [2,3], ETE,    "ample",  "imprime", "court"],
-  ["Robe fourreau noire",         "robe", ["noir"],           2, [3,4], TOUTES, "ajuste", "uni", "genoux"],
+  ["Robe fourreau noire",         "robe", ["noir"],           1, [3,4], TOUTES, "ajuste", "uni", "genoux"],
   ["Robe longue fluide bordeaux", "robe", ["rouge"],          1, [2,4], TOUTES, "ample",  "uni", "long"],
 
-  ["Pull en laine marine",        "pull", ["marine"],         4, [2,3], HIVER,  "droit",  "uni"],
-  ["Gilet fin gris",              "pull", ["gris"],           2, [2,3], TOUTES, "droit",  "uni"],
-  ["Sweat à capuche noir",        "pull", ["noir"],           3, 1,     TOUTES, "ample",  "uni"],
-  ["Cardigan long beige",         "pull", ["beige"],          3, [2,3], TOUTES, "ample",  "uni"],
+  ["Pull en laine marine",        "pull", ["marine"],         3, [2,3], HIVER,  "droit",  "uni"],
+  ["Gilet fin gris",              "pull", ["gris"],           1, [2,3], TOUTES, "droit",  "uni"],
+  ["Sweat à capuche noir",        "pull", ["noir"],           2, 1,     TOUTES, "ample",  "uni"],
+  ["Cardigan long beige",         "pull", ["beige"],          2, [2,3], TOUTES, "ample",  "uni"],
 
-  ["Trench beige",                "manteau", ["beige"],       3, [2,4], TOUTES, "droit",  "uni", "long",  true],
-  ["Doudoune noire",              "manteau", ["noir"],        5, [1,2], HIVER,  "ample",  "uni", "court", true],
-  ["Veste de costume marine",     "manteau", ["marine"],      2, [3,4], TOUTES, "ajuste", "uni", "court"],
-  ["Manteau long en laine gris",  "manteau", ["gris"],        4, [2,4], HIVER,  "droit",  "uni", "long"],
+  ["Trench beige",                "manteau", ["beige"],       2, [2,4], TOUTES, "droit",  "uni", "long",  true],
+  ["Doudoune noire",              "manteau", ["noir"],        4, [1,2], HIVER,  "ample",  "uni", "court", true],
+  ["Veste de costume marine",     "manteau", ["marine"],      1, [3,4], TOUTES, "ajuste", "uni", "court"],
+  ["Manteau long en laine gris",  "manteau", ["gris"],        3, [2,4], HIVER,  "droit",  "uni", "long"],
 
   ["Sandales en cuir camel",      "chaussures", ["marron"],   1, [2,3], ETE,    "droit",  "uni"],
-  ["Baskets blanches",            "chaussures", ["blanc"],    2, [1,2], TOUTES, "droit",  "uni"],
-  ["Derbies en cuir noir",        "chaussures", ["noir"],     2, [3,4], TOUTES, "droit",  "uni"],
-  ["Bottines en cuir marron",     "chaussures", ["marron"],   3, [2,3], TOUTES, "droit",  "uni", "", true],
-  ["Bottes de pluie",             "chaussures", ["marine"],   3, [1,2], TOUTES, "droit",  "uni", "", true],
-  ["Escarpins noirs",             "chaussures", ["noir"],     2, [3,4], TOUTES, "ajuste", "uni"],
+  ["Baskets blanches",            "chaussures", ["blanc"],    1, [1,2], TOUTES, "droit",  "uni"],
+  ["Derbies en cuir noir",        "chaussures", ["noir"],     1, [3,4], TOUTES, "droit",  "uni"],
+  ["Bottines en cuir marron",     "chaussures", ["marron"],   2, [2,3], TOUTES, "droit",  "uni", "", true],
+  ["Bottes de pluie",             "chaussures", ["marine"],   2, [1,2], TOUTES, "droit",  "uni", "", true],
+  ["Escarpins noirs",             "chaussures", ["noir"],     1, [3,4], TOUTES, "ajuste", "uni"],
 
-  ["Écharpe en laine grise",      "accessoire", ["gris"],     4, [1,3], HIVER,  "droit",  "uni"],
+  ["Écharpe en laine grise",      "accessoire", ["gris"],     3, [1,3], HIVER,  "droit",  "uni"],
   ["Casquette bleue",             "accessoire", ["bleu"],     1, [1,2], TOUTES, "droit",  "uni"],
   ["Sac structuré en cuir",       "accessoire", ["marron"],   1, [2,4], TOUTES, "droit",  "uni"],
 ];
@@ -98,7 +98,7 @@ function gardeRobeSynthetique() {
     formaliteMax: Array.isArray(f) ? f[1] : f,
     saisons: saisons || [],
     coupe, motif, longueur: longueur || "", matiere: MATIERES[nom] || "coton",
-    dehors: !!dehors, porteLe: [], description: "",
+    dehors: !!dehors, porteLe: [], description: "", chaleurV: 4,
   }));
 }
 
@@ -138,7 +138,7 @@ function chargerMoteur() {
    Les **qualitatifs** ont un seuil, parce qu'une troisième proposition
    moyenne vaut mieux que deux propositions seulement. */
 const NEUTRES = ["noir","blanc","gris","beige","marine","denim","marron"];
-const CIBLES = { chaud: 4, doux: 7, frais: 11, froid: 14 };
+const CIBLES = { chaud: 3, doux: 5, frais: 7, froid: 9 };   // échelle à 4 crans
 const PLANCHERS = { travail: 3, loisir: 1, vacances: 1 };
 const sommeChaleur = (t) => t.pieces.reduce((n, p) => p.categorie === "accessoire" ? n
   : n + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);

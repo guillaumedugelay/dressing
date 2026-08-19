@@ -26,7 +26,7 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 |---|---|---|
 | `nom` | texte libre | identification |
 | `categorie` | haut, bas, robe, pull, manteau, chaussures, accessoire | composition de la tenue |
-| `chaleur` | 1 (léger) → 5 (très chaud) | adéquation à la température |
+| `chaleur` | 1 (léger) → 4 (très chaud) | adéquation à la température — voir § 4 |
 | `formaliteMin` / `formaliteMax` | 1 (sport) → 4 (habillé) | **intervalle** — adéquation à l'activité |
 | `couleurs` | 1 à 2 parmi 14 | harmonie chromatique |
 | `saisons` | 0 à 4 saisons | **filtre strict** — aucune cochée = toute l'année |
@@ -90,6 +90,28 @@ Le moteur travaille en **deux temps, et il faut les garder distincts**.
 | Assemblage | des pièces d'été sous une couche d'hiver, quand la somme tombe juste par accident |
 | Registre | un écart moyen de plus d'un cran à la cible de la journée, ou une pièce sous le plancher exigé |
 | Pluie et neige | des chaussures qui ne tiennent pas l'eau |
+
+La cible se lit comme une somme de tenue : **chaud 3, doux 5, frais 7,
+froid 9**. Trois pièces légères font 3, un pull moyen ajoute 2, un manteau
+chaud 3, une doudoune 4.
+
+**L'échelle est passée de cinq crans à quatre le 19 août 2026**, « léger » et
+« fin » ayant fusionné. La distinction ne se voit pas sur une photo — le
+modèle de vision lui-même hésitait — et personne ne la sent en s'habillant au
+mois d'août. C'est elle qui produisait le classement erratique dont tout est
+parti : la garde-robe vivant entière sur ces deux crans, un seul cran d'écart
+faisait basculer les notes.
+
+Le haut de l'échelle est conservé : une doudoune, un manteau de laine et un
+gilet épais ne se valent pas, et c'est ce qui décidera des tenues d'hiver. On
+n'a fusionné que là où ça coinçait.
+
+La conversion est déterministe — 1 et 2 → léger, 3 → moyen, 4 → chaud,
+5 → très chaud — donc **gratuite : aucune photo à renvoyer**. Elle s'applique
+en place à la lecture, sur le patron déjà utilisé pour l'intervalle de
+formalité, et son marqueur est porté par la pièce afin qu'un import d'ancien
+export soit converti lui aussi. Sur la garde-robe réelle, 96 pièces deviennent
+légères, 10 moyennes et 1 chaude — l'image honnête d'un vestiaire d'été.
 
 **La tolérance est dissymétrique**, et c'est une mesure qui l'a voulu. Deux
 crans de trop peu ne se sentent pas — entre léger et fin au mois d'août

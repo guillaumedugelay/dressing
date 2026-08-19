@@ -70,7 +70,7 @@ const SCHEMA = {
       items: { type: "string", enum: COULEURS },
       description: "Une couleur, ou deux si la pièce en porte vraiment deux de façon marquée. Jamais plus de deux.",
     },
-    chaleur: { type: "integer", description: "1 très léger, 2 fin, 3 moyen, 4 chaud, 5 très chaud. Juge la matière et l'épaisseur, pas la couleur." },
+    chaleur: { type: "integer", description: "1 léger, 2 moyen, 3 chaud, 4 très chaud. Juge la matière et l'épaisseur, pas la couleur. Un tee-shirt, une chemise fine, une robe d'été sont légers ; un sweat, un jean épais, un cardigan sont moyens ; un pull de laine, un manteau sont chauds ; une doudoune est très chaude." },
     formaliteMin: { type: "integer", description: "Registre le plus décontracté où la pièce se porte. 1 sport, 2 décontracté, 3 soigné, 4 habillé." },
     formaliteMax: { type: "integer", description: "Registre le plus habillé où la pièce se porte. Égal à formaliteMin si la pièce ne se porte que d'une façon." },
     coupe: { type: "string", enum: COUPES },
