@@ -1270,6 +1270,10 @@ const NOM_COUPE = { ajuste: "ajusté", droit: "droit", ample: "ample" };
 const NOM_MOTIF = { raye: "des rayures", carreaux: "des carreaux", imprime: "un imprimé", uni: "une pièce unie" };
 const NOM_LONGUEUR = { court: "une pièce courte", genoux: "une longueur aux genoux", long: "une pièce longue" };
 
+/* Identité d'une règle, pour savoir laquelle une tenue coche. */
+const cleDeRegle = (r) => [r.type, r.valeur || "", (r.couleurs || []).slice().sort().join("+"),
+                           r.haut || "", r.bas || "", r.coupe || ""].join("|");
+
 function conseilDeTendance(r) {
   if (r.type === "couleur")     return `une touche de ${NOM_COULEUR(r.valeur)}`;
   if (r.type === "association") return `associer ${NOM_COULEUR(r.couleurs[0])} et ${NOM_COULEUR(r.couleurs[1])}`;
@@ -1349,8 +1353,15 @@ function noteTendances(pieces, manques, atouts) {
      reviendrait à conseiller ce qu il ne saurait pas noter ensuite. */
   if (manques && atteignable) for (const r of ratees) {
     const dit = conseilDeTendance(r);
+    /* L'axe vient du type de règle : sans lui, « un accessoire, c'est souvent
+       ce qui fait la différence » et « côté mode, un accessoire » se
+       retrouvaient tous deux dans la même phrase. */
     if (dit) manques.push({ gain: 3 * r.poids / atteignable * etat.poidsTendance,
-                            texte: dit, tendance: true });
+                            texte: dit, tendance: true, cle: cleDeRegle(r), regle: r,
+                            axe: r.type === "categorie" && r.valeur === "accessoire" ? "accessoire"
+                               : r.type === "motif" ? "motif"
+                               : r.type === "silhouette" ? "silhouette"
+                               : "mode-" + cleDeRegle(r) });
   }
 
   if (atouts && atteignable) for (const t of retenues)
@@ -1358,7 +1369,7 @@ function noteTendances(pieces, manques, atouts) {
                   texte: t.note.charAt(0).toLowerCase() + t.note.slice(1), tendance: true });
 
   const classees = retenues.sort((a, b) => b.poids - a.poids);
-  return { bonus, touchees: classees,
+  return { bonus, touchees: classees, cochees: retenues.map((t) => cleDeRegle(t.regle)),
            detail: bonus >= 0.8 && classees[0] ? [classees[0].note] : [] };
 }
 
@@ -1382,7 +1393,80 @@ function noteTendances(pieces, manques, atouts) {
    dépose ce qu'elle a accordé et ce qu'elle a refusé, chiffré dans la même
    unité. On classe, on garde les premiers, on écrit des phrases. Un seul
    calcul, celui qui note vraiment. */
-function argumenter(pieces) {
+/* ═══════════ La pièce qui manque ═══════════
+
+   Dire « du volume en haut » est un principe ; dire « une chemise oversize
+   rentrée devant » est une pièce qu'on peut aller chercher. Le second est ce
+   qu'on attend d'une conseillère, et rien dans le modèle ne l'interdit : le
+   vocabulaire est fermé, donc la traduction l'est aussi — une table, pas une
+   invention.
+
+   Ces pièces ne sont **pas** cherchées dans la garde-robe, et on se garde bien
+   d'affirmer qu'elle ne les possède pas : elle a un foulard et un gilet en
+   maille, et la première version du bloc lui soutenait le contraire. Qu'une
+   pièce comblant le manque ne figure pas dans la proposition ne prouve pas son
+   absence — elle peut coûter ailleurs ce qu'elle rapporte ici. Sur la tenue à
+   9,5/10 du 19 août, le moteur conseillait un sac uni là où le seul accessoire
+   de la maison est un foulard imprimé, qui aurait fait un second motif.
+
+   Le bloc nomme donc une pièce, et se tait sur qui la possède. */
+const NOM_COULEUR_PIECE = {
+  noir: "noire", blanc: "blanche", gris: "grise", beige: "beige", marine: "bleu marine",
+  denim: "en jean", marron: "camel", rouge: "rouge", orange: "orange", jaune: "jaune",
+  vert: "kaki", bleu: "bleue", violet: "lilas", rose: "rose",
+};
+const PIECE_MATIERE = {
+  denim: "une veste en jean portée ouverte, ou un jean brut à la place du bas",
+  cuir: "une ceinture en cuir camel, ou une veste en cuir souple",
+  maille: "un gilet fin en maille côtelée, posé sur les épaules",
+  lin: "une chemise en lin froissé, portée ouverte",
+  laine: "un pull fin en laine, noué sur les épaules",
+  soie: "un foulard de soie au cou ou noué au sac",
+  coton: "une chemise en coton blanc, ouverte sur le haut",
+  synthetique: "une pièce fluide à tomber, façon satin",
+};
+const PIECE_CATEGORIE = {
+  manteau: "un trench beige, porté ouvert",
+  pull: "un gilet fin, sur les épaules",
+  robe: "une robe unie, qui ferait la silhouette à elle seule",
+  accessoire: "un sac structuré en cuir camel",
+};
+const PIECE_MOTIF = {
+  raye: "un foulard à fines rayures",
+  carreaux: "une chemise à carreaux nouée à la taille",
+  imprime: "un foulard imprimé, au cou ou au sac",
+  uni: "une pièce unie, pour calmer l'ensemble",
+};
+const PIECE_LONGUEUR = {
+  court: "une jupe courte, pour dégager la jambe",
+  genoux: "une jupe aux genoux, plus posée",
+  long: "une jupe longue et fluide, qui allonge la ligne",
+};
+const PIECE_AXE = {
+  silhouette: "une chemise oversize rentrée devant, pour créer le volume qui manque",
+  couleur: "une touche vive en petite dose — ceinture, foulard, ou chaussures colorées",
+  motif: "un foulard imprimé, seul point de motif",
+  chaussures: "des mocassins en cuir, ou une sandale à petit talon",
+  accessoire: "un sac structuré en cuir camel",
+  proportion: "un manteau long et droit, qui tienne la ligne jusqu'en bas",
+};
+
+function pieceQuiManque(manque) {
+  if (!manque) return null;
+  const r = manque.regle;
+  if (r) {
+    if (r.type === "matiere")   return PIECE_MATIERE[r.valeur] || null;
+    if (r.type === "categorie") return PIECE_CATEGORIE[r.valeur] || null;
+    if (r.type === "motif")     return PIECE_MOTIF[r.valeur] || null;
+    if (r.type === "longueur")  return PIECE_LONGUEUR[r.valeur] || null;
+    if (r.type === "couleur")   return `une pièce ${NOM_COULEUR_PIECE[r.valeur] || r.valeur} en petite touche — ceinture, foulard ou chaussures`;
+    if (r.type === "association" && (r.couleurs || []).length === 2)
+      return `de quoi marier le ${NOM_COULEUR_PIECE[r.couleurs[0]] || r.couleurs[0]} et le ${NOM_COULEUR_PIECE[r.couleurs[1]] || r.couleurs[1]}`;
+  }
+  return PIECE_AXE[manque.axe] || null;
+}
+
+function argumenter(pieces, tenue) {
   const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
   const nomsDe = (l) => l.map((p) => p.nom.toLowerCase());
   const enumere = (l) => l.length > 1 ? l.slice(0, -1).join(", ") + " et " + l.at(-1) : l[0];
@@ -1426,7 +1510,13 @@ function argumenter(pieces) {
      touche de couleur, tout est neutre ici » : les deux étaient vrais, ensemble
      ils se contredisaient. */
   const loues = new Set(forts.map((a) => a.axe).filter(Boolean));
-  const retenus = parAxe(manques.filter((m) => !m.axe || !loues.has(m.axe))).slice(0, 2);
+  /* Un conseil de tendance n'est retenu que si une tenue cochant cette règle
+     fait réellement mieux que celle-ci. Sinon on nommerait un gain hors de
+     portée : la règle rapporterait, mais la pièce qui la coche coûterait plus
+     ailleurs. */
+  const atteignable = (m) => !m.cle || !tenue || !tenue.plafonds
+    || (tenue.plafonds.get(m.cle) ?? -Infinity) > tenue.note + 0.01;
+  const retenus = parAxe(manques.filter((m) => (!m.axe || !loues.has(m.axe)) && atteignable(m))).slice(0, 2);
   if (retenus.length) {
     const queMode = retenus.every((m) => m.tendance);
     args.push({ titre: "Ce qui l'aurait améliorée",
@@ -1436,6 +1526,11 @@ function argumenter(pieces) {
             ? `Et, côté mode, ${m.texte}.`
             : `${majuscule(m.texte)}.`).join(" ") });
   }
+
+  /* ── La pièce qui la sublimerait ── */
+  const idee = retenus.map(pieceQuiManque).find(Boolean);
+  if (idee)
+    args.push({ titre: "La pièce qui la sublimerait", texte: `${idee.charAt(0).toUpperCase()}${idee.slice(1)}.` });
 
   /* ── Ce qui reste à dire, et seulement quand il y a lieu ── */
 
@@ -1604,6 +1699,7 @@ function noterTenue(pieces, affinites) {
   const tendance = noteTendances(pieces);
   score += tendance.bonus;
   detail.push(...tendance.detail);
+  const cochees = tendance.cochees || [];
 
   /* Tout ce qui précède est du style, et c'est cela que la jauge affiche :
      deux tenues notées 3 sont aussi réussies l'une que l'autre, quel que soit
@@ -1629,7 +1725,7 @@ function noterTenue(pieces, affinites) {
   score += oubli;
   if (oubli >= 1.2) detail.push("des pièces que tu oublies");
 
-  return { score, note, detail };
+  return { score, note, detail, cochees };
 }
 
 /* ═══════════ Ce qu'une pièce vaut à elle seule, côté tendance ═══════════
@@ -1748,6 +1844,7 @@ function proposerTenues(combien = 5) {
   /* Pourquoi les tenues ont été écartées, pour pouvoir le dire s il n en
      reste aucune. */
   const refus = new Map();
+  const plafonds = new Map();
   for (const base of bases) {
     for (const ch of chaussures) {
       for (const couche of couches) {
@@ -1772,7 +1869,14 @@ function proposerTenues(combien = 5) {
             refus.set(adequation.raison, (refus.get(adequation.raison) || 0) + 1);
             continue;
           }
-          const { score, note, detail } = noterTenue(pieces, affinites);
+          const { score, note, detail, cochees } = noterTenue(pieces, affinites);
+          /* Ce qu'une tenue cochant cette règle peut atteindre au mieux. Sans
+             cette table, l'application conseillait « du denim » à une tenue
+             notée 4,63 alors que la meilleure tenue en denim plafonnait à 4,31 :
+             la règle était bien décochée, mais la cocher aurait coûté plus
+             ailleurs qu'elle n'aurait rapporté. On ne conseille désormais que
+             ce que le moteur a effectivement trouvé mieux. */
+          for (const c of cochees) if (!(plafonds.get(c) >= note)) plafonds.set(c, note);
           detail.unshift(...adequation.mentions);
           candidates.push({ pieces, score, note, detail });
         }
@@ -1820,7 +1924,9 @@ function proposerTenues(combien = 5) {
   const surLeScore = [...candidates].sort((a, b) => b.score - a.score);
   const meilleures = prendre(surLaNote, Math.min(3, combien), [], "note");
   const rotation = prendre(surLeScore, combien - meilleures.length, meilleures, "rotation");
-  return { tenues: meilleures.concat(rotation) };
+  const tenues = meilleures.concat(rotation);
+  for (const t of tenues) t.plafonds = plafonds;
+  return { tenues };
 }
 
 /* ═══════════ Rendu ═══════════ */
@@ -1918,7 +2024,7 @@ function rendreJour() {
       </div>
       <details class="pourquoi">
         <summary>Pourquoi cette tenue ?</summary>
-        ${argumenter(t.pieces).map((a) =>
+        ${argumenter(t.pieces, t).map((a) =>
           `<p><b>${echapper(a.titre)}</b> — ${echapper(a.texte)}</p>`).join("")}
       </details>
       <div class="actions">

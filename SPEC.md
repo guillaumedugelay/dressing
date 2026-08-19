@@ -264,6 +264,40 @@ est neutre ici » en manque, dans le même panneau. Les deux étaient vrais,
 ensemble ils se contredisaient. Le camaïeu se dit désormais autrement selon
 qu'il porte sur des vives ou sur des neutres.
 
+### Ne conseiller que l'atteignable
+
+Un conseil nomme une règle non cochée. Encore faut-il que la cocher fasse
+réellement mieux — sinon on désigne un gain hors de portée.
+
+> Cas réel du 19 août 2026. Une tenue notée 4,63 s'entendait conseiller « du
+> denim », alors que la meilleure tenue en denim de la garde-robe plafonnait à
+> 4,31. La règle était bien décochée, mais la cocher aurait coûté ailleurs plus
+> qu'elle n'aurait rapporté. Le conseil était juste sur la règle et faux sur le
+> fond.
+
+L'énumération des candidates retient donc, pour chaque règle, **la meilleure
+note atteignable par une tenue qui la coche**. Un conseil n'est affiché que si
+ce plafond dépasse la note de la tenue commentée. Le calcul est gratuit : les
+candidates sont déjà toutes notées.
+
+Conséquence vérifiable, et vérifiée sur 1 500 tenues : **la tenue la mieux
+notée ne reçoit jamais de conseil de mode**, puisque rien ne peut la dépasser.
+
+### La pièce qui la sublimerait
+
+Dire « du volume en haut » est un principe ; dire « une chemise oversize
+rentrée devant » est une pièce qu'on peut aller chercher. Le manque le mieux
+noté est donc traduit en vêtement concret, par une table — le vocabulaire
+étant fermé, la traduction l'est aussi.
+
+**Le bloc nomme une pièce et se tait sur qui la possède.** Sa première version
+ajoutait « tu ne l'as pas, sinon elle serait déjà dans la proposition » : c'était
+faux. Qu'une pièce comblant le manque ne figure pas dans la proposition ne
+prouve pas son absence — elle peut coûter ailleurs ce qu'elle rapporte ici.
+Sur une tenue à 9,5/10, le moteur conseillait un sac uni là où le seul
+accessoire de la maison est un foulard imprimé, qui aurait fait un second
+motif. Le conseil était bon, l'affirmation ne l'était pas.
+
 ### Ce qui retient la note
 
 Une note resserrée n'apprend rien si elle ne dit pas ce qui lui manque. Chaque
