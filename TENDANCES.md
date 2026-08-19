@@ -26,13 +26,16 @@ déposé à côté de l'application, sur le même hébergement statique.
 ```
   ┌─ chaque lundi, GitHub Actions ────────────────────────┐
   │                                                       │
-  │  1. collecte      flux RSS de la presse mode          │
-  │                   (Vogue, Hypebeast, WWD, WhoWhatWear)│
+  │  1. collecte      flux RSS de neuf titres de presse   │
   │                        │                              │
-  │  2. synthèse      appel à l'API Claude :              │
-  │                   prose éditoriale → règles chiffrées │
+  │  2. synthèse      appel à l'API Claude : prose        │
+  │                   éditoriale → règles chiffrées,      │
+  │                   archivées dans tendances/DATE.json  │
   │                        │                              │
-  │  3. dépôt         tendances.json commité dans le dépôt│
+  │  3. cumul         huit semaines glissantes, repondé-  │
+  │                   rées par ancienneté → tendances.json│
+  │                        │                              │
+  │  4. dépôt         les deux commités dans le dépôt     │
   └────────────────────────┼──────────────────────────────┘
                            ▼
                   GitHub Pages sert le fichier
@@ -48,9 +51,9 @@ Ce que cela donne :
 |---|---|
 | Serveur à maintenir | aucun |
 | Coût d'hébergement | 0 € — GitHub Actions est gratuit sur dépôt public |
-| Coût de l'API Claude | **≈ 0,16 $ par passage, soit ≈ 8 $ par an** (mesuré, voir section 7) |
+| Coût de l'API Claude | **≈ 0,36 $ par passage, soit ≈ 19 $ par an** (mesuré, voir section 7) |
 | Fonctionne hors ligne | oui, sur la dernière version téléchargée |
-| Auditable | `tendances.json` est versionné dans git : chaque révision hebdomadaire est lisible et réversible |
+| Auditable | chaque synthèse hebdomadaire est archivée dans `tendances/` et versionnée : le cumul se recalcule intégralement, donc rien n'est jamais perdu ni figé |
 
 ## 3. Les sources réellement exploitables
 
@@ -137,6 +140,48 @@ projeter sur ce vocabulaire. Le résultat attendu :
 L'application charge ce fichier et lui applique les mêmes mécanismes de
 notation que ses règles de composition. Le moteur n'a presque pas changé :
 seule la table des règles est devenue mobile.
+
+### Deux mois glissants, pas une semaine
+
+Une synthèse hebdomadaire est bâtie sur **une seule semaine** de flux RSS, et
+une semaine, c'est du bruit. Le corpus du 17 août 2026 portait « lilas en
+touche, **vu sur tapis rouge** » : un événement isolé pesant autant qu'une
+tendance de fond. Or une tendance vestimentaire tient une saison, pas sept
+jours.
+
+Chaque semaine garde donc son fichier dans `tendances/AAAA-MM-JJ.json`, et
+`npm run cumuler` en fait le corpus publié :
+
+- **fenêtre de huit semaines**, soit deux mois ;
+- **repondération par ancienneté**, demi-vie de quatre semaines ;
+- division par le total des pondérations de la fenêtre, **et non par le nombre
+  de semaines où la règle apparaît** — c'est ce qui distingue une tendance
+  d'un fait divers ;
+- plancher à 0,15 (en deçà, c'est du bruit) et plafond à 40 règles, le moteur
+  les parcourant pour chaque tenue candidate.
+
+Mesuré sur huit semaines d'essai construites pour le vérifier :
+
+| Règle | Présence | Poids cumulé |
+|---|---|---|
+| le denim, base de tout | 7 semaines | **1,18** |
+| vestes de mi-saison | 8 semaines | 0,92 |
+| lainages de rentrée — *qui monte* | 2 semaines récentes | 0,43 |
+| le jaune vif de l'été — *qui s'éteint* | 2 semaines anciennes | 0,19 |
+| lilas vu sur tapis rouge — *fait divers* | 1 fois | **0,17** |
+
+Le fait divers passe de 0,5 à 0,17 ; la tendance persistante domine. Une
+tendance qui monte garde un poids utile dès sa deuxième semaine.
+
+**L'application ne change pas.** Elle télécharge toujours un seul
+`tendances.json`, et la note de tendance étant rapportée au total des poids
+atteignables, un corpus plus fourni ne pèse pas mécaniquement plus lourd.
+Coût mesuré du passage de 16 à 40 règles : **+17 %** sur le temps de
+suggestion, soit environ 165 à 220 ms au lieu de 140 à 190.
+
+**Ce sont les archives qui font foi**, pas le fichier publié : le cumul se
+recalcule intégralement à partir de `tendances/`. Changer la fenêtre ou la
+demi-vie ne demande donc de refaire aucune synthèse, et ne coûte rien.
 
 ### Le relevé de vocabulaire — le journal des manques
 

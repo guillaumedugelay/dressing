@@ -40,23 +40,33 @@ jobs:
         if: steps.cle.outputs.presente == 'oui'
         run: npm install --no-save @anthropic-ai/sdk
 
-      - name: Synthétiser les tendances
+      # La synthèse de la semaine est archivée telle quelle dans tendances/.
+      # C'est elle, et non le fichier publié, qui constitue l'historique : le
+      # cumul se recalcule à partir des archives, si bien que changer la
+      # fenêtre ou la demi-vie ne demande de refaire aucune synthèse.
+      - name: Synthétiser la semaine
         if: steps.cle.outputs.presente == 'oui'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: node outils/synthese.mjs < corpus.json > tendances.nouveau.json
+        run: |
+          mkdir -p tendances
+          node outils/synthese.mjs < corpus.json > "tendances/$(date -u +%Y-%m-%d).json"
+
+      # Une semaine de flux RSS, c'est du bruit ; deux mois, c'est un signal.
+      - name: Cumuler sur deux mois glissants
+        if: steps.cle.outputs.presente == 'oui'
+        run: node outils/cumuler.mjs
 
       - name: Publier si le résultat a changé
         if: steps.cle.outputs.presente == 'oui'
         run: |
           rm -f corpus.json
-          mv tendances.nouveau.json tendances.json
-          if git diff --quiet -- tendances.json; then
+          git add -A tendances.json tendances/
+          if git diff --quiet --cached; then
             echo "Aucun changement cette semaine."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tendances.json
           git commit -m "Tendances de la semaine du $(date -u +%Y-%m-%d)"
           git push

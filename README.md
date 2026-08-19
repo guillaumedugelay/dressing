@@ -37,6 +37,18 @@ facultatif.
 
 Détail complet dans [ANALYSE-PHOTOS.md](ANALYSE-PHOTOS.md).
 
+### Recalculer le cumul des tendances
+
+```bash
+npm run cumuler
+```
+
+Refait `tendances.json` à partir des synthèses hebdomadaires archivées dans
+`tendances/`, sur une fenêtre de deux mois avec repondération par ancienneté.
+La tâche du lundi le fait toute seule ; la commande sert à changer la fenêtre
+ou à rejouer l'historique, ce qui ne coûte rien puisque aucune synthèse n'est
+refaite. `--montrer` détaille la fusion.
+
 ### Éprouver le moteur de suggestion
 
 ```bash

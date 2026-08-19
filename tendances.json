@@ -1,6 +1,12 @@
 {
   "revision": "2026-08-17",
-  "origine": "synthese-automatique",
+  "origine": "cumul-hebdomadaire",
+  "fenetre": {
+    "semaines": 1,
+    "de": "2026-08-17",
+    "a": "2026-08-17",
+    "demiVie": 4
+  },
   "sources": [
     "Vogue",
     "Hypebeast",
@@ -19,77 +25,81 @@
       "valeur": "pull",
       "poids": 1.5,
       "note": "le pull, pièce phare de l'automne",
-      "texte": ""
-    },
-    {
-      "type": "matiere",
-      "valeur": "maille",
-      "poids": 1.2,
-      "note": "mailles partout, fines ou épaisses",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "matiere",
       "valeur": "denim",
       "poids": 1.5,
       "note": "denim omniprésent, toutes coupes confondues",
-      "texte": ""
-    },
-    {
-      "type": "matiere",
-      "valeur": "cuir",
-      "poids": 1,
-      "note": "une pièce en cuir par tenue",
-      "texte": ""
-    },
-    {
-      "type": "categorie",
-      "valeur": "manteau",
-      "poids": 1,
-      "note": "trenchs et vestes de mi-saison",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "categorie",
       "valeur": "accessoire",
       "poids": 1.5,
       "note": "sacs, casquettes et serre-tête décisifs",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 1.2,
+      "note": "mailles partout, fines ou épaisses",
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 1,
+      "note": "une pièce en cuir par tenue",
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1,
+      "note": "trenchs et vestes de mi-saison",
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "couleur",
       "valeur": "marron",
       "poids": 1,
       "note": "bruns et camels réchauffent tout",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "couleur",
       "valeur": "rouge",
       "poids": 1,
       "note": "touche de rouge très demandée",
-      "texte": ""
-    },
-    {
-      "type": "motif",
-      "valeur": "uni",
-      "poids": 0.8,
-      "note": "tenues ton sur ton, unies",
-      "texte": ""
-    },
-    {
-      "type": "motif",
-      "valeur": "carreaux",
-      "poids": 0.5,
-      "note": "carreaux sur jupes et lainages",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "longueur",
       "valeur": "court",
       "poids": 1,
       "note": "shorts et minis prolongent l'été",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "silhouette",
@@ -97,165 +107,217 @@
       "bas": "ample",
       "poids": 1,
       "note": "haut net sur pantalon large",
-      "texte": ""
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     },
     {
       "type": "descriptive",
       "poids": 1,
       "note": "bottes souples plutôt que rigides",
-      "texte": "bottes à tige souple et affaissée, portées avec jupes et jeans"
+      "texte": "bottes à tige souple et affaissée, portées avec jupes et jeans",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "motif",
+      "valeur": "uni",
+      "poids": 0.8,
+      "note": "tenues ton sur ton, unies",
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 0.5,
+      "note": "carreaux sur jupes et lainages",
+      "texte": "",
+      "vuSur": 1,
+      "depuis": "2026-08-17"
     }
   ],
   "vocabulaire": [
     {
       "terme": "taille basse",
       "axe": "taille",
-      "occurrences": 3
-    },
-    {
-      "terme": "capri",
-      "axe": "longueur",
-      "occurrences": 2
-    },
-    {
-      "terme": "coupe cigarette",
-      "axe": "tombé",
-      "occurrences": 1
-    },
-    {
-      "terme": "baggy",
-      "axe": "tombé",
-      "occurrences": 2
+      "occurrences": 3,
+      "semaines": 1
     },
     {
       "terme": "oversize",
       "axe": "tombé",
-      "occurrences": 3
-    },
-    {
-      "terme": "ton sur ton",
-      "axe": "couleur",
-      "occurrences": 2
-    },
-    {
-      "terme": "pois",
-      "axe": "imprimé",
-      "occurrences": 1
-    },
-    {
-      "terme": "fleuri",
-      "axe": "imprimé",
-      "occurrences": 1
-    },
-    {
-      "terme": "vichy",
-      "axe": "imprimé",
-      "occurrences": 1
+      "occurrences": 3,
+      "semaines": 1
     },
     {
       "terme": "dentelle",
       "axe": "texture",
-      "occurrences": 3
-    },
-    {
-      "terme": "transparence",
-      "axe": "texture",
-      "occurrences": 2
-    },
-    {
-      "terme": "satin",
-      "axe": "texture",
-      "occurrences": 1
-    },
-    {
-      "terme": "daim",
-      "axe": "texture",
-      "occurrences": 2
-    },
-    {
-      "terme": "fourrure",
-      "axe": "texture",
-      "occurrences": 2
-    },
-    {
-      "terme": "bord coupé franc",
-      "axe": "détail",
-      "occurrences": 2
-    },
-    {
-      "terme": "plissé",
-      "axe": "détail",
-      "occurrences": 1
-    },
-    {
-      "terme": "découpes",
-      "axe": "détail",
-      "occurrences": 2
-    },
-    {
-      "terme": "détail froncé",
-      "axe": "détail",
-      "occurrences": 1
+      "occurrences": 3,
+      "semaines": 1
     },
     {
       "terme": "capuche",
       "axe": "détail",
-      "occurrences": 3
-    },
-    {
-      "terme": "col polo",
-      "axe": "col",
-      "occurrences": 2
-    },
-    {
-      "terme": "chemise boutonnée",
-      "axe": "col",
-      "occurrences": 1
-    },
-    {
-      "terme": "col V",
-      "axe": "encolure",
-      "occurrences": 1
-    },
-    {
-      "terme": "bout fermé",
-      "axe": "chaussure",
-      "occurrences": 2
-    },
-    {
-      "terme": "ballerines plates",
-      "axe": "chaussure",
-      "occurrences": 1
+      "occurrences": 3,
+      "semaines": 1
     },
     {
       "terme": "tongs",
       "axe": "chaussure",
-      "occurrences": 3
-    },
-    {
-      "terme": "sabots",
-      "axe": "chaussure",
-      "occurrences": 1
+      "occurrences": 3,
+      "semaines": 1
     },
     {
       "terme": "sneakers de trail",
       "axe": "chaussure",
-      "occurrences": 3
-    },
-    {
-      "terme": "robe nuisette",
-      "axe": "genre",
-      "occurrences": 2
-    },
-    {
-      "terme": "robe prairie",
-      "axe": "genre",
-      "occurrences": 1
+      "occurrences": 3,
+      "semaines": 1
     },
     {
       "terme": "serre-tête",
       "axe": "accessoire",
-      "occurrences": 3
+      "occurrences": 3,
+      "semaines": 1
+    },
+    {
+      "terme": "capri",
+      "axe": "longueur",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "baggy",
+      "axe": "tombé",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "ton sur ton",
+      "axe": "couleur",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "transparence",
+      "axe": "texture",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "daim",
+      "axe": "texture",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "fourrure",
+      "axe": "texture",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "bord coupé franc",
+      "axe": "détail",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "découpes",
+      "axe": "détail",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "col polo",
+      "axe": "col",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "bout fermé",
+      "axe": "chaussure",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "robe nuisette",
+      "axe": "genre",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "coupe cigarette",
+      "axe": "tombé",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "pois",
+      "axe": "imprimé",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "fleuri",
+      "axe": "imprimé",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "vichy",
+      "axe": "imprimé",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "satin",
+      "axe": "texture",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "plissé",
+      "axe": "détail",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "détail froncé",
+      "axe": "détail",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "chemise boutonnée",
+      "axe": "col",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "col V",
+      "axe": "encolure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "ballerines plates",
+      "axe": "chaussure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "sabots",
+      "axe": "chaussure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "robe prairie",
+      "axe": "genre",
+      "occurrences": 1,
+      "semaines": 1
     }
   ]
 }
