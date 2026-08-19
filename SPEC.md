@@ -210,6 +210,38 @@ pleinement.
 Les trois tenues affichées diffèrent entre elles d'au moins deux pièces,
 pour proposer un choix et non trois variantes de la même idée.
 
+### Le panneau « pourquoi cette tenue »
+
+Deux blocs, et deux seulement dans le cas courant : **ce qui marche**, puis
+**ce qui l'aurait améliorée**.
+
+> *Ce qui marche.* Des couleurs d'une même famille, des coupes droites qui ne
+> se contrarient pas et un seul motif, porté par la marinière écrue.
+>
+> *Ce qui l'aurait améliorée.* Du volume en haut sur ce bas ajusté, ou
+> l'inverse — c'est ce qui dessine une silhouette. Et, côté mode, du denim.
+
+Il en comptait sept, dont trois devenus creux. « Face au temps » annonçait
+invariablement que le compte de chaleur tombait juste — vrai par construction
+depuis que la chaleur est un filtre. « En loisir » répétait que chaque pièce
+atteignait le registre attendu, vrai pour la même raison. Et « À ressortir »
+énumérait les cinq pièces de la tenue tant qu'aucune n'avait été portée. Trois
+blocs qui ne disaient rien et noyaient les deux qui disent quelque chose ; ils
+n'apparaissent plus que lorsqu'ils ont une information à donner.
+
+**Un seul point par axe.** Deux remarques sur la couleur dans la même phrase,
+ce n'est pas une synthèse : chaque atout et chaque manque porte un axe —
+silhouette, couleur, motif, chaussures, accessoire, proportion — et seul le
+mieux noté de chaque axe est retenu. La mode fait exception, ses règles étant
+plusieurs choses distinctes et non plusieurs façons de dire la même.
+
+**Une incohérence corrigée au passage.** Le camaïeu se juge sur la famille
+chromatique, l'accent unique sur le drapeau « neutre » : une tenue beige et
+marron affichait donc « des couleurs d'une même famille » en atout et « tout
+est neutre ici » en manque, dans le même panneau. Les deux étaient vrais,
+ensemble ils se contredisaient. Le camaïeu se dit désormais autrement selon
+qu'il porte sur des vives ou sur des neutres.
+
 ### Ce qui retient la note
 
 Une note resserrée n'apprend rien si elle ne dit pas ce qui lui manque. Chaque
