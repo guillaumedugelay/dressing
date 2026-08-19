@@ -1,0 +1,284 @@
+{
+  "revision": "2026-08-19",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "La semaine tourne autour d'un vestiaire de transition : denim sous toutes ses formes, maille douillette et vestes de cuir, sur une base de tons sombres, de brun chocolat et de total look blanc. Côté allure, le haut reste près du corps quand le bas s'élargit, et le ton sur ton l'emporte sur les contrastes.",
+  "regles": [
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 1.6,
+      "note": "Le denim domine tous les looks",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 1.3,
+      "note": "Mailles douces pour la mi-saison",
+      "texte": ""
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "poids": 1.3,
+      "note": "Pulls et gilets remis au centre",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 0.9,
+      "note": "Cuir en pièce forte d'avant-automne",
+      "texte": ""
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "coupe": "ample",
+      "poids": 1,
+      "note": "Vestes et manteaux en superposition",
+      "texte": ""
+    },
+    {
+      "type": "couleur",
+      "valeur": "blanc",
+      "poids": 1.1,
+      "note": "Total look blanc de fin d'été",
+      "texte": ""
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1,
+      "note": "Brun chocolat et tons terreux",
+      "texte": ""
+    },
+    {
+      "type": "couleur",
+      "valeur": "noir",
+      "poids": 0.8,
+      "note": "Base sombre pour les transitions",
+      "texte": ""
+    },
+    {
+      "type": "motif",
+      "valeur": "uni",
+      "poids": 1,
+      "note": "Tenues ton sur ton, sans contraste",
+      "texte": ""
+    },
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "ample",
+      "poids": 1.2,
+      "note": "Haut près du corps, bas large",
+      "texte": ""
+    },
+    {
+      "type": "descriptive",
+      "poids": 1.2,
+      "note": "Jean large à revers d'ourlet",
+      "texte": "jean à jambe large ou baggy, porté avec l'ourlet retroussé en revers"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.8,
+      "note": "Chaussures plates brunes et bottes souples",
+      "texte": "chaussures plates brunes, ballerines et bottes souples affaissées portées avec le jean"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "jambe large",
+      "axe": "tombé",
+      "occurrences": 4
+    },
+    {
+      "terme": "baggy",
+      "axe": "tombé",
+      "occurrences": 2
+    },
+    {
+      "terme": "coupe cigarette",
+      "axe": "tombé",
+      "occurrences": 1
+    },
+    {
+      "terme": "ourlet à revers",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "superposition",
+      "axe": "tombé",
+      "occurrences": 3
+    },
+    {
+      "terme": "ton sur ton",
+      "axe": "couleur",
+      "occurrences": 3
+    },
+    {
+      "terme": "à pois",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "fleuri",
+      "axe": "imprimé",
+      "occurrences": 2
+    },
+    {
+      "terme": "tee-shirt à visuel imprimé",
+      "axe": "imprimé",
+      "occurrences": 3
+    },
+    {
+      "terme": "daim",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "dentelle",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "satin",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "délavé usé",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "broderie",
+      "axe": "détail",
+      "occurrences": 3
+    },
+    {
+      "terme": "nylon ripstop",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "cardigan",
+      "axe": "pièce",
+      "occurrences": 2
+    },
+    {
+      "terme": "chemise boutonnée",
+      "axe": "col",
+      "occurrences": 2
+    },
+    {
+      "terme": "polo",
+      "axe": "col",
+      "occurrences": 2
+    },
+    {
+      "terme": "sweat à capuche",
+      "axe": "pièce",
+      "occurrences": 3
+    },
+    {
+      "terme": "veste varsity",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "bomber",
+      "axe": "pièce",
+      "occurrences": 2
+    },
+    {
+      "terme": "surchemise en jean",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "veste de travail",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "survêtement assorti",
+      "axe": "pièce",
+      "occurrences": 2
+    },
+    {
+      "terme": "jupe cargo",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe à paillettes",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "robe prairie",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes souples affaissées",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "babies à bride",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "ballerines plates",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "baskets rétro",
+      "axe": "chaussure",
+      "occurrences": 4
+    },
+    {
+      "terme": "tongs",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "lunettes de soleil oversize",
+      "axe": "accessoire",
+      "occurrences": 2
+    },
+    {
+      "terme": "sac cabas oversize",
+      "axe": "accessoire",
+      "occurrences": 2
+    },
+    {
+      "terme": "foulard noué",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "pendentif objet",
+      "axe": "bijou",
+      "occurrences": 1
+    }
+  ]
+}
