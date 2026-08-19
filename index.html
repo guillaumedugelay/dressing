@@ -394,6 +394,12 @@
       <div id="stats"></div>
     </div>
     <div class="bloc">
+      <span class="legende">Ce qui manque à ma garde-robe</span>
+      <p style="margin:0;font-size:13px;color:var(--texte-doux)">Ce que le moteur réclame le plus souvent, sur toutes les situations de la saison en cours.</p>
+      <button class="secondaire" id="btn-lacunes">Chercher les manques</button>
+      <div id="lacunes"></div>
+    </div>
+    <div class="bloc">
       <span class="legende">Météo automatique</span>
       <p id="texte-meteo" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
       <div style="display:flex;gap:9px">
@@ -1123,6 +1129,58 @@ function noteStyle(pieces, manques, atouts) {
   }
 
   return { bonus, detail };
+}
+
+/* ═══════════ Ce qui manque à la garde-robe ═══════════
+
+   Le panneau d'une tenue dit ce qui lui manque. Répété sur toutes les
+   situations d'une saison, le même manque revient — et c'est cela qui devient
+   une décision d'achat. Un conseil isolé se contourne ; un manque qui revient
+   dans deux tiers des tenues est un trou dans la garde-robe.
+
+   Tout est local et gratuit : le moteur tourne dans le téléphone, on le
+   relance simplement plusieurs fois. Compter une cinquantaine de situations,
+   soit moins d'une seconde.
+
+   Le comptage porte sur les **trois premières propositions** de chaque
+   situation, celles qui sont retenues sur la note seule : les deux dernières
+   servent à faire tourner la garde-robe et ne disent rien de ce qui lui
+   manque. */
+function lacunes() {
+  const memoire = { saison: etat.saison, meteo: etat.meteo, temp: etat.temp, activite: etat.activite, ecartees: etat.ecartees };
+  const compte = new Map();
+  let examinees = 0;
+
+  const saisons = [etat.saison];   /* la saison en cours : acheter pour l'hiver en août n'aide personne */
+  for (const saison of saisons)
+    for (const temp of ["chaud", "doux", "frais", "froid"])
+      for (const activite of ["travail", "loisir", "vacances"])
+        for (let k = 0; k < 4; k++) {
+          Object.assign(etat, { saison, meteo: "soleil", temp, activite, ecartees: new Set() });
+          let r;
+          try { r = proposerTenues(); } catch { continue; }
+          if (r.erreur) continue;
+          for (const t of r.tenues.filter((x) => x.origine !== "rotation")) {
+            examinees++;
+            const manques = [], atouts = [];
+            noteStyle(t.pieces, manques, atouts);
+            noteTendances(t.pieces, manques, atouts);
+            const loues = new Set(atouts.map((a) => a.axe).filter(Boolean));
+            const utile = manques.filter((m) => (!m.axe || !loues.has(m.axe))
+              && (!m.cle || (t.plafonds.get(m.cle) ?? -Infinity) > t.note + 0.01));
+            const premier = utile.sort((a, b) => b.gain - a.gain)[0];
+            const idee = pieceQuiManque(premier);
+            if (!idee) continue;
+            const e = compte.get(idee) || { idee, fois: 0, gain: 0 };
+            e.fois++; e.gain += premier.gain;
+            compte.set(idee, e);
+          }
+        }
+
+  Object.assign(etat, memoire);
+  return { examinees, classement: [...compte.values()]
+    .map((e) => ({ ...e, part: e.fois / (examinees || 1), gainMoyen: e.gain / e.fois }))
+    .sort((a, b) => b.fois - a.fois || b.gainMoyen - a.gainMoyen) };
 }
 
 /* ═══════════ Tendances ═══════════
@@ -2112,6 +2170,23 @@ function rendreDressing() {
   });
 }
 
+function rendreLacunes() {
+  const cible = $("#lacunes");
+  cible.innerHTML = `<div class="vide">Calcul en cours…</div>`;
+  /* Un souffle avant de calculer, pour que le message s'affiche. */
+  requestAnimationFrame(() => {
+    const { examinees, classement } = lacunes();
+    if (!examinees) { cible.innerHTML = `<div class="vide">Pas assez de tenues possibles cette saison pour conclure quoi que ce soit.</div>`; return; }
+    const utiles = classement.filter((e) => e.part >= 0.08).slice(0, 4);
+    if (!utiles.length) { cible.innerHTML = `<div class="vide">Rien ne manque régulièrement : sur ${examinees} tenues, aucun besoin ne revient assez souvent pour justifier un achat.</div>`; return; }
+    cible.innerHTML = utiles.map((e) => `<div class="jour" style="align-items:flex-start">
+        <span class="date" style="min-width:3.2em">${Math.round(100 * e.part)} %</span>
+        <span style="flex:1;font-size:13.5px">${echapper(e.idee.charAt(0).toUpperCase() + e.idee.slice(1))}</span>
+      </div>`).join("")
+      + `<p style="margin:8px 0 0;font-size:12.5px;color:var(--texte-doux)">Part des ${examinees} tenues de la saison où cette pièce est ce qui manque le plus. Un quart, c'est déjà un vrai trou : la pièce reviendrait presque un jour sur quatre.</p>`;
+  });
+}
+
 function rendreJournal() {
   const histo = $("#historique");
   const recentes = [...etat.tenues].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
@@ -2469,6 +2544,8 @@ function rendreMeteo() {
 }
 
 async function reglerMeteo() {
+  $("#btn-lacunes").onclick = () => rendreLacunes();
+
   $("#btn-position").onclick = async () => {
     try { await definirLieu(await positionActuelle()); }
     catch (e) { toast(e.message === "position refusée"

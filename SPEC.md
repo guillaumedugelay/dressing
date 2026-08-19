@@ -298,6 +298,28 @@ Sur une tenue à 9,5/10, le moteur conseillait un sac uni là où le seul
 accessoire de la maison est un foulard imprimé, qui aurait fait un second
 motif. Le conseil était bon, l'affirmation ne l'était pas.
 
+### Ce qui manque à la garde-robe
+
+Le panneau d'une tenue dit ce qui lui manque. Répété sur toutes les situations
+de la saison, **le même manque revient** — et c'est cela qui devient une
+décision d'achat. Un conseil isolé se contourne ; un manque présent dans un
+quart des tenues est un trou dans la garde-robe.
+
+Le Journal propose donc un bouton qui rejoue le moteur sur les douze
+situations de la saison en cours, quatre fois chacune, et classe les pièces
+manquantes par fréquence. Tout est local : mesuré à **191 ms** pour 107
+tenues examinées, sur la garde-robe réelle.
+
+Deux précautions de méthode. Le comptage ne porte que sur **les trois
+premières propositions** de chaque situation, celles retenues sur la note
+seule — les deux dernières servent à faire tourner la garde-robe et ne disent
+rien de ce qui lui manque. Et il ne balaie que **la saison en cours** :
+acheter pour l'hiver au mois d'août n'aide personne.
+
+> Premier relevé réel, été 2026, sur 107 tenues : un sac structuré en cuir
+> camel manque dans **28 %** des tenues, une chemise oversize dans 15 %, une
+> touche de couleur vive dans 10 %.
+
 ### Ce qui retient la note
 
 Une note resserrée n'apprend rien si elle ne dit pas ce qui lui manque. Chaque
