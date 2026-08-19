@@ -275,11 +275,23 @@ réellement mieux — sinon on désigne un gain hors de portée.
 > qu'elle n'aurait rapporté. Le conseil était juste sur la règle et faux sur le
 > fond.
 
-L'énumération des candidates retient donc, pour chaque règle, **la meilleure
-note atteignable par une tenue qui la coche**. Un conseil n'est affiché que si
-ce plafond dépasse la note de la tenue commentée. Le calcul est gratuit : les
-candidates sont déjà toutes notées.
+Le même défaut existait sur les axes de style, et il était plus massif : sur
+1 500 tenues, **164 conseillaient « une chemise oversize »** alors que la
+meilleure tenue contrastée de la garde-robe plafonnait à 5,15 contre 5,33 sans
+contraste. La propriétaire possède pourtant neuf hauts amples et quatre bas
+ajustés : le contraste était atteignable, il était simplement moins bon.
 
+L'énumération retient donc deux tables. Pour chaque **règle de tendance**, la
+meilleure note atteignable par une tenue qui la coche ; pour chaque **axe de
+style et chaque niveau atteint**, la meilleure note qui va avec. Un conseil
+n'est affiché que si quelqu'un a fait mieux sur ce point-là *tout en étant
+mieux noté*. Le calcul est gratuit : les candidates sont déjà toutes notées, et
+le relevé par axe est numérique — ce sont les phrases qui coûtent, et elles ne
+sont fabriquées que pour les cinq tenues retenues.
+
+**Une seule implémentation**, `conseilsUtiles`, sert le panneau d'une tenue et
+le bilan de la garde-robe. Les deux ont d'abord eu leur copie de la règle, et
+le bilan conseillait donc ce que le panneau écartait.
 Conséquence vérifiable, et vérifiée sur 1 500 tenues : **la tenue la mieux
 notée ne reçoit jamais de conseil de mode**, puisque rien ne peut la dépasser.
 

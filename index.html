@@ -999,7 +999,15 @@ function noteStyle(pieces, manques, atouts) {
   const detail = [];
   let bonus = 0;
   const rate = (gain, texte, axe) => { if (manques && gain > 0.01) manques.push({ gain, texte, axe }); };
-  const gagne = (gain, texte, axe) => { if (atouts) atouts.push({ gain, texte, axe }); };
+  /* Le relevé numérique par axe est toujours calculé — quelques affectations,
+     rien de plus — parce qu'il sert à savoir si un conseil est atteignable.
+     Les phrases restent facultatives : ce sont elles qui coûteraient sur des
+     milliers de candidates. */
+  const axes = {};
+  const gagne = (gain, texte, axe) => {
+    if (axe) axes[axe] = Math.max(axes[axe] || 0, gain);
+    if (atouts) atouts.push({ gain, texte, axe });
+  };
   const de = (c) => pieces.find((p) => p.categorie === c);
   const haut = de("haut") || de("robe"), bas = de("bas");
   const coupe = (p) => (p && p.coupe) || "droit";
@@ -1128,7 +1136,7 @@ function noteStyle(pieces, manques, atouts) {
     else rate(0.4, `un manteau un peu plus long, pour tenir la ligne`, "proportion");
   }
 
-  return { bonus, detail };
+  return { bonus, detail, axes };
 }
 
 /* ═══════════ Ce qui manque à la garde-robe ═══════════
@@ -1162,13 +1170,7 @@ function lacunes() {
           if (r.erreur) continue;
           for (const t of r.tenues.filter((x) => x.origine !== "rotation")) {
             examinees++;
-            const manques = [], atouts = [];
-            noteStyle(t.pieces, manques, atouts);
-            noteTendances(t.pieces, manques, atouts);
-            const loues = new Set(atouts.map((a) => a.axe).filter(Boolean));
-            const utile = manques.filter((m) => (!m.axe || !loues.has(m.axe))
-              && (!m.cle || (t.plafonds.get(m.cle) ?? -Infinity) > t.note + 0.01));
-            const premier = utile.sort((a, b) => b.gain - a.gain)[0];
+            const premier = conseilsUtiles(t.pieces, t).retenus[0];
             const idee = pieceQuiManque(premier);
             if (!idee) continue;
             const e = compte.get(idee) || { idee, fois: 0, gain: 0 };
@@ -1524,20 +1526,38 @@ function pieceQuiManque(manque) {
   return PIECE_AXE[manque.axe] || null;
 }
 
-function argumenter(pieces, tenue) {
-  const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
-  const nomsDe = (l) => l.map((p) => p.nom.toLowerCase());
-  const enumere = (l) => l.length > 1 ? l.slice(0, -1).join(", ") + " et " + l.at(-1) : l[0];
-  const majuscule = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-  const args = [];
+/* Ce qu'on peut honnêtement conseiller sur une tenue : les manques dont on a
+   vérifié qu'une tenue accessible fait réellement mieux sur ce point-là, et
+   qui ne portent pas sur un axe déjà porté au crédit de la tenue.
 
+   Une seule implémentation, appelée par le panneau d'une tenue comme par le
+   bilan de la garde-robe. Deux copies de cette règle finiraient par diverger,
+   et l'une conseillerait ce que l'autre écarte. */
+function conseilsUtiles(pieces, tenue) {
   const manques = [], atouts = [];
   noteStyle(pieces, manques, atouts);
   noteTendances(pieces, manques, atouts);
 
-  /* ── Ce qui marche ── */
+  const gainActuel = {};
+  for (const a of atouts) if (a.axe) gainActuel[a.axe] = Math.max(gainActuel[a.axe] || 0, a.gain);
+
+  /* Quelqu'un a-t-il fait mieux sur ce point, tout en étant mieux noté ? Pour
+     une règle de tendance, c'est la table des règles cochées ; pour un axe de
+     style, celle des niveaux atteints. */
+  const atteignable = (m) => {
+    if (!tenue) return true;
+    if (m.cle) return tenue.plafonds && (tenue.plafonds.get(m.cle) ?? -Infinity) > tenue.note + 0.01;
+    if (!m.axe || !tenue.plafondsAxe) return true;
+    const acquis = gainActuel[m.axe] || 0;
+    for (const [cle, meilleure] of tenue.plafondsAxe) {
+      const [axe, niveau] = cle.split("|");
+      if (axe === m.axe && Number(niveau) > acquis + 0.01 && meilleure > tenue.note + 0.01) return true;
+    }
+    return false;
+  };
+
   /* Un seul point par axe, le mieux noté : deux remarques sur la couleur dans
-     la même phrase, ce n est pas une synthèse. La mode fait exception — ses
+     la même phrase, ce n'est pas une synthèse. La mode fait exception — ses
      règles sont plusieurs choses distinctes, pas plusieurs façons de dire la
      même chose. */
   const parAxe = (l) => {
@@ -1549,32 +1569,21 @@ function argumenter(pieces, tenue) {
     }
     return sortie;
   };
-  const forts = parAxe(atouts).slice(0, 3);
-  if (forts.length) {
-    const style = forts.filter((a) => !a.tendance).map((a) => a.texte);
-    const mode = forts.filter((a) => a.tendance).map((a) => a.texte);
-    const phrases = [];
-    if (style.length) phrases.push(majuscule(enumere(style)) + ".");
-    /* La mode se dit à part : elle ne vaut que cette semaine, là où une
-       proportion juste reste juste. */
-    if (mode.length) phrases.push(`Et c'est dans l'air du temps : ${enumere(mode)}.`);
-    args.push({ titre: "Ce qui marche", texte: phrases.join(" ") });
-  }
 
-  /* ── Ce qui l'aurait améliorée ── */
-  /* Un axe déjà porté au crédit de la tenue ne peut pas lui être reproché
-     dans la foulée. Sur une tenue toute en neutres, le panneau affichait
-     « une gamme de neutres, qui s'accordent par construction » puis « une
-     touche de couleur, tout est neutre ici » : les deux étaient vrais, ensemble
-     ils se contredisaient. */
+  const forts = parAxe(atouts).slice(0, 3);
   const loues = new Set(forts.map((a) => a.axe).filter(Boolean));
-  /* Un conseil de tendance n'est retenu que si une tenue cochant cette règle
-     fait réellement mieux que celle-ci. Sinon on nommerait un gain hors de
-     portée : la règle rapporterait, mais la pièce qui la coche coûterait plus
-     ailleurs. */
-  const atteignable = (m) => !m.cle || !tenue || !tenue.plafonds
-    || (tenue.plafonds.get(m.cle) ?? -Infinity) > tenue.note + 0.01;
   const retenus = parAxe(manques.filter((m) => (!m.axe || !loues.has(m.axe)) && atteignable(m))).slice(0, 2);
+  return { forts, retenus };
+}
+
+function argumenter(pieces, tenue) {
+  const cibleForme = ACTIVITES.find((a) => a.id === etat.activite).cible;
+  const nomsDe = (l) => l.map((p) => p.nom.toLowerCase());
+  const enumere = (l) => l.length > 1 ? l.slice(0, -1).join(", ") + " et " + l.at(-1) : l[0];
+  const majuscule = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const args = [];
+
+  const { forts, retenus } = conseilsUtiles(pieces, tenue);
   if (retenus.length) {
     const queMode = retenus.every((m) => m.tendance);
     args.push({ titre: "Ce qui l'aurait améliorée",
@@ -1783,7 +1792,7 @@ function noterTenue(pieces, affinites) {
   score += oubli;
   if (oubli >= 1.2) detail.push("des pièces que tu oublies");
 
-  return { score, note, detail, cochees };
+  return { score, note, detail, cochees, axes: style.axes };
 }
 
 /* ═══════════ Ce qu'une pièce vaut à elle seule, côté tendance ═══════════
@@ -1903,6 +1912,7 @@ function proposerTenues(combien = 5) {
      reste aucune. */
   const refus = new Map();
   const plafonds = new Map();
+  const plafondsAxe = new Map();
   for (const base of bases) {
     for (const ch of chaussures) {
       for (const couche of couches) {
@@ -1927,7 +1937,16 @@ function proposerTenues(combien = 5) {
             refus.set(adequation.raison, (refus.get(adequation.raison) || 0) + 1);
             continue;
           }
-          const { score, note, detail, cochees } = noterTenue(pieces, affinites);
+          const { score, note, detail, cochees, axes } = noterTenue(pieces, affinites);
+          /* Même principe que pour les règles de tendance, mais par axe de
+             style : ce qu'une tenue atteignant ce niveau-là peut espérer au
+             mieux. Sans quoi l'application conseillait « une chemise oversize »
+             à une tenue notée 5,33 alors que la meilleure tenue contrastée de
+             la garde-robe plafonnait à 5,15 — 164 fois sur 1 500 tenues. */
+          for (const [axe, gain] of Object.entries(axes)) {
+            const cle = axe + "|" + gain.toFixed(2);
+            if (!(plafondsAxe.get(cle) >= note)) plafondsAxe.set(cle, note);
+          }
           /* Ce qu'une tenue cochant cette règle peut atteindre au mieux. Sans
              cette table, l'application conseillait « du denim » à une tenue
              notée 4,63 alors que la meilleure tenue en denim plafonnait à 4,31 :
@@ -1983,7 +2002,7 @@ function proposerTenues(combien = 5) {
   const meilleures = prendre(surLaNote, Math.min(3, combien), [], "note");
   const rotation = prendre(surLeScore, combien - meilleures.length, meilleures, "rotation");
   const tenues = meilleures.concat(rotation);
-  for (const t of tenues) t.plafonds = plafonds;
+  for (const t of tenues) { t.plafonds = plafonds; t.plafondsAxe = plafondsAxe; }
   return { tenues };
 }
 
