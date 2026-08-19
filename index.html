@@ -1048,7 +1048,9 @@ function noteStyle(pieces, manques, atouts) {
       ? `resserrer le haut ou le bas — deux pièces larges ensemble, la silhouette se perd`
       : ch === cb && ch === "ajuste"
       ? `un peu de volume quelque part : tout est près du corps, ça manque de respiration`
-      : `du volume en haut sur ce bas ajusté, ou l'inverse — c'est ce qui dessine une silhouette`, "silhouette");
+      /* Ne pas affirmer la coupe du bas sans la regarder : la formule parlait
+         d'« un bas ajusté » y compris devant une jupe droite. */
+      : `plus de contraste entre le haut et le bas — un volume ample répondant à une coupe ajustée, c'est ce qui dessine une silhouette`, "silhouette");
   } else if (!bas && de("robe")) {
     /* Une robe est une silhouette à elle seule : elle ne peut pas contraster,
        mais elle ne peut pas non plus se contredire. Sans ce terme, toute tenue
@@ -1170,8 +1172,9 @@ function lacunes() {
           if (r.erreur) continue;
           for (const t of r.tenues.filter((x) => x.origine !== "rotation")) {
             examinees++;
-            const premier = conseilsUtiles(t.pieces, t).retenus[0];
-            const idee = pieceQuiManque(premier);
+            const premier = conseilsUtiles(t.pieces, t).retenus
+              .find((m) => pieceQuiManque(m, etat.pieces));
+            const idee = pieceQuiManque(premier, etat.pieces);
             if (!idee) continue;
             const e = compte.get(idee) || { idee, fois: 0, gain: 0 };
             e.fois++; e.gain += premier.gain;
@@ -1475,6 +1478,17 @@ const NOM_COULEUR_PIECE = {
   denim: "en jean", marron: "camel", rouge: "rouge", orange: "orange", jaune: "jaune",
   vert: "kaki", bleu: "bleue", violet: "lilas", rose: "rose",
 };
+/* À quoi ressemble, dans la garde-robe, la pièce qu'on s'apprête à conseiller.
+   Sans ce test, l'application recommandait d'acheter une chemise oversize à
+   quelqu'un qui en possède neuf. Le bloc ne sert qu'à préparer un achat : il
+   n'a de sens que sur une pièce absente.
+
+   Le test est volontairement large — une pièce « du même genre » suffit à
+   annuler la suggestion. Mieux vaut taire un conseil juste que d'en donner un
+   qui envoie acheter un doublon. */
+const VIVES = (c) => !COULEURS.find((x) => x.id === c)?.neutre;
+const possedeDeja = (garderobe, test) => garderobe.some((p) => portable(p) && test(p));
+
 const PIECE_MATIERE = {
   denim: "une veste en jean portée ouverte, ou un jean brut à la place du bas",
   cuir: "une ceinture en cuir camel, ou une veste en cuir souple",
@@ -1511,19 +1525,34 @@ const PIECE_AXE = {
   proportion: "un manteau long et droit, qui tienne la ligne jusqu'en bas",
 };
 
-function pieceQuiManque(manque) {
+/* Ce qui, dans la garde-robe, rendrait la suggestion inutile. */
+const DETECTE_AXE = {
+  silhouette: (p) => p.categorie === "haut" && p.coupe === "ample",
+  couleur:    (p) => (p.couleurs || []).some(VIVES),
+  motif:      (p) => p.categorie === "accessoire" && p.motif && p.motif !== "uni",
+  chaussures: (p) => p.categorie === "chaussures" && p.formaliteMax >= 3,
+  accessoire: (p) => p.categorie === "accessoire" && (!p.motif || p.motif === "uni"),
+  proportion: (p) => p.categorie === "manteau" && p.longueur === "long",
+};
+
+function pieceQuiManque(manque, garderobe) {
   if (!manque) return null;
+  const g = garderobe || [];
+  const rendre = (texte, test) => (texte && !possedeDeja(g, test)) ? texte : null;
   const r = manque.regle;
   if (r) {
-    if (r.type === "matiere")   return PIECE_MATIERE[r.valeur] || null;
-    if (r.type === "categorie") return PIECE_CATEGORIE[r.valeur] || null;
-    if (r.type === "motif")     return PIECE_MOTIF[r.valeur] || null;
-    if (r.type === "longueur")  return PIECE_LONGUEUR[r.valeur] || null;
-    if (r.type === "couleur")   return `une pièce ${NOM_COULEUR_PIECE[r.valeur] || r.valeur} en petite touche — ceinture, foulard ou chaussures`;
+    if (r.type === "matiere")   return rendre(PIECE_MATIERE[r.valeur], (p) => p.matiere === r.valeur);
+    if (r.type === "categorie") return rendre(PIECE_CATEGORIE[r.valeur], (p) => p.categorie === r.valeur);
+    if (r.type === "motif")     return rendre(PIECE_MOTIF[r.valeur], (p) => p.motif === r.valeur);
+    if (r.type === "longueur")  return rendre(PIECE_LONGUEUR[r.valeur], (p) => p.longueur === r.valeur);
+    if (r.type === "couleur")   return rendre(`une pièce ${NOM_COULEUR_PIECE[r.valeur] || r.valeur} en petite touche — ceinture, foulard ou chaussures`,
+                                              (p) => (p.couleurs || []).includes(r.valeur));
     if (r.type === "association" && (r.couleurs || []).length === 2)
-      return `de quoi marier le ${NOM_COULEUR_PIECE[r.couleurs[0]] || r.couleurs[0]} et le ${NOM_COULEUR_PIECE[r.couleurs[1]] || r.couleurs[1]}`;
+      return rendre(`de quoi marier le ${NOM_COULEUR_PIECE[r.couleurs[0]] || r.couleurs[0]} et le ${NOM_COULEUR_PIECE[r.couleurs[1]] || r.couleurs[1]}`,
+                    (p) => r.couleurs.every((c) => (p.couleurs || []).includes(c)));
   }
-  return PIECE_AXE[manque.axe] || null;
+  const test = DETECTE_AXE[manque.axe];
+  return test ? rendre(PIECE_AXE[manque.axe], test) : null;
 }
 
 /* Ce qu'on peut honnêtement conseiller sur une tenue : les manques dont on a
@@ -1584,6 +1613,20 @@ function argumenter(pieces, tenue) {
   const args = [];
 
   const { forts, retenus } = conseilsUtiles(pieces, tenue);
+
+  /* ── Ce qui marche ── */
+  if (forts.length) {
+    const style = forts.filter((a) => !a.tendance).map((a) => a.texte);
+    const mode = forts.filter((a) => a.tendance).map((a) => a.texte);
+    const phrases = [];
+    if (style.length) phrases.push(majuscule(enumere(style)) + ".");
+    /* La mode se dit à part : elle ne vaut que cette semaine, là où une
+       proportion juste reste juste. */
+    if (mode.length) phrases.push(`Et c'est dans l'air du temps : ${enumere(mode)}.`);
+    args.push({ titre: "Ce qui marche", texte: phrases.join(" ") });
+  }
+
+  /* ── Ce qui l'aurait améliorée ── */
   if (retenus.length) {
     const queMode = retenus.every((m) => m.tendance);
     args.push({ titre: "Ce qui l'aurait améliorée",
@@ -1595,7 +1638,7 @@ function argumenter(pieces, tenue) {
   }
 
   /* ── La pièce qui la sublimerait ── */
-  const idee = retenus.map(pieceQuiManque).find(Boolean);
+  const idee = retenus.map((m) => pieceQuiManque(m, etat.pieces)).find(Boolean);
   if (idee)
     args.push({ titre: "La pièce qui la sublimerait", texte: `${idee.charAt(0).toUpperCase()}${idee.slice(1)}.` });
 

@@ -302,7 +302,22 @@ rentrée devant » est une pièce qu'on peut aller chercher. Le manque le mieux
 noté est donc traduit en vêtement concret, par une table — le vocabulaire
 étant fermé, la traduction l'est aussi.
 
-**Le bloc nomme une pièce et se tait sur qui la possède.** Sa première version
+**La pièce doit être absente de la garde-robe.** Le bloc prépare un achat :
+conseiller une pièce déjà possédée envoie acheter un doublon — il recommandait
+une chemise oversize à quelqu'un qui en possède neuf. Chaque suggestion
+s'accompagne donc de ce qui la reconnaîtrait dans le vestiaire — une chemise
+ample pour le volume, un accessoire uni pour la signature, une pièce denim pour
+la matière — et se tait si la garde-robe en contient déjà une. Le test est
+volontairement large : mieux vaut taire un conseil juste que d'en donner un qui
+fasse racheter ce qu'on a.
+
+> Effet mesuré sur la garde-robe réelle, 600 tenues : **une seule suggestion
+> subsiste**, un sac structuré en cuir camel. Chemises oversize, denim,
+> couleurs vives, foulards imprimés : tout le reste est déjà là. Et c'est
+> l'information utile — le seul accessoire de la maison est un foulard
+> imprimé, qui fait un second motif dès que la tenue en porte un.
+
+**Le bloc se tait aussi sur qui possède la pièce.** Sa première version
 ajoutait « tu ne l'as pas, sinon elle serait déjà dans la proposition » : c'était
 faux. Qu'une pièce comblant le manque ne figure pas dans la proposition ne
 prouve pas son absence — elle peut coûter ailleurs ce qu'elle rapporte ici.

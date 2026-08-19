@@ -127,7 +127,8 @@ function chargerMoteur() {
   const out = {};
   new Function("__out", stubs + sc +
     "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;" +
-    "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteTendances = noteTendances;")(out);
+    "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteTendances = noteTendances;" +
+    "\n;__out.argumenter = argumenter; __out.conseilsUtiles = conseilsUtiles; __out.pieceQuiManque = pieceQuiManque;")(out);
   if (typeof out.proposerTenues !== "function") throw new Error("moteur : proposerTenues introuvable");
   return out;
 }
@@ -225,6 +226,23 @@ for (let n = 0; n < TIRAGES; n++) {
     if (liste[i].note > liste[i-1].note + 1e-6)
       noter("classement d'affichage non décroissant",
         `${liste[i-1].note.toFixed(2)} puis ${liste[i].note.toFixed(2)}`);
+
+  /* Rien ne peut dépasser la tenue la mieux notée : lui conseiller quoi que ce
+     soit reviendrait à nommer un gain hors de portée. */
+  if (liste[0]) {
+    const a = M.argumenter(liste[0].pieces, liste[0]);
+    if (a.some((x) => x.titre === "Ce qui l'aurait améliorée" && !/Rien ne cloche/.test(x.texte)))
+      noter("conseil donné à la tenue la mieux notée", liste[0].pieces.map((p) => p.nom).join(" + "));
+  }
+
+  /* Le bloc « la pièce qui la sublimerait » prépare un achat : conseiller une
+     pièce déjà possédée enverrait acheter un doublon. */
+  for (const t of liste) {
+    const a = M.argumenter(t.pieces, t).find((x) => x.titre === "La pièce qui la sublimerait");
+    if (!a) continue;
+    const m = M.conseilsUtiles(t.pieces, t).retenus.find((x) => M.pieceQuiManque(x, pieces));
+    if (!m) noter("pièce suggérée sans manque correspondant", a.texte);
+  }
 
   /* Le terme de tendance, relevé pour le trio entier : la question n'est pas
      seulement « le corpus est-il chargé » mais « départage-t-il les trois
