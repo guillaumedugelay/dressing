@@ -327,15 +327,15 @@ const blocs = resultats.filter((r) => r.llm).map((r, i) => {
     <h2>Situation ${i + 1} — ${echapper(st.saison)} · ${echapper(st.meteo)} · ${echapper(st.temp)} · ${echapper(st.activite)}</h2>
     <div class="lot">${lot.map((x) => tenueHtml(x.ids, x.cle)).join("")}</div>
     <div class="reveal" hidden>
-      <p><b>Origine :</b> ${lot.map((x, k) => `${k + 1} = ${x.cle === "llm" ? "modèle" : "moteur"}`).join(" · ")}</p>
-      ${r.llm.recommendations.map((x) => `<p class="raison"><b>Modèle, rang ${x.rang}</b> (${x.score}/100) — ${echapper(x.raison)}</p>`).join("")}
+      <p><b>Origine :</b> ${lot.map((x, k) => `${k + 1} = ${x.cle === "llm" ? "IA (Claude)" : "règles actuelles"}`).join(" · ")}</p>
+      ${r.llm.recommendations.map((x) => `<p class="raison"><b>IA — son choix n° ${x.rang}</b> (${x.score}/100) — ${echapper(x.raison)}</p>`).join("")}
       ${explos ? `<p><b>Recherches demandées :</b></p><ul>${explos}</ul>` : `<p><i>Aucune recherche demandée.</i></p>`}
     </div>
   </section>`;
 }).join("");
 
 const page = `<!doctype html><meta charset="utf-8">
-<title>Moteur contre modèle — comparaison à l'aveugle</title>
+<title>Règles actuelles contre IA — comparaison à l'aveugle</title>
 <style>
  body{font:15px/1.5 system-ui,sans-serif;max-width:1100px;margin:0 auto;padding:20px;background:#faf8f4;color:#1f2534}
  h1{font-size:22px} h2{font-size:16px;margin:28px 0 10px;color:#5a6274;font-weight:600}
@@ -350,8 +350,8 @@ const page = `<!doctype html><meta charset="utf-8">
  .reveal{background:#fff;border-left:3px solid #3e5288;padding:10px 14px;margin-top:10px;font-size:13.5px}
  .raison{color:#3d4354} .bilan{position:sticky;bottom:0;background:#1f2534;color:#fff;padding:12px;border-radius:10px;margin-top:24px}
 </style>
-<h1>Moteur contre modèle — comparaison à l'aveugle</h1>
-<p>Pour chaque situation, six tenues : trois du moteur de règles, trois du modèle, <b>mélangées et sans étiquette</b>.
+<h1>Règles actuelles contre IA — comparaison à l'aveugle</h1>
+<p>Pour chaque situation, six tenues : trois choisies par le <b>moteur de règles actuel</b>, trois par l'<b>IA</b>, mélangées et sans étiquette.
 Choisis celle que tu porterais. L'origine n'apparaît qu'après ton vote.</p>
 ${blocs}
 <div class="bilan" id="bilan">Aucun vote pour l'instant.</div>
@@ -369,7 +369,7 @@ ${blocs}
      votes.push(t.dataset.cle);
      const m = votes.filter((v) => v === "moteur").length, l = votes.length - m;
      document.getElementById("bilan").textContent =
-       votes.length + " situation(s) jugée(s) — moteur : " + m + ", modèle : " + l;
+       votes.length + " situation(s) jugée(s) — règles actuelles : " + m + "  |  IA : " + l;
    });
  });
 </script>`;
