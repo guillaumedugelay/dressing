@@ -179,6 +179,22 @@ polo-baskets pour aller travailler :
   18 août 2026 avec le passage aux deux temps : une tenue qui ne convient pas
   n'arrive plus jusqu'à la note, il n'y a donc plus rien à racheter.
 
+**Une pièce de base ne sort qu'une fois par fournée.** Un haut, un bas ou une
+robe ne peut figurer que dans une seule des cinq propositions ; les couches,
+les chaussures et les accessoires restent libres de se répéter.
+
+> La règle des deux pièces d'écart autorisait le même tee-shirt dans trois
+> propositions, où seules la jupe et les chaussures changeaient : l'ensemble
+> donnait l'impression de tourner en rond. C'est le haut et le bas qu'on
+> regarde en premier, et les répéter se voit tout de suite. La robe est comptée
+> avec eux, puisqu'elle occupe leur place.
+>
+> Mesuré sur 288 tirages : aucune fournée n'y perd de tenue — cinq propositions
+> sortent toujours — et les pièces distinctes proposées passent de 85 à 90 sur
+> 107. La note médiane recule de 4,39 à 4,31, ce qui est le prix, et il est
+> mince. Exiger la même chose des chaussures serait impossible : avec une seule
+> paire, il ne resterait rien à proposer.
+
 **Rotation — hors de la note, et en moyenne par pièce.** Ces termes se
 calculent en **moyenne**, jamais en somme.
 

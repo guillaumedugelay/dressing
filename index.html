@@ -2030,11 +2030,31 @@ function proposerTenues(combien = 5) {
       return Math.max(r.pieces.length, c.pieces.length) - communs >= 2;
     });
   };
+
+  /* Une pièce de base ne sort qu'une fois par fournée. La règle des deux
+     pièces d'écart autorisait le même tee-shirt dans trois propositions —
+     seuls la jupe et les chaussures changeaient — et l'ensemble donnait
+     l'impression de tourner en rond. Ce sont le haut et le bas qu'on regarde
+     en premier ; les répéter se voit tout de suite.
+
+     La robe est comptée avec eux : elle occupe la place d'un haut et d'un bas,
+     et la revoir d'une proposition à l'autre produit exactement la même
+     lassitude. Les couches, les chaussures et les accessoires restent libres
+     de se répéter — avec une seule paire de sandales, l'exiger d'elles ne
+     laisserait plus rien à proposer. */
+  const BASES = ["haut", "bas", "robe"];
+  const basesInedites = (c, deja) => {
+    const vues = new Set();
+    for (const r of deja) for (const p of r.pieces) if (BASES.includes(p.categorie)) vues.add(p.id);
+    return c.pieces.every((p) => !BASES.includes(p.categorie) || !vues.has(p.id));
+  };
+
   const prendre = (liste, combien, deja, origine) => {
     const prises = [];
     for (const c of liste) {
       if (prises.length === combien) break;
-      if (!assezDifferente(c, deja.concat(prises))) continue;
+      const avant = deja.concat(prises);
+      if (!assezDifferente(c, avant) || !basesInedites(c, avant)) continue;
       prises.push({ ...c, origine });
     }
     return prises;

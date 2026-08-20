@@ -227,6 +227,18 @@ for (let n = 0; n < TIRAGES; n++) {
       noter("classement d'affichage non décroissant",
         `${liste[i-1].note.toFixed(2)} puis ${liste[i].note.toFixed(2)}`);
 
+  /* Une pièce de base ne sort qu'une fois par fournée : trois propositions
+     bâties sur le même tee-shirt donnent l'impression de tourner en rond. */
+  {
+    const BASES = ["haut", "bas", "robe"];
+    const vues = new Set();
+    for (const t of liste) for (const p of t.pieces) {
+      if (!BASES.includes(p.categorie)) continue;
+      if (vues.has(p.id)) { noter("pièce de base répétée dans une fournée", p.nom); break; }
+      vues.add(p.id);
+    }
+  }
+
   /* Rien ne peut dépasser la tenue la mieux notée : lui conseiller quoi que ce
      soit reviendrait à nommer un gain hors de portée. */
   if (liste[0]) {

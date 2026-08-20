@@ -150,6 +150,8 @@ Les descriptions des pièces contiennent ce que la fiche ne sait pas stocker : t
 
 **Les identifiants doivent être repris exactement.** N'invente aucune pièce, ne modifie aucune tenue : tu choisis parmi les candidates proposées, telles quelles.
 
+**Tes trois tenues ne peuvent pas partager une pièce de base** — un haut, un bas ou une robe ne sort qu'une fois. Trois propositions bâties sur le même tee-shirt, où seule la jupe change, donnent l'impression de tourner en rond : c'est le haut et le bas qu'on regarde en premier. Les couches, les chaussures et les accessoires, eux, peuvent revenir.
+
 **Si une tenue serait nettement meilleure avec une pièce que tu ne vois pas**, tu peux demander une recherche ciblée dans le reste de la garde-robe — au plus trois demandes. N'en fais pas si les candidates te suffisent : une demande qui n'apporterait qu'un gain marginal fait perdre du temps à quelqu'un qui s'habille.
 
 La raison s'adresse à la propriétaire, pas à un ingénieur. Nomme les vêtements, dis ce qui marche, et tais-toi sur les scores.`;
@@ -258,6 +260,17 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
       if (inconnus.length) throw new Error(`identifiants inconnus : ${inconnus.join(", ")}`);
     }
     if (lu.recommendations.length !== 3) throw new Error(`${lu.recommendations.length} tenues au lieu de 3`);
+    /* La même contrainte que le moteur : une pièce de base ne sort qu'une
+       fois. Sans ce contrôle, la comparaison opposerait un moteur bridé à un
+       modèle libre de répéter, et le verdict ne vaudrait rien. */
+    const BASES = ["haut", "bas", "robe"];
+    const parPiece = new Map(donnees.pieces.map((p) => [p.id, p]));
+    const bases = [];
+    for (const rec of lu.recommendations)
+      for (const x of rec.pieces)
+        if (BASES.includes(parPiece.get(x)?.categorie)) bases.push(x);
+    const repetees = bases.filter((x, k) => bases.indexOf(x) !== k);
+    if (repetees.length) throw new Error(`pièce de base répétée : ${[...new Set(repetees)].map((x) => parPiece.get(x)?.nom).join(", ")}`);
   } catch (e) { erreur = e.message; }
 
   console.error(`  [${i + 1}/${retenues.length}] ${etiquette} — ${top.length} candidates` +
