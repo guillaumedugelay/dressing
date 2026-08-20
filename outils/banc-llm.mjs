@@ -39,6 +39,9 @@ const PLAFOND_CANDIDATES = Number(option("--candidates", 50));
 const MODELE = process.env.MODELE || "claude-sonnet-5";
 const EFFORT = process.env.EFFORT || "high";
 const SIMULER = drapeau("--simuler");
+/* La seconde passe coûte 60 % de la première. On la déclenche à la demande,
+   pour pouvoir comparer « passe 1 seule » et « passe 1 + exploration ». */
+const EXPLORER = drapeau("--exploration");
 
 /* Tarifs par million de jetons, repris de analyse-photos.mjs. */
 const TARIFS = {
@@ -76,7 +79,9 @@ function chargerMoteur() {
   const out = {};
   new Function("__out", stubs + sc +
     "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;" +
-    "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteSur10 = noteSur10;")(out);
+    "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteSur10 = noteSur10;" +
+    "\n;__out.adaptee = adapteeALaSituation; __out.offre = offreDeLaGardeRobe;" +
+    "\n;__out.noterTenue = noterTenue; __out.tableAffinites = tableAffinites; __out.formaliteMax = formaliteMax;")(out);
   if (typeof out.proposerTenues !== "function") throw new Error("moteur : proposerTenues introuvable");
   return out;
 }
@@ -117,7 +122,7 @@ const SCHEMA = {
     },
     explorations: {
       type: "array",
-      description: "Au plus trois recherches ciblées dans le reste de la garde-robe, si une tenue serait meilleure avec une pièce que tu ne vois pas ici. Liste vide si les candidates suffisent.",
+      description: "Au plus trois recherches ciblées dans le reste de la garde-robe, et **au plus une par tenue** : si une tenue serait meilleure avec une pièce que tu ne vois pas ici, demande-la. Liste vide si les candidates suffisent.",
       items: {
         type: "object",
         properties: {
@@ -152,9 +157,62 @@ Les descriptions des pièces contiennent ce que la fiche ne sait pas stocker : t
 
 **Tes trois tenues ne peuvent pas partager une pièce de base** — un haut, un bas ou une robe ne sort qu'une fois. Trois propositions bâties sur le même tee-shirt, où seule la jupe change, donnent l'impression de tourner en rond : c'est le haut et le bas qu'on regarde en premier. Les couches, les chaussures et les accessoires, eux, peuvent revenir.
 
-**Si une tenue serait nettement meilleure avec une pièce que tu ne vois pas**, tu peux demander une recherche ciblée dans le reste de la garde-robe — au plus trois demandes. N'en fais pas si les candidates te suffisent : une demande qui n'apporterait qu'un gain marginal fait perdre du temps à quelqu'un qui s'habille.
+**Si une tenue serait nettement meilleure avec une pièce que tu ne vois pas**, tu peux demander une recherche ciblée dans le reste de la garde-robe — au plus trois demandes, et **au plus une par tenue**. Une tenue ne se répare pas en changeant trois choses : si elle en demande autant, ce n'est pas la bonne tenue.
+
+N'en fais aucune si les candidates te suffisent : une demande qui n'apporterait qu'un gain marginal fait perdre du temps à quelqu'un qui s'habille.
 
 La raison s'adresse à la propriétaire, pas à un ingénieur. Nomme les vêtements, dis ce qui marche, et tais-toi sur les scores.`;
+
+/* La consigne de la seconde passe. Elle est courte : le modèle a déjà jugé, on
+   ne lui redonne ni les 50 candidates ni le catalogue — seulement ses trois
+   tenues et les variantes que sa demande a fait remonter. */
+const CONSIGNE2 = `Tu as retenu trois tenues, et tu as demandé à chercher dans le reste de la garde-robe. Voici ce que la recherche a rendu, sous forme de variantes : ce sont tes tenues, avec une pièce remplacée.
+
+Chaque variante a déjà été vérifiée par le moteur — elle est portable pour la journée décrite. Tu n'as donc à juger que l'allure.
+
+Rends de nouveau trois tenues. Pour chacune, garde ta version d'origine **ou** prends une variante, selon ce qui est le plus réussi. Ne change pas pour changer : une variante ne se retient que si elle fait nettement mieux.
+
+Les identifiants doivent être repris exactement, et tes trois tenues ne peuvent toujours pas partager un haut, un bas ou une robe.
+
+Ne redemande pas de recherche : rends une liste d'explorations vide.`;
+
+/* ═══════════ La recherche ciblée, côté moteur ═══════════
+
+   C'est le moteur qui cherche, pas le modèle : il connaît les mille pièces, et
+   il sait lesquelles sont portables aujourd'hui. Mesuré à 0 ms sur une
+   garde-robe de mille pièces — la recherche est gratuite, seule la seconde
+   passe se paie.
+
+   D'où la règle : **on ne déclenche la seconde passe que si la recherche a
+   trouvé quelque chose.** Sur un essai réel, 5 demandes sur 13 réclamaient un
+   manteau que la garde-robe ne contient pas : un tiers des explorations serait
+   allé chercher le vide et payé une passe pour rien. */
+function chercher(M, demande, deja) {
+  const voulu = (demande.couleurs || []).filter(Boolean);
+  return M.etat.pieces.filter((p) =>
+    p.categorie === demande.categorie
+    && M.portable(p)
+    && !deja.has(p.id)
+    && (!voulu.length || (p.couleurs || []).some((c) => voulu.includes(c))))
+    .slice(0, 5);
+}
+
+/* Une variante remplace, dans la tenue visée, la pièce de même catégorie — ou
+   l'ajoute si la tenue n'en portait pas.
+
+   Elle doit ensuite **repasser le filtre d'adéquation**. Sans cela, une
+   substitution pourrait faire sortir la tenue de la fenêtre de chaleur ou du
+   registre de la journée, et le modèle choisirait une tenue que le moteur
+   aurait refusée. C'est le premier temps du moteur qui garde le dernier mot. */
+function variantes(M, tenue, nouvelles, offre) {
+  const sorties = [];
+  for (const np of nouvelles) {
+    const pieces = tenue.pieces.filter((p) => p.categorie !== np.categorie).concat([np]);
+    if (!M.adaptee(pieces, offre).ok) continue;
+    sorties.push(pieces);
+  }
+  return sorties;
+}
 
 /* ═══════════ Exécution ═══════════ */
 const donnees = JSON.parse(readFileSync(fichier, "utf8"));
@@ -277,11 +335,78 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
     (erreur ? `  ÉCHEC : ${erreur}` : `  → ${lu.recommendations.map((x) => "#" + x.candidate).join(" ")}` +
       (lu.explorations.length ? `, ${lu.explorations.length} exploration(s)` : "")));
 
+  /* ═══════════ Seconde passe : l'exploration ═══════════
+     Au plus une demande par tenue — une tenue ne se répare pas en changeant
+     trois choses — et **rien n'est envoyé si la recherche locale n'a rien
+     trouvé**. La recherche coûte 0 ms, la passe coûte 60 % de la première :
+     autant savoir avant de payer. */
+  let explo = null;
+  if (EXPLORER && !erreur && lu.explorations.length) {
+    const parPiece = new Map(donnees.pieces.map((p) => [p.id, p]));
+    const viseesa = new Set();
+    const demandes = lu.explorations
+      .filter((e) => !viseesa.has(e.candidate) && (viseesa.add(e.candidate), true))
+      .slice(0, 3);
+
+    const offre = M.offre();
+    const deja = new Set(top.flatMap((t) => t.pieces.map((p) => p.id)));
+    const trouvailles = [];
+    for (const d of demandes) {
+      const rec = lu.recommendations.find((x) => x.candidate === d.candidate);
+      if (!rec) continue;
+      const tenue = { pieces: rec.pieces.map((x) => parPiece.get(x)).filter(Boolean) };
+      const nouvelles = chercher(M, d, deja);
+      if (!nouvelles.length) continue;
+      const v = variantes(M, tenue, nouvelles, offre);
+      if (v.length) trouvailles.push({ demande: d, base: rec, nouvelles, variantes: v });
+    }
+
+    if (!trouvailles.length) {
+      console.error(`        exploration : ${demandes.length} demande(s), rien de trouvé — pas de seconde passe`);
+      explo = { demandes: demandes.length, trouvees: 0, appel: false };
+    } else {
+      const vus2 = new Map();
+      for (const rec of lu.recommendations) for (const x of rec.pieces) if (parPiece.get(x)) vus2.set(x, parPiece.get(x));
+      for (const t of trouvailles) for (const p of t.nouvelles) vus2.set(p.id, p);
+      const variantesPlates = trouvailles.flatMap((t, k) =>
+        t.variantes.map((v, j) => ({ rang: 100 + k * 10 + j, pieces: v.map((p) => p.id), venantDe: t.base.candidate })));
+
+      const charge2 = {
+        contexte: charge.contexte, tendances: charge.tendances,
+        pieces: [...vus2.values()].map(fichePiece),
+        retenues: lu.recommendations.map((x) => ({ rang: x.rang, pieces: x.pieces })),
+        variantes: variantesPlates,
+      };
+      try {
+        const rep2 = await client.messages.create({
+          model: MODELE, max_tokens: 16000, system: CONSIGNE2,
+          output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
+          messages: [{ role: "user", content: JSON.stringify(charge2) }],
+        });
+        usage.entree += rep2.usage.input_tokens;
+        usage.sortie += rep2.usage.output_tokens;
+        const t2 = rep2.content.find((b) => b.type === "text")?.text;
+        const lu2 = JSON.parse(t2);
+        const connus = new Set(donnees.pieces.map((p) => p.id));
+        for (const rec of lu2.recommendations)
+          if (rec.pieces.some((x) => !connus.has(x))) throw new Error("identifiant inconnu");
+        const change = lu2.recommendations.filter((x, k) =>
+          x.pieces.slice().sort().join("|") !== (lu.recommendations[k]?.pieces || []).slice().sort().join("|")).length;
+        console.error(`        exploration : ${trouvailles.length} recherche(s) fructueuse(s), ${variantesPlates.length} variante(s) → ${change} tenue(s) changée(s)`);
+        explo = { demandes: demandes.length, trouvees: trouvailles.length, variantes: variantesPlates.length, appel: true, changees: change, avant: lu.recommendations };
+        lu = lu2;
+      } catch (e) {
+        console.error(`        exploration : ÉCHEC de la seconde passe — ${e.message}`);
+        explo = { demandes: demandes.length, trouvees: trouvailles.length, appel: true, erreur: e.message };
+      }
+    }
+  }
+
   resultats.push({
     situation: st,
     moteur: st.moteur.map((t) => ({ pieces: t.pieces.map((p) => p.id), note: Number(t.note.toFixed(2)) })),
     llm: erreur ? null : lu,
-    erreur,
+    erreur, exploration: explo,
     candidatesEnvoyees: top.map((t) => t.pieces.map((p) => p.id)),
   });
 }
