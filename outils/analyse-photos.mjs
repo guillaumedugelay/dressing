@@ -223,7 +223,7 @@ if (!aTraiter.length) { console.error("Rien à faire."); process.exit(0); }
 /* ═══════════ Analyse ═══════════ */
 
 const client = new Anthropic();
-const usage = { entree: 0, sortie: 0 };
+const usage = { entree: 0, sortie: 0, cacheEcrit: 0, cacheLu: 0 };
 const rapport = [];
 
 function imageDepuisDataUrl(dataUrl) {
@@ -233,10 +233,20 @@ function imageDepuisDataUrl(dataUrl) {
 }
 
 async function analyser(piece) {
+  /* La consigne est mise en cache. Comptage exact du 20 août 2026 : sur les
+     4 419 jetons d'entrée d'une pièce, la photo n'en pèse que 417 — tout le
+     reste est la consigne (1 733) et le schéma de sortie (2 262), renvoyés à
+     l'identique à chaque appel. On paie donc surtout de la répétition.
+
+     Ici le cache tient, contrairement au moteur de tenues : les centaines
+     d'appels s'enchaînent en quelques minutes et chaque lecture repousse
+     l'expiration, là où un appel quotidien le laisserait mourir entre deux
+     fois. Le premier appel écrit le cache à 1,25× ; les suivants le lisent à
+     0,1×. */
   const reponse = await client.messages.create({
     model: MODELE,
     max_tokens: 4000,
-    system: CONSIGNE,
+    system: [{ type: "text", text: CONSIGNE, cache_control: { type: "ephemeral" } }],
     output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
     messages: [{
       role: "user",
@@ -251,6 +261,10 @@ async function analyser(piece) {
 
   usage.entree += reponse.usage.input_tokens;
   usage.sortie += reponse.usage.output_tokens;
+  /* Le seul moyen de savoir si le cache mord vraiment. S il reste a zero,
+     c est qu un invalidateur silencieux est a l oeuvre. */
+  usage.cacheEcrit += reponse.usage.cache_creation_input_tokens || 0;
+  usage.cacheLu += reponse.usage.cache_read_input_tokens || 0;
 
   if (reponse.stop_reason === "refusal") throw new Error("analyse déclinée");
   const texte = reponse.content.find((b) => b.type === "text")?.text;
@@ -351,8 +365,17 @@ await Promise.all(Array.from({ length: Math.min(PARALLELE, aTraiter.length) }, o
 const tarif = tarifDu(MODELE);
 console.error(`\n${faits} analysées, ${echecs} en échec, en ${Math.round((Date.now() - debut) / 1000)} s.`);
 console.error(`Jetons : ${usage.entree} en entrée, ${usage.sortie} en sortie.`);
+if (usage.cacheLu || usage.cacheEcrit) {
+  const part = Math.round(100 * usage.cacheLu / (usage.entree || 1));
+  console.error(`Cache : ${usage.cacheEcrit} jetons écrits, ${usage.cacheLu} relus — ${part} % de l entrée servie depuis le cache.`);
+} else {
+  console.error("Cache : aucune lecture. Un invalidateur silencieux est à l oeuvre, ou le lot est trop court pour en profiter.");
+}
 if (tarif) {
-  const cout = usage.entree * tarif.entree + usage.sortie * tarif.sortie;
+  /* L entrée rapportée par l API compte déjà les jetons non cachés seuls ;
+     l écriture se facture 1,25× et la relecture 0,1×. */
+  const cout = usage.entree * tarif.entree + usage.sortie * tarif.sortie
+             + usage.cacheEcrit * tarif.entree * 1.25 + usage.cacheLu * tarif.entree * 0.1;
   console.error(`Coût : environ ${cout.toFixed(2)} $${tarif.lancement ? " (tarif de lancement)" : ""}.`);
   if (faits) console.error(`Soit ${(cout / faits).toFixed(4)} $ par pièce ; pour 500 pièces, environ ${(cout / faits * 500).toFixed(2)} $.`);
 } else {
