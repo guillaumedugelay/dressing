@@ -105,6 +105,56 @@ le droit d'auteur. La chaîne ne republie d'ailleurs jamais le texte des
 articles : elle n'en conserve que des **règles dérivées**, chiffrées, sans
 contenu rédactionnel.
 
+## 3 bis. Trier avant de synthétiser
+
+**Le corpus est le socle.** Les règles en sortent, et les tenues proposées
+s'appuient sur ces règles. Un article hors sujet ne fait pas qu'ajouter du
+bruit — il produit des règles fausses.
+
+> Le 19 août 2026, une règle « couleur noir » a été émise avec des poids
+> **opposés** selon le modèle : +0,8 pour Opus, −1 pour Sonnet. En allant lire
+> les 9 mentions du noir : une paire de sneakers, une manette de jeu, un
+> intérieur de BMW, un appareil photo, et la métaphore « tomber dans le trou
+> noir d'une vente flash ». Aucun des deux n'avait de quoi trancher. La
+> divergence ne disait pas qu'un modèle lisait mal — elle disait que le corpus
+> était sale.
+
+Un filtre par mots-clés a été essayé et écarté : sur 21 articles rejetés, sept
+étaient de vrais articles de mode — une capsule westernwear, une collection
+C2H4, des sneakers Jordan. La presse mode mêle les sujets dans un même texte,
+et un mot-clé ne distingue pas le sujet du décor.
+
+`outils/trier.mjs` pose donc la question à **Haiku 4.5**, article par article :
+« parle-t-il d'une pièce qu'on porte ? » C'est une classification binaire sur
+un texte court, pas un travail de jugement — d'où le petit modèle.
+
+**Mesuré sur le corpus du 19 août : 150 articles écartés sur 260, soit 58 %.**
+Trente-cinq articles de beauté — cheveux, ongles, maquillage, crème solaire —,
+vingt de potins, quinze de séries et de livres, **sept offres d'emploi**, des
+nécrologies, de l'astrologie, des chiens.
+
+| | Avant | Après | Densité |
+|---|---|---|---|
+| denim | 21 | 20 | **×2,25** |
+| maille | 6 | 6 | ×2,36 |
+| cuir | 5 | 4 | ×1,89 |
+| noir | 9 | 7 | ×1,84 |
+
+Le corpus perd 58 % de son volume et garde 95 % du signal : c'est exactement
+ce qu'on attend d'un tri. Sur 150 rejets, trois ou quatre seulement étaient
+des articles de mode, et la consigne a été resserrée sur les deux cas les plus
+coûteux — un compte rendu de fashion week se garde toujours, et un serre-tête
+est un accessoire porté alors qu'un vernis à ongles ne l'est pas.
+
+**Coût : 0,036 $ par passage, 1,88 $ par an** — 15 % de ce que coûte la
+synthèse qu'il protège. Le corpus publié garde la liste de ce qui a été retiré
+et son motif : sans cela on ne saurait pas distinguer une semaine calme d'un
+tri trop zélé.
+
+Le taux de survie par source en dit long sur ce que chaque flux apporte :
+Who What Wear 80 %, Hypebeast 70 %, Vogue et Glamour 47 %, Harper's Bazaar
+28 %, Fashionista 23 %, Elle 18 %.
+
 ## 4. Le vrai obstacle : traduire de la prose en score
 
 Le blocage n'est pas de récupérer l'information, c'est de la rendre

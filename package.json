@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Outils hors ligne de l'application Dressing — analyse des photos, collecte et synthèse des tendances.",
   "scripts": {
-    "verifier": "node --check outils/analyse-photos.mjs && node --check outils/synthese.mjs && node --check outils/collecte.mjs && node --check outils/serveur-local.mjs && node --check outils/banc-tenues.mjs && node --check outils/cumuler.mjs && node --check outils/banc-llm.mjs && echo syntaxe OK",
+    "verifier": "node --check outils/analyse-photos.mjs && node --check outils/synthese.mjs && node --check outils/collecte.mjs && node --check outils/serveur-local.mjs && node --check outils/banc-tenues.mjs && node --check outils/cumuler.mjs && node --check outils/banc-llm.mjs && node --check outils/trier.mjs && echo syntaxe OK",
     "serveur": "node outils/serveur-local.mjs",
     "collecte": "node outils/collecte.mjs > corpus.json",
     "synthese": "node outils/synthese.mjs < corpus.json > tendances.json",

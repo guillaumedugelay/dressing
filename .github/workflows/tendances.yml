@@ -34,11 +34,20 @@ jobs:
 
       - name: Collecter les sources
         if: steps.cle.outputs.presente == 'oui'
-        run: node outils/collecte.mjs > corpus.json
+        run: node outils/collecte.mjs > corpus-brut.json
 
       - name: Installer le SDK
         if: steps.cle.outputs.presente == 'oui'
         run: npm install --no-save @anthropic-ai/sdk
+
+      # Le corpus est le socle : les règles en sortent, et les tenues
+      # proposées s appuient sur ces règles. Un article hors sujet ne fait
+      # pas qu ajouter du bruit, il produit des règles fausses.
+      - name: Trier ce qui parle vraiment de vêtements
+        if: steps.cle.outputs.presente == 'oui'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node outils/trier.mjs < corpus-brut.json > corpus.json
 
       # La synthèse de la semaine est archivée telle quelle dans tendances/.
       # C'est elle, et non le fichier publié, qui constitue l'historique : le
@@ -60,7 +69,7 @@ jobs:
       - name: Publier si le résultat a changé
         if: steps.cle.outputs.presente == 'oui'
         run: |
-          rm -f corpus.json
+          rm -f corpus.json corpus-brut.json
           git add -A tendances.json tendances/
           if git diff --quiet --cached; then
             echo "Aucun changement cette semaine."
