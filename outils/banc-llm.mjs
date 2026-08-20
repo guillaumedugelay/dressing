@@ -155,14 +155,21 @@ Les descriptions des pièces contiennent ce que la fiche ne sait pas stocker : t
 La raison s'adresse à la propriétaire, pas à un ingénieur. Nomme les vêtements, dis ce qui marche, et tais-toi sur les scores.`;
 
 /* ═══════════ Exécution ═══════════ */
-const M = chargerMoteur();
 const donnees = JSON.parse(readFileSync(fichier, "utf8"));
 const corpus = JSON.parse(readFileSync(new URL("../tendances.json", import.meta.url), "utf8"));
-M.poserTendances(corpus);
-M.etat.pieces = donnees.pieces;
-M.etat.tenues = donnees.tenues || [];
-M.etat.avis = donnees.avis || [];
-M.etat.poidsTendance = 1;
+
+/* `--rejouer` refait la page à partir d'un comparatif déjà obtenu. La mise en
+   forme se corrige souvent — les appels, eux, ne se rejouent pas à 1,23 $
+   la fournée. */
+const REJOUER = drapeau("--rejouer");
+const M = REJOUER ? null : chargerMoteur();
+if (M) {
+  M.poserTendances(corpus);
+  M.etat.pieces = donnees.pieces;
+  M.etat.tenues = donnees.tenues || [];
+  M.etat.avis = donnees.avis || [];
+  M.etat.poidsTendance = 1;
+}
 
 /* On balaie les situations plausibles et on garde celles qui ont de la
    matière, réparties sur les occasions. */
@@ -174,7 +181,7 @@ for (const saison of ["printemps", "ete"])
         toutes.push({ saison, meteo, temp, activite });
 
 const utilisables = [];
-for (const st of toutes) {
+for (const st of (REJOUER ? [] : toutes)) {
   Object.assign(M.etat, st, { ecartees: new Set() });
   M.candidates = [];
   const r = M.proposerTenues();
@@ -191,11 +198,17 @@ const retenues = SITUATIONS_VOULUES >= utilisables.length ? utilisables
 console.error(`${utilisables.length} situations exploitables, ${retenues.length} retenues.`);
 console.error(`Modèle ${MODELE}, effort ${EFFORT}.${SIMULER ? "  (--simuler : aucun appel, aucune dépense)" : ""}\n`);
 
-const client = SIMULER ? null : new Anthropic();
+const client = (SIMULER || REJOUER) ? null : new Anthropic();
 const usage = { entree: 0, sortie: 0 };
 const resultats = [];
 
-for (const [i, st] of retenues.entries()) {
+if (REJOUER) {
+  const chemin = fichier.replace(/\.json$/i, "") + "-comparatif.json";
+  resultats.push(...JSON.parse(readFileSync(chemin, "utf8")).resultats);
+  console.error(`Rejeu de ${chemin} — ${resultats.filter((r) => r.llm).length} situations, aucun appel.`);
+}
+
+for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
   Object.assign(M.etat, st, { ecartees: new Set() });
   M.candidates = [];
   const r = M.proposerTenues();
@@ -262,12 +275,12 @@ for (const [i, st] of retenues.entries()) {
 
 /* ═══════════ Sorties ═══════════ */
 const base = fichier.replace(/\.json$/i, "");
-writeFileSync(`${base}-comparatif.json`, JSON.stringify({
+if (!REJOUER) writeFileSync(`${base}-comparatif.json`, JSON.stringify({
   fait: new Date().toISOString(), modele: MODELE, effort: EFFORT,
   corpus: corpus.revision, resultats,
 }, null, 1));
 
-if (!SIMULER) {
+if (!SIMULER && !REJOUER) {
   const tarif = tarifDu(MODELE);
   console.error(`\nJetons : ${usage.entree} entrée, ${usage.sortie} sortie.`);
   if (tarif) {
@@ -281,10 +294,16 @@ if (!SIMULER) {
    jugement esthétique se porte honnêtement. */
 const parId = new Map(donnees.pieces.map((p) => [p.id, p]));
 const echapper = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+/* Les photos sont posées une fois dans une table, et les vignettes s'y
+   réfèrent. Inlinées à chaque occurrence, les 381 vignettes de 18 situations
+   pesaient 44 Mo pour une soixantaine de photos distinctes — le navigateur
+   n'ouvrait plus la page. */
+const photos = new Map();
 const vignette = (id) => {
   const p = parId.get(id);
   if (!p) return `<div class="p">?</div>`;
-  return `<div class="p">${p.photo ? `<img src="${p.photo}" alt="">` : ""}<span>${echapper(p.nom)}</span></div>`;
+  if (p.photo) photos.set(id, p.photo);
+  return `<div class="p">${p.photo ? `<img data-p="${id}" alt="">` : ""}<span>${echapper(p.nom)}</span></div>`;
 };
 const tenueHtml = (ids, cle) => `<div class="t" data-cle="${cle}"><div class="pieces">${ids.map(vignette).join("")}</div>
   <button class="vote">Je préfère celle-ci</button></div>`;
@@ -315,7 +334,7 @@ const blocs = resultats.filter((r) => r.llm).map((r, i) => {
   </section>`;
 }).join("");
 
-writeFileSync(`${base}-comparatif.html`, `<!doctype html><meta charset="utf-8">
+const page = `<!doctype html><meta charset="utf-8">
 <title>Moteur contre modèle — comparaison à l'aveugle</title>
 <style>
  body{font:15px/1.5 system-ui,sans-serif;max-width:1100px;margin:0 auto;padding:20px;background:#faf8f4;color:#1f2534}
@@ -337,6 +356,8 @@ Choisis celle que tu porterais. L'origine n'apparaît qu'après ton vote.</p>
 ${blocs}
 <div class="bilan" id="bilan">Aucun vote pour l'instant.</div>
 <script>
+ const PHOTOS = __PHOTOS__;
+ document.querySelectorAll("img[data-p]").forEach((i) => { i.src = PHOTOS[i.dataset.p] || ""; });
  const votes = [];
  document.querySelectorAll("section").forEach((s) => {
    s.querySelectorAll(".vote").forEach((b) => b.onclick = () => {
@@ -351,7 +372,11 @@ ${blocs}
        votes.length + " situation(s) jugée(s) — moteur : " + m + ", modèle : " + l;
    });
  });
-</script>`);
+</script>`;
+
+/* La table des photos est injectee une seule fois, apres coup : les vignettes
+   ny referent que par identifiant. */
+writeFileSync(`${base}-comparatif.html`, page.replace("__PHOTOS__", JSON.stringify(Object.fromEntries(photos))));
 
 console.error(`\nÉcrit : ${base}-comparatif.html`);
 console.error("Ouvre-le, vote sur chaque situation, le bilan s'affiche en bas.");
