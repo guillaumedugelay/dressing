@@ -128,23 +128,32 @@ et un mot-clé ne distingue pas le sujet du décor.
 « parle-t-il d'une pièce qu'on porte ? » C'est une classification binaire sur
 un texte court, pas un travail de jugement — d'où le petit modèle.
 
-**Mesuré sur le corpus du 19 août : 150 articles écartés sur 260, soit 58 %.**
+**Mesuré sur le corpus du 19 août : 147 articles écartés sur 260, soit 57 %.**
 Trente-cinq articles de beauté — cheveux, ongles, maquillage, crème solaire —,
 vingt de potins, quinze de séries et de livres, **sept offres d'emploi**, des
 nécrologies, de l'astrologie, des chiens.
 
 | | Avant | Après | Densité |
 |---|---|---|---|
-| denim | 21 | 20 | **×2,25** |
-| maille | 6 | 6 | ×2,36 |
-| cuir | 5 | 4 | ×1,89 |
-| noir | 9 | 7 | ×1,84 |
+| denim | 21 | 20 | **×2,19** |
+| maille | 6 | 6 | ×2,30 |
+| cuir | 5 | 4 | ×1,84 |
+| noir | 9 | 7 | ×1,79 |
 
-Le corpus perd 58 % de son volume et garde 95 % du signal : c'est exactement
-ce qu'on attend d'un tri. Sur 150 rejets, trois ou quatre seulement étaient
-des articles de mode, et la consigne a été resserrée sur les deux cas les plus
-coûteux — un compte rendu de fashion week se garde toujours, et un serre-tête
-est un accessoire porté alors qu'un vernis à ongles ne l'est pas.
+Le corpus perd 57 % de son volume et garde 93 % du signal, pour une densité
+moyenne multipliée par 2,1 : c'est exactement ce qu'on attend d'un tri.
+
+Une première consigne rejetait trois ou quatre vrais articles de mode, dont
+« 5 tendances de la Paris Fashion Week approuvées par TikTok » — précisément
+la matière la plus utile du corpus. La consigne resserrée le récupère, ainsi
+que onze autres, et rejette en échange une série d'articles de parfum qui
+passaient avant. Le signal conservé monte de 90 % à 93 %.
+
+Un cas résiste : le serre-tête. La consigne dit qu'un accessoire porté dans
+les cheveux se garde, le trieur le rejette quand même — « accessoire
+cheveux ». Une tendance de serre-têtes passera donc à la trappe. Le coût est
+faible et le remède incertain, la consigne étant déjà explicite ; c'est une
+limite acceptée, pas un oubli.
 
 **Coût : 0,036 $ par passage, 1,88 $ par an** — 15 % de ce que coûte la
 synthèse qu'il protège. Le corpus publié garde la liste de ce qui a été retiré
