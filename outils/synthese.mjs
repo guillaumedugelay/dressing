@@ -100,6 +100,10 @@ Deux choses n'y ont pas leur place : ce que le vocabulaire sait déjà dire — 
 
 Ne reprends aucune phrase des articles. La note est ta formulation, courte et concrète.
 
+**Une partie du corpus ne parle pas de vêtements.** Mesuré le 20 août 2026 : 22 articles sur 260 portaient sur des sneakers, une manette de jeu, un intérieur de voiture, un appareil photo. Écarte-les avant de conclure quoi que ce soit — une couleur citée à propos d'une semelle ou d'un habitacle n'est pas une tendance vestimentaire.
+
+C'est ainsi qu'une règle sur le noir a été émise avec des poids opposés selon le modèle : sur ses 9 mentions, quatre venaient d'objets et une était la métaphore « tomber dans le trou noir d'une vente flash ».
+
 Écris pour une personne qui s'habille le matin, pas pour un défilé : si la semaine n'a rien produit d'exploitable sur un point, ne comble pas le vide.`;
 
 /* --- lecture du corpus sur l'entrée standard --- */
@@ -115,12 +119,27 @@ const materiau = corpus.articles
   .map((a) => `[${a.source}] ${a.titre}${a.extrait ? ` — ${a.extrait}` : ""}`)
   .join("\n");
 
-/* Opus 5 à effort élevé : lire de la prose éditoriale et en dégager des
-   tendances demande du jugement, pas de l'extraction. À 0,16 $ le passage
-   hebdomadaire, l'enjeu ne justifie pas d'économiser ici — contrairement à
-   l'analyse des photos, répétée cinq cents fois.
+/* Sonnet 5 à effort élevé. Opus 5 tenait ce poste depuis l'origine, au motif
+   que lire de la prose éditoriale demande du jugement. Une comparaison à
+   entrée identique — le corpus de 260 articles du 19 août, même consigne,
+   seul le modèle changeant — a montré que ce jugement ne se voit pas dans le
+   résultat : 8 sujets sur 13 identiques, avec des poids à un ou deux dixièmes
+   près sur tout ce que l'application applique vraiment.
+
+   Le seul désaccord portait sur le noir, +0,8 contre −1. En allant lire les
+   articles : 9 mentions sur 260, dont une paire de sneakers, une manette de
+   jeu, un intérieur de voiture et la métaphore « tomber dans le trou noir
+   d'une vente flash ». Aucun des deux modèles n'avait de quoi trancher —
+   la divergence disqualifiait la règle, pas le modèle.
+
+   Opus relève plus de vocabulaire (36 termes contre 20), mais avec seulement
+   5 termes communs : les deux voient des choses réelles, presque jamais les
+   mêmes. Aucun ne fait autorité là-dessus.
+
+   Économie : 18,52 $ par an contre 12,62 $. Moins que le rapport des prix ne
+   le laissait attendre, Sonnet ayant produit plus de sortie qu'Opus.
    Se change au coup par coup avec MODELE= et EFFORT=, pour comparer. */
-const MODELE = process.env.MODELE || "claude-opus-5";
+const MODELE = process.env.MODELE || "claude-sonnet-5";
 const EFFORT = process.env.EFFORT || "high";
 
 if (!process.env.ANTHROPIC_API_KEY) {
