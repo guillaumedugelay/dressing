@@ -393,7 +393,7 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
         const change = lu2.recommendations.filter((x, k) =>
           x.pieces.slice().sort().join("|") !== (lu.recommendations[k]?.pieces || []).slice().sort().join("|")).length;
         console.error(`        exploration : ${trouvailles.length} recherche(s) fructueuse(s), ${variantesPlates.length} variante(s) → ${change} tenue(s) changée(s)`);
-        explo = { demandes: demandes.length, trouvees: trouvailles.length, variantes: variantesPlates.length, appel: true, changees: change, avant: lu.recommendations };
+        explo = { demandes: demandes.length, trouvees: trouvailles.length, variantes: variantesPlates.length, appel: true, changees: change, avant: lu.recommendations, cherche: demandes };
         lu = lu2;
       } catch (e) {
         console.error(`        exploration : ÉCHEC de la seconde passe — ${e.message}`);
@@ -515,6 +515,106 @@ ${blocs}
 /* La table des photos est injectee une seule fois, apres coup : les vignettes
    ny referent que par identifiant. */
 writeFileSync(`${base}-comparatif.html`, page.replace("__PHOTOS__", JSON.stringify(Object.fromEntries(photos))));
+
+/* ═══════════ La page de l'exploration ═══════════
+   Une moyenne ne dit rien de la pertinence d'un remplacement : il faut voir la
+   tenue d'avant et celle d'après, côte à côte, sans savoir laquelle est
+   laquelle. La pièce qui change est signalée des deux côtés — cela accélère la
+   lecture sans trahir l'origine. */
+if (EXPLORER) {
+  const memesPieces = (a, b) => a.slice().sort().join("|") === b.slice().sort().join("|");
+  const paires = [];
+  resultats.forEach((r, i) => {
+    if (!r.exploration?.avant || !r.llm) return;
+    r.exploration.avant.forEach((av, k) => {
+      const ap = r.llm.recommendations[k];
+      if (!ap || memesPieces(av.pieces, ap.pieces)) return;
+      const demande = (r.exploration.cherche || []).find((d) => d.candidate === av.candidate);
+      paires.push({ situation: i + 1, st: r.situation, rang: k + 1, avant: av, apres: ap, demande });
+    });
+  });
+
+  if (!paires.length) {
+    console.error("Exploration : aucune tenue changée — pas de page avant/après à écrire.");
+  } else {
+    const photos2 = new Map();
+    const vign = (id, change) => {
+      const p = parId.get(id);
+      if (!p) return `<div class="p">?</div>`;
+      if (p.photo) photos2.set(id, p.photo);
+      return `<div class="p${change ? " chg" : ""}">${p.photo ? `<img data-p="${id}" alt="">` : ""}<span>${echapper(p.nom)}</span></div>`;
+    };
+    const bloc = (pr, k) => {
+      /* Ce qui n'est pas dans l'autre tenue est la pièce qui change. */
+      const A = pr.avant.pieces, B = pr.apres.pieces;
+      const cote = (ids, autre, cle) => `<div class="t" data-cle="${cle}">
+        <div class="pieces">${ids.map((id) => vign(id, !autre.includes(id))).join("")}</div>
+        <button class="vote">Je préfère celle-ci</button></div>`;
+      const lot = [cote(A, B, "avant"), cote(B, A, "apres")];
+      const ordre = ["avant", "apres"];
+      if (Math.random() < 0.5) { lot.reverse(); ordre.reverse(); }
+      const st = pr.st;
+      const d = pr.demande;
+      return `<section>
+        <h2>${k + 1}. ${echapper(st.saison)} · ${echapper(st.meteo)} · ${echapper(st.temp)} · ${echapper(st.activite)}
+          <span class="rg">tenue n° ${pr.rang} de la situation ${pr.situation}</span></h2>
+        <div class="lot">${lot.join("")}</div>
+        <div class="reveal" hidden>
+          <p><b>${ordre[0] === "avant" ? "Gauche" : "Droite"} = avant l'exploration · ${ordre[0] === "avant" ? "Droite" : "Gauche"} = après.</b></p>
+          ${d ? `<p><b>Ce que l'IA cherchait :</b> ${echapper(d.categorie)}${(d.couleurs || []).length ? " " + echapper(d.couleurs.join(", ")) : ""} — ${echapper(d.pourquoi)}</p>` : ""}
+          <p class="raison"><b>Avant</b> (${pr.avant.score}/100) — ${echapper(pr.avant.raison)}</p>
+          <p class="raison"><b>Après</b> (${pr.apres.score}/100) — ${echapper(pr.apres.raison)}</p>
+        </div>
+      </section>`;
+    };
+
+    const pageE = `<!doctype html><meta charset="utf-8">
+<title>L'exploration change-t-elle les tenues en mieux ?</title>
+<style>
+ body{font:15px/1.5 system-ui,sans-serif;max-width:900px;margin:0 auto;padding:20px;background:#faf8f4;color:#1f2534}
+ h1{font-size:22px} h2{font-size:15px;margin:28px 0 10px;color:#5a6274;font-weight:600}
+ .rg{font-weight:400;color:#9a9384;font-size:13px;margin-left:8px}
+ .lot{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+ .t{background:#fff;border:1px solid #e6e1d8;border-radius:10px;padding:10px}
+ .t.choisi{border-color:#3e5288;box-shadow:0 0 0 2px #e2e6f2}
+ .pieces{display:flex;gap:5px;flex-wrap:wrap;min-height:88px}
+ .p{width:62px;font-size:10px;text-align:center;color:#5a6274}
+ .p img{width:62px;height:62px;object-fit:cover;border-radius:6px;display:block}
+ .p.chg img{outline:2px solid #b8763a;outline-offset:1px}
+ .p.chg span{color:#b8763a;font-weight:600}
+ .p span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ button{margin-top:8px;width:100%;padding:6px;border:1px solid #cfc9bd;border-radius:7px;background:#f4f1ea;cursor:pointer;font:inherit;font-size:13px}
+ .reveal{background:#fff;border-left:3px solid #3e5288;padding:10px 14px;margin-top:10px;font-size:13.5px}
+ .raison{color:#3d4354}
+ .bilan{position:sticky;bottom:0;background:#1f2534;color:#fff;padding:12px;border-radius:10px;margin-top:24px}
+</style>
+<h1>L'exploration change-t-elle les tenues en mieux ?</h1>
+<p>L'IA a le droit, après avoir choisi ses trois tenues, de demander à fouiller le reste de la garde-robe. Voici les tenues qu'elle a effectivement modifiées : <b>celle d'avant et celle d'après</b>, mélangées et sans étiquette. La pièce qui diffère est <b class="chgx" style="color:#b8763a">encadrée</b> des deux côtés.</p>
+<p>Choisis celle que tu porterais. L'origine n'apparaît qu'après ton vote — si « après » ne gagne pas nettement, la seconde passe ne vaut pas son prix.</p>
+${paires.map(bloc).join("")}
+<div class="bilan" id="bilan">Aucun vote pour l'instant.</div>
+<script>
+ const PHOTOS = __PHOTOS__;
+ document.querySelectorAll("img[data-p]").forEach((i) => { i.src = PHOTOS[i.dataset.p] || ""; });
+ const votes = [];
+ document.querySelectorAll("section").forEach((s) => {
+   s.querySelectorAll(".vote").forEach((b) => b.onclick = () => {
+     if (s.dataset.vote) return;
+     const t = b.closest(".t");
+     s.dataset.vote = t.dataset.cle;
+     t.classList.add("choisi");
+     s.querySelector(".reveal").hidden = false;
+     votes.push(t.dataset.cle);
+     const av = votes.filter((v) => v === "avant").length;
+     document.getElementById("bilan").textContent =
+       votes.length + " paire(s) jugée(s) — avant : " + av + "  |  après exploration : " + (votes.length - av);
+   });
+ });
+</script>`;
+    writeFileSync(`${base}-exploration.html`, pageE.replace("__PHOTOS__", JSON.stringify(Object.fromEntries(photos2))));
+    console.error(`Écrit : ${base}-exploration.html — ${paires.length} paire(s) avant/après.`);
+  }
+}
 
 console.error(`\nÉcrit : ${base}-comparatif.html`);
 console.error("Ouvre-le, vote sur chaque situation, le bilan s'affiche en bas.");
