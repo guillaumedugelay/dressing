@@ -538,11 +538,15 @@ if (EXPLORER) {
     console.error("Exploration : aucune tenue changée — pas de page avant/après à écrire.");
   } else {
     const photos2 = new Map();
+    /* Une pièce sans photo montre sa description : c'est ce que le modèle a lu,
+       et sans cela un remplacement ne se juge pas — un nom seul ne dit pas si
+       la ceinture est fine ou large. */
     const vign = (id, change) => {
       const p = parId.get(id);
       if (!p) return `<div class="p">?</div>`;
       if (p.photo) photos2.set(id, p.photo);
-      return `<div class="p${change ? " chg" : ""}">${p.photo ? `<img data-p="${id}" alt="">` : ""}<span>${echapper(p.nom)}</span></div>`;
+      const dsc = !p.photo && p.description ? `<em title="${echapper(p.description)}">${echapper(p.description.slice(0, 70))}…</em>` : "";
+      return `<div class="p${change ? " chg" : ""}${p.photo ? "" : " sansphoto"}">${p.photo ? `<img data-p="${id}" alt="">` : ""}<span>${echapper(p.nom)}</span>${dsc}</div>`;
     };
     const bloc = (pr, k) => {
       /* Ce qui n'est pas dans l'autre tenue est la pièce qui change. */
@@ -582,6 +586,10 @@ if (EXPLORER) {
  .p img{width:62px;height:62px;object-fit:cover;border-radius:6px;display:block}
  .p.chg img{outline:2px solid #b8763a;outline-offset:1px}
  .p.chg span{color:#b8763a;font-weight:600}
+ .p.sansphoto{width:150px;text-align:left;background:#f4f1ea;border:1px solid #e6e1d8;border-radius:6px;padding:6px}
+ .p.sansphoto span{white-space:normal;font-size:11px;font-weight:600;color:#1f2534}
+ .p.sansphoto em{display:block;margin-top:3px;font-style:normal;color:#7a7365}
+ .p.chg.sansphoto{border-color:#b8763a}
  .p span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  button{margin-top:8px;width:100%;padding:6px;border:1px solid #cfc9bd;border-radius:7px;background:#f4f1ea;cursor:pointer;font:inherit;font-size:13px}
  .reveal{background:#fff;border-left:3px solid #3e5288;padding:10px 14px;margin-top:10px;font-size:13.5px}
