@@ -195,6 +195,41 @@ Pour arbitrer autrement le temps d'un passage :
 MODELE=claude-opus-5 EFFORT=high node outils/analyse-photos.mjs export.json
 ```
 
+## Ce que coûte vraiment un appel
+
+Comptage exact du 20 août 2026, par pièce :
+
+| Bloc | Jetons | |
+|---|---|---|
+| Consigne | 1 733 | identique à chaque appel |
+| Schéma de sortie | 2 262 | identique à chaque appel |
+| **La photo** | **417** | seul élément qui varie |
+| Sortie | 244 | |
+
+**La photo ne coûte presque rien — c'est la répétition qui coûte.** Le schéma
+pèse cinq fois l'image, et 90 % de l'entrée est renvoyée à l'identique à chaque
+pièce. L'entrée fait donc 76 % de la note, exactement l'inverse du moteur de
+tenues où la sortie en fait 79 %.
+
+D'où la **mise en cache de la consigne**, mesurée le 20 août : préfixe de
+4 033 jetons servi depuis le cache, soit la consigne *et* le schéma — ce
+dernier passe par `output_config` et rien ne garantissait qu'il en profite ; la
+mesure a tranché.
+
+| 600 pièces | Sans cache | Avec cache |
+|---|---|---|
+| Sonnet 5 (lancement) | 6,88 $ | **2,56 $** |
+| Sonnet 5 (normal) | 10,32 $ | 3,84 $ |
+| Haiku 4.5 | 3,44 $ | 1,28 $ |
+
+**Ici le cache tient**, là où il ne servirait à rien au moteur de tenues : les
+centaines d'appels s'enchaînent en quelques minutes et chaque lecture repousse
+l'expiration, tandis qu'un appel par jour le laisserait mourir entre deux fois.
+
+Une réserve d'échelle : avec quatre appels en parallèle, les **quatre premiers**
+manquent le cache et l'écrivent chacun à 1,25×. Sur cinq pièces cela annule le
+gain ; sur six cents, c'est négligeable.
+
 ## Bien photographier
 
 Le premier essai a donné ce doute, formulé par le modèle lui-même :

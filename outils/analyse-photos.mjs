@@ -151,6 +151,17 @@ function reponseSaine(lu) {
   if (doute && (doute.length < 15 || doute.split(/\s+/).length < 4))
     griefs.push("doute vide de sens");
 
+  /* Le champ « doute » attire les artefacts : trois passages, trois formes
+     différentes. Une virgule seule le 17 août, « L extest placeholder » le 19,
+     et le 20 un commentaire méta en anglais — « I need to check the schema ».
+     Les trois avaient en commun de ne rien dire du vêtement, et les deux
+     derniers passaient les contrôles de longueur et d'écriture.
+
+     Un doute est une phrase française sur la pièce ; ces marqueurs-là n'y
+     figurent jamais. */
+  if (/\b(i need|let me|the schema|check the|should i|placeholder|todo|i should|the field)\b/i.test(doute))
+    griefs.push("doute méta ou en anglais");
+
   return griefs;
 }
 
