@@ -1,10 +1,10 @@
 {
-  "revision": "2026-08-19",
+  "revision": "2026-08-24",
   "origine": "cumul-hebdomadaire",
   "fenetre": {
-    "semaines": 2,
+    "semaines": 3,
     "de": "2026-08-17",
-    "a": "2026-08-19",
+    "a": "2026-08-24",
     "demiVie": 4
   },
   "sources": [
@@ -18,21 +18,54 @@
     "Refinery29",
     "Glamour"
   ],
-  "resume": "La semaine tourne autour d'un vestiaire de transition : denim sous toutes ses formes, maille douillette et vestes de cuir, sur une base de tons sombres, de brun chocolat et de total look blanc. Côté allure, le haut reste près du corps quand le bas s'élargit, et le ton sur ton l'emporte sur les contrastes.",
+  "resume": "Le denim domine toutes les silhouettes de la semaine, du jean large façon tonneau aux modèles skinny qui reviennent, tandis que le rouge et le violet s'imposent comme couleurs fortes de la rentrée, souvent associées entre elles. Manteaux amples, sacs et foulards prennent le devant de la scène, pendant que le beige recule et que mocassins, sandales minimalistes et pantalons à taille assouplie redessinent la garde-robe du bas.",
   "regles": [
     {
       "type": "matiere",
       "valeur": "denim",
-      "poids": 1.55,
-      "note": "Le denim domine tous les looks",
-      "texte": "",
+      "poids": 1.73,
+      "note": "le jean décliné sous toutes ses formes",
+      "vuSur": 3,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1,
+      "note": "sacs et foulards deviennent la pièce forte",
+      "vuSur": 2,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "coupe": "ample",
+      "poids": 0.92,
+      "note": "trenchs et blousons amples superposés",
+      "vuSur": 2,
+      "depuis": "2026-08-19"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rouge",
+      "poids": 0.87,
+      "note": "rouge vif multiplié sur les tenues",
+      "vuSur": 2,
+      "depuis": "2026-08-17"
+    },
+    {
+      "type": "silhouette",
+      "haut": "droit",
+      "bas": "ample",
+      "poids": 0.87,
+      "note": "hauts simples, pantalons larges et fluides",
       "vuSur": 2,
       "depuis": "2026-08-17"
     },
     {
       "type": "categorie",
       "valeur": "pull",
-      "poids": 1.39,
+      "poids": 0.85,
       "note": "Pulls et gilets remis au centre",
       "texte": "",
       "vuSur": 2,
@@ -41,7 +74,7 @@
     {
       "type": "matiere",
       "valeur": "maille",
-      "poids": 1.25,
+      "poids": 0.76,
       "note": "Mailles douces pour la mi-saison",
       "texte": "",
       "vuSur": 2,
@@ -50,16 +83,32 @@
     {
       "type": "couleur",
       "valeur": "marron",
-      "poids": 1,
+      "poids": 0.61,
       "note": "Brun chocolat et tons terreux",
       "texte": "",
       "vuSur": 2,
       "depuis": "2026-08-17"
     },
     {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 0.59,
+      "note": "violet royal et prune en force",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 0.59,
+      "note": "pois, fleuri et animalier multipliés",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
       "type": "matiere",
       "valeur": "cuir",
-      "poids": 0.95,
+      "poids": 0.57,
       "note": "Cuir en pièce forte d'avant-automne",
       "texte": "",
       "vuSur": 2,
@@ -68,26 +117,17 @@
     {
       "type": "motif",
       "valeur": "uni",
-      "poids": 0.91,
+      "poids": 0.55,
       "note": "Tenues ton sur ton, sans contraste",
       "texte": "",
       "vuSur": 2,
       "depuis": "2026-08-17"
     },
     {
-      "type": "categorie",
-      "valeur": "accessoire",
-      "poids": 0.69,
-      "note": "sacs, casquettes et serre-tête décisifs",
-      "texte": "",
-      "vuSur": 1,
-      "depuis": "2026-08-17"
-    },
-    {
       "type": "silhouette",
       "haut": "ajuste",
       "bas": "ample",
-      "poids": 0.65,
+      "poids": 0.4,
       "note": "Haut près du corps, bas large",
       "texte": "",
       "vuSur": 1,
@@ -95,16 +135,59 @@
     },
     {
       "type": "descriptive",
-      "poids": 0.65,
+      "poids": 0.4,
       "note": "Jean large à revers d'ourlet",
       "texte": "jean à jambe large ou baggy, porté avec l'ourlet retroussé en revers",
       "vuSur": 1,
       "depuis": "2026-08-19"
     },
     {
+      "type": "association",
+      "couleurs": [
+        "violet",
+        "rouge"
+      ],
+      "poids": 0.39,
+      "note": "duo prune-rouge assumé et chic",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
+      "type": "couleur",
+      "valeur": "beige",
+      "poids": -0.39,
+      "note": "le tout-beige perd du terrain",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.39,
+      "note": "mocassins et plates chics remplacent la ballerine",
+      "texte": "mocassins et chaussures plates portées avec le jean, en alternative à la ballerine",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.39,
+      "note": "chaussures minimalistes sans bride visible",
+      "texte": "sandales dites nues, sans bride visible, et ballerines à bout fendu façon Tabi",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.39,
+      "note": "taille assouplie sur les pantalons",
+      "texte": "pantalons à cordon de serrage, taille tombante ou effet ballon à la cheville",
+      "vuSur": 1,
+      "depuis": "2026-08-24"
+    },
+    {
       "type": "couleur",
       "valeur": "blanc",
-      "poids": 0.6,
+      "poids": 0.36,
       "note": "Total look blanc de fin d'été",
       "texte": "",
       "vuSur": 1,
@@ -113,27 +196,8 @@
     {
       "type": "categorie",
       "valeur": "manteau",
-      "coupe": "ample",
-      "poids": 0.54,
-      "note": "Vestes et manteaux en superposition",
-      "texte": "",
-      "vuSur": 1,
-      "depuis": "2026-08-19"
-    },
-    {
-      "type": "categorie",
-      "valeur": "manteau",
-      "poids": 0.46,
+      "poids": 0.28,
       "note": "trenchs et vestes de mi-saison",
-      "texte": "",
-      "vuSur": 1,
-      "depuis": "2026-08-17"
-    },
-    {
-      "type": "couleur",
-      "valeur": "rouge",
-      "poids": 0.46,
-      "note": "touche de rouge très demandée",
       "texte": "",
       "vuSur": 1,
       "depuis": "2026-08-17"
@@ -141,25 +205,15 @@
     {
       "type": "longueur",
       "valeur": "court",
-      "poids": 0.46,
+      "poids": 0.28,
       "note": "shorts et minis prolongent l'été",
       "texte": "",
       "vuSur": 1,
       "depuis": "2026-08-17"
     },
     {
-      "type": "silhouette",
-      "haut": "droit",
-      "bas": "ample",
-      "poids": 0.46,
-      "note": "haut net sur pantalon large",
-      "texte": "",
-      "vuSur": 1,
-      "depuis": "2026-08-17"
-    },
-    {
       "type": "descriptive",
-      "poids": 0.46,
+      "poids": 0.28,
       "note": "bottes souples plutôt que rigides",
       "texte": "bottes à tige souple et affaissée, portées avec jupes et jeans",
       "vuSur": 1,
@@ -168,7 +222,7 @@
     {
       "type": "couleur",
       "valeur": "noir",
-      "poids": 0.43,
+      "poids": 0.26,
       "note": "Base sombre pour les transitions",
       "texte": "",
       "vuSur": 1,
@@ -176,20 +230,11 @@
     },
     {
       "type": "descriptive",
-      "poids": 0.43,
+      "poids": 0.26,
       "note": "Chaussures plates brunes et bottes souples",
       "texte": "chaussures plates brunes, ballerines et bottes souples affaissées portées avec le jean",
       "vuSur": 1,
       "depuis": "2026-08-19"
-    },
-    {
-      "type": "motif",
-      "valeur": "carreaux",
-      "poids": 0.23,
-      "note": "carreaux sur jupes et lainages",
-      "texte": "",
-      "vuSur": 1,
-      "depuis": "2026-08-17"
     }
   ],
   "vocabulaire": [
@@ -221,6 +266,12 @@
       "terme": "baggy",
       "axe": "tombé",
       "occurrences": 4,
+      "semaines": 2
+    },
+    {
+      "terme": "pois",
+      "axe": "imprimé",
+      "occurrences": 3,
       "semaines": 2
     },
     {
@@ -256,6 +307,12 @@
     {
       "terme": "robe prairie",
       "axe": "pièce",
+      "occurrences": 2,
+      "semaines": 2
+    },
+    {
+      "terme": "foulard noué",
+      "axe": "accessoire",
       "occurrences": 2,
       "semaines": 2
     },
@@ -422,9 +479,57 @@
       "semaines": 1
     },
     {
-      "terme": "pois",
+      "terme": "bout fendu",
+      "axe": "chaussure",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "mocassins",
+      "axe": "chaussure",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "sandales nues",
+      "axe": "chaussure",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "bottes slouchy",
+      "axe": "chaussure",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "cordon de serrage",
+      "axe": "taille",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "jean coupe tonneau",
+      "axe": "coupe",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "sac surdimensionné",
+      "axe": "sac",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "imprimé animalier",
       "axe": "imprimé",
-      "occurrences": 1,
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
+      "terme": "velours côtelé",
+      "axe": "texture",
+      "occurrences": 2,
       "semaines": 1
     },
     {
@@ -512,14 +617,104 @@
       "semaines": 1
     },
     {
-      "terme": "foulard noué",
-      "axe": "accessoire",
+      "terme": "pendentif objet",
+      "axe": "bijou",
       "occurrences": 1,
       "semaines": 1
     },
     {
-      "terme": "pendentif objet",
+      "terme": "compensées",
+      "axe": "chaussure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "col montant",
+      "axe": "col",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "jabot froncé",
+      "axe": "détail",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "pantalon ballon",
+      "axe": "tombé",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "taille tombante",
+      "axe": "taille",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "sac slouchy",
+      "axe": "sac",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "suède",
+      "axe": "matière",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "laine bouillie",
+      "axe": "matière",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "seersucker",
+      "axe": "matière",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "torsades",
+      "axe": "texture",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "corset",
+      "axe": "détail",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "tulle et plumes",
+      "axe": "texture",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "perles à chaînes",
       "axe": "bijou",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "jupe plissée",
+      "axe": "style",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "trench court",
+      "axe": "longueur",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "bombardier utilitaire",
+      "axe": "style",
       "occurrences": 1,
       "semaines": 1
     }

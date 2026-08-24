@@ -1,0 +1,232 @@
+{
+  "revision": "2026-08-24",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Le denim domine toutes les silhouettes de la semaine, du jean large façon tonneau aux modèles skinny qui reviennent, tandis que le rouge et le violet s'imposent comme couleurs fortes de la rentrée, souvent associées entre elles. Manteaux amples, sacs et foulards prennent le devant de la scène, pendant que le beige recule et que mocassins, sandales minimalistes et pantalons à taille assouplie redessinent la garde-robe du bas.",
+  "regles": [
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 2,
+      "note": "le jean décliné sous toutes ses formes"
+    },
+    {
+      "type": "silhouette",
+      "haut": "droit",
+      "bas": "ample",
+      "poids": 1.5,
+      "note": "hauts simples, pantalons larges et fluides"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rouge",
+      "poids": 1.5,
+      "note": "rouge vif multiplié sur les tenues"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 1.5,
+      "note": "violet royal et prune en force"
+    },
+    {
+      "type": "association",
+      "couleurs": [
+        "violet",
+        "rouge"
+      ],
+      "poids": 1,
+      "note": "duo prune-rouge assumé et chic"
+    },
+    {
+      "type": "couleur",
+      "valeur": "beige",
+      "poids": -1,
+      "note": "le tout-beige perd du terrain"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 1.5,
+      "note": "pois, fleuri et animalier multipliés"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "coupe": "ample",
+      "poids": 1.5,
+      "note": "trenchs et blousons amples superposés"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1.5,
+      "note": "sacs et foulards deviennent la pièce forte"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "mocassins et plates chics remplacent la ballerine",
+      "texte": "mocassins et chaussures plates portées avec le jean, en alternative à la ballerine"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "chaussures minimalistes sans bride visible",
+      "texte": "sandales dites nues, sans bride visible, et ballerines à bout fendu façon Tabi"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "taille assouplie sur les pantalons",
+      "texte": "pantalons à cordon de serrage, taille tombante ou effet ballon à la cheville"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "bout fendu",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "mocassins",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "sandales nues",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "bottes slouchy",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "compensées",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "col montant",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "jabot froncé",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon ballon",
+      "axe": "tombé",
+      "occurrences": 1
+    },
+    {
+      "terme": "cordon de serrage",
+      "axe": "taille",
+      "occurrences": 2
+    },
+    {
+      "terme": "taille tombante",
+      "axe": "taille",
+      "occurrences": 1
+    },
+    {
+      "terme": "jean coupe tonneau",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "sac slouchy",
+      "axe": "sac",
+      "occurrences": 1
+    },
+    {
+      "terme": "sac surdimensionné",
+      "axe": "sac",
+      "occurrences": 2
+    },
+    {
+      "terme": "imprimé animalier",
+      "axe": "imprimé",
+      "occurrences": 2
+    },
+    {
+      "terme": "pois",
+      "axe": "imprimé",
+      "occurrences": 2
+    },
+    {
+      "terme": "velours côtelé",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "suède",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "laine bouillie",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "seersucker",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "torsades",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "corset",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "tulle et plumes",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "foulard noué",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "perles à chaînes",
+      "axe": "bijou",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe plissée",
+      "axe": "style",
+      "occurrences": 1
+    },
+    {
+      "terme": "trench court",
+      "axe": "longueur",
+      "occurrences": 1
+    },
+    {
+      "terme": "bombardier utilitaire",
+      "axe": "style",
+      "occurrences": 1
+    }
+  ]
+}
