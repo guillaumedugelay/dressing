@@ -1,0 +1,196 @@
+{
+  "revision": "2026-08-31",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, le denim ample domine sous forme de jeans barrel et de pantalons à taille cordon, portés avec des hauts ajustés pour garder de la structure. Le duo noir-blanc reste le repère de la rentrée, l'olive s'impose comme couleur montante, et les accessoires (foulards, broches, sacs ouverts) prennent le devant de la scène.",
+  "regles": [
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "ample",
+      "poids": 1.5,
+      "note": "jean ample équilibré par un haut ajusté"
+    },
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 1.5,
+      "note": "le denim domine toutes les silhouettes"
+    },
+    {
+      "type": "association",
+      "couleurs": [
+        "noir",
+        "blanc"
+      ],
+      "poids": 1.2,
+      "note": "duo noir-blanc pour la transition de saison"
+    },
+    {
+      "type": "couleur",
+      "valeur": "vert",
+      "poids": 1,
+      "note": "l'olive s'installe pour l'automne"
+    },
+    {
+      "type": "couleur",
+      "valeur": "noir",
+      "poids": 0.8,
+      "note": "le noir reste central dans les looks"
+    },
+    {
+      "type": "couleur",
+      "valeur": "blanc",
+      "poids": 0.5,
+      "note": "le blanc frais persiste en fin d'été"
+    },
+    {
+      "type": "longueur",
+      "valeur": "court",
+      "poids": 0.6,
+      "note": "shorts et bermudas encore très portés"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1.2,
+      "note": "foulards, broches et sacs mis en avant"
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "poids": 0.6,
+      "note": "le pull s'impose comme basique d'automne"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.8,
+      "note": "manches et blouses volumineuses inspirées victoriennes",
+      "texte": "blouse victorienne à manches volumineuses et tissu subtilement transparent"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "jean à coupe barrel très recherché",
+      "texte": "jean coupe barrel, jambe évasée resserrée à l'ourlet"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.7,
+      "note": "bottes à bout carré très portées",
+      "texte": "bottes à bout carré, esthétique années 90"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "bout carré",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "brides en T",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "effet peau de serpent",
+      "axe": "motif",
+      "occurrences": 1
+    },
+    {
+      "terme": "manches volumineuses",
+      "axe": "manche",
+      "occurrences": 2
+    },
+    {
+      "terme": "taille cordon",
+      "axe": "taille",
+      "occurrences": 2
+    },
+    {
+      "terme": "coupe barrel",
+      "axe": "coupe",
+      "occurrences": 4
+    },
+    {
+      "terme": "frange",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "épaules dénudées",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe style granny",
+      "axe": "longueur",
+      "occurrences": 1
+    },
+    {
+      "terme": "ballerines à talon",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "semelle plate",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes façon 70s",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "sac ouvert",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "broches",
+      "axe": "bijou",
+      "occurrences": 1
+    },
+    {
+      "terme": "bijoux bohèmes",
+      "axe": "bijou",
+      "occurrences": 1
+    },
+    {
+      "terme": "veste cirée",
+      "axe": "matiere",
+      "occurrences": 1
+    },
+    {
+      "terme": "bermuda",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "jupe portefeuille",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "jambières",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussettes découpées",
+      "axe": "detail",
+      "occurrences": 1
+    }
+  ]
+}
