@@ -1,0 +1,214 @@
+{
+  "revision": "2026-09-07",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "La semaine confirme la place centrale des vestes et manteaux (trench, cuir, suède), portés sur des silhouettes plus amples où un haut volumineux dialogue avec un bas large.",
+  "regles": [
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1.5,
+      "note": "vestes et trenchs très portés"
+    },
+    {
+      "type": "categorie",
+      "valeur": "robe",
+      "poids": 1,
+      "note": "robes portées largement cet automne"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1,
+      "note": "bijoux et sacs mis en avant"
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "coupe": "droit",
+      "poids": 0.5,
+      "note": "cardigans en layering automnal"
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 1.5,
+      "note": "cuir et daim très présents"
+    },
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 1,
+      "note": "retour marqué du denim"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1,
+      "note": "brun remplace le noir"
+    },
+    {
+      "type": "couleur",
+      "valeur": "beige",
+      "poids": -0.5,
+      "note": "beige jugé trop sage"
+    },
+    {
+      "type": "silhouette",
+      "haut": "ample",
+      "bas": "ample",
+      "poids": 1,
+      "note": "haut ample associé à bas large"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 0.5,
+      "note": "paisley et camouflage en touche"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "taille basse, coupes amples remplacent skinny",
+      "texte": "Le jean taille basse aux coupes amples (barrel, wide-leg) remplace le skinny."
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "veste Napoléon à épaulettes dorées",
+      "texte": "Veste façon Napoléon, épaulettes et rangée de boutons dorés."
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "taille basse",
+      "axe": "taille",
+      "occurrences": 3
+    },
+    {
+      "terme": "coupe barrel",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "pantalon large",
+      "axe": "coupe",
+      "occurrences": 3
+    },
+    {
+      "terme": "épaulettes",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "boutons dorés",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "col henley",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "manches bouffantes",
+      "axe": "manche",
+      "occurrences": 2
+    },
+    {
+      "terme": "manches volantées",
+      "axe": "manche",
+      "occurrences": 1
+    },
+    {
+      "terme": "col froncé",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "dentelle",
+      "axe": "matiere",
+      "occurrences": 2
+    },
+    {
+      "terme": "transparent",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "asymétrique",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "robe babydoll",
+      "axe": "robe",
+      "occurrences": 2
+    },
+    {
+      "terme": "paisley",
+      "axe": "imprime",
+      "occurrences": 2
+    },
+    {
+      "terme": "camouflage",
+      "axe": "imprime",
+      "occurrences": 1
+    },
+    {
+      "terme": "pois",
+      "axe": "imprime",
+      "occurrences": 1
+    },
+    {
+      "terme": "bout carré",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "flats gantées",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes hautes",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe crayon",
+      "axe": "bas",
+      "occurrences": 1
+    },
+    {
+      "terme": "cravate",
+      "axe": "accessoire",
+      "occurrences": 2
+    },
+    {
+      "terme": "sac ceinture",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "franges",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "daim",
+      "axe": "matiere",
+      "occurrences": 4
+    }
+  ]
+}
