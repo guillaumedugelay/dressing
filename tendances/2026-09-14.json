@@ -1,0 +1,246 @@
+{
+  "revision": "2026-09-14",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine confirme le retour en force du jean sous toutes ses formes, entre taille basse, coupes barrel et bootcut, pendant que manteaux et pulls structurent les looks d'automne. Le violet s'impose comme couleur phare de la saison, le marron et les carreaux progressent, et le blazer ajusté associé à un pantalon droit prend le pas sur les silhouettes oversize.",
+  "regles": [
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1.5,
+      "note": "vestes et manteaux au coeur des looks d'automne"
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "poids": 1,
+      "note": "mailles et cardigans très mis en avant"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 0.7,
+      "note": "cravates et sacs forts en essor"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 1.5,
+      "note": "couleur phare consacrée de la saison"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1,
+      "note": "le marron s'impose en total look"
+    },
+    {
+      "type": "association",
+      "couleurs": [
+        "marron",
+        "noir"
+      ],
+      "poids": 0.7,
+      "note": "marron et noir associés avec assurance"
+    },
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 1.3,
+      "note": "le jean reste une valeur sûre incontournable"
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 0.8,
+      "note": "les carreaux dominent les nouvelles collections"
+    },
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "droit",
+      "poids": 1,
+      "note": "blazer ajusté et pantalon droit gagnent du terrain"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1.3,
+      "note": "jean revival Y2K taille basse",
+      "texte": "Jean à taille basse, en coupes barrel ou bootcut, décontracté plutôt que moulant."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.8,
+      "note": "veste façon Napoléon remarquée",
+      "texte": "Veste courte à épaulettes marquées et colonnes de gros boutons façon Napoléon."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.7,
+      "note": "cols et encolures travaillés sur vestes",
+      "texte": "Col contrasté ou encolure montante qui redessine les vestes d'automne."
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "taille basse",
+      "axe": "taille",
+      "occurrences": 4
+    },
+    {
+      "terme": "coupe barrel",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "bootcut",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "épaulettes",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "boutons dorés",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "col contrasté",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "hautes encolures",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "toggles décoratifs",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon palazzo",
+      "axe": "silhouette",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe crayon",
+      "axe": "silhouette",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe transparente",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "daim",
+      "axe": "matiere",
+      "occurrences": 2
+    },
+    {
+      "terme": "cachemire",
+      "axe": "matiere",
+      "occurrences": 2
+    },
+    {
+      "terme": "fausse fourrure",
+      "axe": "matiere",
+      "occurrences": 1
+    },
+    {
+      "terme": "mocassins souples",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottines chevilles",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "cravate",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "sac ceinture",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "esthétique équestre",
+      "axe": "genre",
+      "occurrences": 1
+    },
+    {
+      "terme": "fente haute",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "dos nu",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "broderie",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "foulard porté en collant",
+      "axe": "styling",
+      "occurrences": 1
+    },
+    {
+      "terme": "pull noué sur les épaules",
+      "axe": "styling",
+      "occurrences": 1
+    },
+    {
+      "terme": "encolure en V",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "corset",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "plissé",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "paillettes",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "tulle",
+      "axe": "matiere",
+      "occurrences": 3
+    },
+    {
+      "terme": "franges",
+      "axe": "détail",
+      "occurrences": 1
+    }
+  ]
+}
