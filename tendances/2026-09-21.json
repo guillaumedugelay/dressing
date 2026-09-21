@@ -1,0 +1,204 @@
+{
+  "revision": "2026-09-21",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, la mode d'automne mise sur les tons marron, camel et beige, réchauffés par le daim et la dentelle, avec un net penchant pour les carreaux et les imprimés fleuris. Les silhouettes jouent la longueur courte en bas et le jean large porté avec un haut ajusté, tandis que bijoux, sacs et finitions patinées façon vintage tirent les accessoires vers le haut.",
+  "regles": [
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 1,
+      "note": "carreaux et vichy reviennent en force"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 1,
+      "note": "fleuris et imprimés très présents"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1.5,
+      "note": "marron et camel dominent l'automne"
+    },
+    {
+      "type": "couleur",
+      "valeur": "beige",
+      "poids": 0.5,
+      "note": "beige s'impose face au noir strict"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 0.5,
+      "note": "violet profond en petite touche"
+    },
+    {
+      "type": "longueur",
+      "valeur": "court",
+      "poids": 1,
+      "note": "shorts et coupes courtes remarqués"
+    },
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "ample",
+      "poids": 1.5,
+      "note": "haut ajusté, bas ample plébiscité"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1.5,
+      "note": "bijoux et sacs mis en avant"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "coupe": "ample",
+      "poids": 1,
+      "note": "veste en daim ample tendance"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "effet vieilli, patiné, déjà vécu",
+      "texte": "Finitions vieillies, patinées et légèrement fanées, façon pièce déjà portée."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "découpes architecturales sur vestes et sacs",
+      "texte": "Découpes graphiques (cutouts) nettes sur vestes et sacs structurés."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "jupes à volume arrondi resserré",
+      "texte": "Jupes à silhouette bulle, gonflées puis resserrées à l'ourlet."
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "suède",
+      "axe": "matiere",
+      "occurrences": 4
+    },
+    {
+      "terme": "dentelle",
+      "axe": "matiere",
+      "occurrences": 3
+    },
+    {
+      "terme": "franges",
+      "axe": "detail",
+      "occurrences": 3
+    },
+    {
+      "terme": "bordeaux",
+      "axe": "couleur",
+      "occurrences": 2
+    },
+    {
+      "terme": "talon compensé",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes hautes",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "bottines chevilles",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "derbies",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "ballerines",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "bottines motardes",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "talon cube",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe bulle",
+      "axe": "silhouette",
+      "occurrences": 1
+    },
+    {
+      "terme": "découpes",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "cummerbund",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussures façon jazz",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jorts",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "short cycliste",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "bandana",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "effet patiné",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "silhouette exosquelette",
+      "axe": "silhouette",
+      "occurrences": 1
+    },
+    {
+      "terme": "asymétrique",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "plissé",
+      "axe": "texture",
+      "occurrences": 1
+    }
+  ]
+}
