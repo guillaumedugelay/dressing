@@ -1,0 +1,248 @@
+{
+  "revision": "2026-09-28",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, les silhouettes s'assouplissent : le haut reste ajusté tandis que jupes et pantalons s'amplifient, portés avec des sacs devenus la vraie signature du look. Le marron caramel et la maille montent, les carreaux et imprimés fleuris ou animaliers s'affichent, et la brassière portée en haut ainsi que les matières transparentes confirment un vestiaire plus dévoilé.",
+  "regles": [
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "ample",
+      "poids": 1.2,
+      "note": "haut ajusté, bas ample et fluide"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1.3,
+      "note": "le sac devient la pièce forte du look"
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "coupe": "ample",
+      "poids": 0.8,
+      "note": "maille et pull oversize très portés"
+    },
+    {
+      "type": "categorie",
+      "valeur": "robe",
+      "coupe": "ample",
+      "poids": 1,
+      "note": "petites robes courtes et vaporeuses"
+    },
+    {
+      "type": "longueur",
+      "valeur": "court",
+      "poids": 1,
+      "note": "les longueurs courtes reviennent en force"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 0.8,
+      "note": "le marron caramel s'installe pour l'automne"
+    },
+    {
+      "type": "association",
+      "couleurs": [
+        "violet",
+        "rouge"
+      ],
+      "poids": 1,
+      "note": "violet et rouge, duo choc du moment"
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 0.8,
+      "note": "la maille domine du pull à la robe"
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 1,
+      "note": "esprit collégien, carreaux et tartan partout"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 0.9,
+      "note": "fleurs, python, papillon multiplient les imprimés"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1.3,
+      "note": "la brassière portée comme haut s'impose",
+      "texte": "bralette ou brassière portée seule ou sous une veste ouverte, en guise de haut"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "transparence et dentelle sheer partout",
+      "texte": "vêtements et tissus transparents laissant deviner la peau, effet nu"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "bralette portée en haut",
+      "axe": "genre",
+      "occurrences": 4
+    },
+    {
+      "terme": "transparence, tissu sheer",
+      "axe": "texture",
+      "occurrences": 5
+    },
+    {
+      "terme": "corset structuré",
+      "axe": "haut",
+      "occurrences": 1
+    },
+    {
+      "terme": "midriff dévoilé",
+      "axe": "genre",
+      "occurrences": 1
+    },
+    {
+      "terme": "décolleté plongeant",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "imprimé serpent ou python",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "motif papillon",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "ourlet mulet asymétrique",
+      "axe": "longueur",
+      "occurrences": 1
+    },
+    {
+      "terme": "robe babydoll",
+      "axe": "silhouette",
+      "occurrences": 2
+    },
+    {
+      "terme": "col Claudine",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussures Mary Jane",
+      "axe": "chaussure",
+      "occurrences": 4
+    },
+    {
+      "terme": "loafers",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "chemise rugby",
+      "axe": "genre",
+      "occurrences": 3
+    },
+    {
+      "terme": "chaussettes hautes",
+      "axe": "chaussette",
+      "occurrences": 2
+    },
+    {
+      "terme": "plissé",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "argyle",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "cravate portée en accessoire",
+      "axe": "accessoire",
+      "occurrences": 2
+    },
+    {
+      "terme": "pantalon barrel, jambe arrondie",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "jean délavé clair",
+      "axe": "couleur",
+      "occurrences": 1
+    },
+    {
+      "terme": "horsebit",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "sac east-west",
+      "axe": "sac",
+      "occurrences": 1
+    },
+    {
+      "terme": "talon sculptural",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "latex",
+      "axe": "matiere",
+      "occurrences": 1
+    },
+    {
+      "terme": "paillettes",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "collier chaîne épaisse",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "sandale nu-pieds tong",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "sneakerina, ballerine-sneaker hybride",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "chaussure compensée wedge",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "short biker",
+      "axe": "bas",
+      "occurrences": 1
+    },
+    {
+      "terme": "haut foulard, scarf top",
+      "axe": "haut",
+      "occurrences": 1
+    }
+  ]
+}
