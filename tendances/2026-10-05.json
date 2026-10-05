@@ -1,0 +1,217 @@
+{
+  "revision": "2026-10-05",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, les podiums printemps 2027 remettent la jupe genoux au centre du dressing, pendant que les chaussures plates détrônent les talons et que sacs et pulls s'imposent comme les achats forts de la saison. Les tons chocolat et les imprimés animaliers gagnent du terrain, portés par des bas plus amples et des finitions brutes ou déconstruites.",
+  "regles": [
+    {
+      "type": "longueur",
+      "valeur": "genoux",
+      "poids": 1.5,
+      "note": "jupes genoux dominent les podiums"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "ourlets asymétriques type mulet",
+      "texte": "Les robes et jupes à ourlet 'mulet', courtes devant et longues derrière, reviennent sur les podiums."
+    },
+    {
+      "type": "descriptive",
+      "poids": 1.5,
+      "note": "chaussures plates détrônent les talons",
+      "texte": "Les chaussures plates - ballerines, mocassins et variantes hybrides - s'imposent pour l'automne au détriment des talons."
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "poids": 1,
+      "note": "pulls et mailles très recherchés cet hiver"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1.2,
+      "note": "sacs et accessoires forte tendance automne"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 1,
+      "note": "imprimés animaliers en forte hausse"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1,
+      "note": "teintes chocolat et terre en hausse"
+    },
+    {
+      "type": "silhouette",
+      "bas": "ample",
+      "poids": 1,
+      "note": "pantalons amples type barrel en hausse"
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 0.5,
+      "note": "cuir et daim prisés pour les vestes"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "chaussures ornées de rosette ou corsage",
+      "texte": "Les chaussures décorées d'une rosette ou d'un corsage font leur retour cette saison."
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "retour marqué des chaussures compensées",
+      "texte": "Les chaussures compensées (wedges) reviennent en force après des années d'éclipse."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "cravate empruntée au vestiaire masculin",
+      "texte": "La cravate, empruntée au vestiaire masculin, s'impose comme accessoire tendance de l'hiver."
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "ourlet mulet",
+      "axe": "longueur",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon barrel",
+      "axe": "silhouette",
+      "occurrences": 3
+    },
+    {
+      "terme": "chaussure à rosette ou corsage",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussures plates sans talon",
+      "axe": "chaussure",
+      "occurrences": 4
+    },
+    {
+      "terme": "chaussures à empeigne haute",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "chaussures bicolores",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "sneakerina",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussures compensées",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussures bout fendu",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bustier à bonnets coniques",
+      "axe": "silhouette",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon cargo",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "tongs",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bandeau cheveux",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "casquette statement",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "cravate portée en accessoire mode",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon en velours côtelé",
+      "axe": "matiere",
+      "occurrences": 1
+    },
+    {
+      "terme": "matière semi-transparente",
+      "axe": "matiere",
+      "occurrences": 2
+    },
+    {
+      "terme": "mocassins ou oxfords en cuir souple",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "veste barn",
+      "axe": "categorie",
+      "occurrences": 1
+    },
+    {
+      "terme": "imprimé zébré",
+      "axe": "imprime",
+      "occurrences": 1
+    },
+    {
+      "terme": "imprimé léopard tigre serpent",
+      "axe": "imprime",
+      "occurrences": 1
+    },
+    {
+      "terme": "tailoring déconstruit",
+      "axe": "construction",
+      "occurrences": 2
+    },
+    {
+      "terme": "tailoring tordu",
+      "axe": "construction",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon ballon",
+      "axe": "silhouette",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussures Mary Jane",
+      "axe": "chaussure",
+      "occurrences": 1
+    }
+  ]
+}
