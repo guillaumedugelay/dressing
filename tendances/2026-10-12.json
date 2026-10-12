@@ -1,0 +1,215 @@
+{
+  "revision": "2026-10-12",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine confirme le retour des pantalons amples (barrel, palazzo, taille basse) au détriment du jean droit, portés avec un haut plus ajusté. Le violet et le rouge s'imposent comme couleurs fortes aux côtés du denim indigo, pendant que manteaux, pulls, robes et accessoires affirmés structurent les silhouettes d'automne.",
+  "regles": [
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "ample",
+      "poids": 2,
+      "note": "pantalon ample, haut près du corps"
+    },
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "droit",
+      "poids": -1.3,
+      "note": "jean droit nettement en recul"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 1.8,
+      "note": "violet, couleur phare de la saison"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rouge",
+      "poids": 1,
+      "note": "rouge, teinte incontournable de l'automne"
+    },
+    {
+      "type": "couleur",
+      "valeur": "denim",
+      "poids": 1.3,
+      "note": "bleu denim profond très recherché"
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "coupe": "ample",
+      "poids": 1.5,
+      "note": "pulls et mailles très recherchés"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1.6,
+      "note": "manteaux et doudounes pièce forte"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1,
+      "note": "accessoires statement mis en avant"
+    },
+    {
+      "type": "categorie",
+      "valeur": "robe",
+      "poids": 0.8,
+      "note": "robe slip et robe élégante"
+    },
+    {
+      "type": "matiere",
+      "valeur": "laine",
+      "poids": 1,
+      "note": "laine et tricots épais privilégiés"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1.5,
+      "note": "duo jupe crayon et escarpin pointu",
+      "texte": "jupe crayon portée avec des escarpins à bout pointu"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "chaussures plates chics en hausse",
+      "texte": "ballerines et mocassins remplacent les baskets épaisses pour l'automne"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "bout pointu (escarpin)",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "mary jane",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "bout fendu",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussure bateau",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "hybride basket-ballerine",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "bottine façon cavalière",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jean barrel",
+      "axe": "coupe",
+      "occurrences": 3
+    },
+    {
+      "terme": "jean bootcut",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon palazzo",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon capri",
+      "axe": "longueur",
+      "occurrences": 1
+    },
+    {
+      "terme": "broche",
+      "axe": "accessoire",
+      "occurrences": 3
+    },
+    {
+      "terme": "barrette",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "lunettes à monture carrée",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "suède",
+      "axe": "matiere",
+      "occurrences": 3
+    },
+    {
+      "terme": "peau lainée (shearling)",
+      "axe": "matiere",
+      "occurrences": 2
+    },
+    {
+      "terme": "broderie papillon",
+      "axe": "motif",
+      "occurrences": 1
+    },
+    {
+      "terme": "gants longueur opéra",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "corset",
+      "axe": "haut",
+      "occurrences": 1
+    },
+    {
+      "terme": "frange",
+      "axe": "detail",
+      "occurrences": 2
+    },
+    {
+      "terme": "paillettes",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "métallisé",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "tartan",
+      "axe": "imprime",
+      "occurrences": 2
+    },
+    {
+      "terme": "skort",
+      "axe": "categorie",
+      "occurrences": 1
+    },
+    {
+      "terme": "couleur bloodstone",
+      "axe": "couleur",
+      "occurrences": 1
+    }
+  ]
+}
