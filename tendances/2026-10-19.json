@@ -1,0 +1,227 @@
+{
+  "revision": "2026-10-19",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, le violet s'impose comme la couleur dominante de la saison, porté par les podiums comme par la rue, tandis que le cuir et la laine réchauffent les silhouettes d'automne. Les vestes structurées reprennent le dessus sur l'oversize, les pantalons s'élargissent, et une vague de transparence et de découpes réintroduit la peau au cœur des tendances.",
+  "regles": [
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 2,
+      "note": "violet domine podiums et rues cette saison",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 1.5,
+      "note": "cuir partout : pantalons, vestes, bottes",
+      "texte": ""
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 1,
+      "note": "carreaux et tartan réhaussés cet automne",
+      "texte": ""
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1,
+      "note": "marron s'impose sur sacs et chaussures",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "laine",
+      "poids": 1,
+      "note": "mailles et tweed chauds pour l'automne",
+      "texte": ""
+    },
+    {
+      "type": "silhouette",
+      "haut": "ajuste",
+      "bas": "droit",
+      "poids": 1,
+      "note": "vestes structurées remplacent l'oversize",
+      "texte": ""
+    },
+    {
+      "type": "silhouette",
+      "haut": "droit",
+      "bas": "ample",
+      "poids": 1,
+      "note": "pantalons larges et volumineux tendance",
+      "texte": ""
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1,
+      "note": "sacs et bijoux affirmés mis en avant",
+      "texte": ""
+    },
+    {
+      "type": "descriptive",
+      "poids": 1.5,
+      "note": "transparence et découpes dénudent le corps",
+      "texte": "Les tissus transparents, la dentelle et les découpes dévoilent la peau, dans la lignée de la tendance 'naked'."
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "chaussures plates portées en toute occasion",
+      "texte": "Les ballerines et chaussures plates se portent du bureau à la soirée, remplaçant les talons au quotidien."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "mocassins associés aux jeans larges",
+      "texte": "Les mocassins se portent avec des jeans larges, dans un esprit garde-robe française décontractée."
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "silhouettes inspirées de l'époque Régence",
+      "texte": "Des silhouettes inspirées de l'époque Régence, à taille empire et manches bouffantes, réapparaissent cette saison."
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "jupe nue",
+      "axe": "genre",
+      "occurrences": 2
+    },
+    {
+      "terme": "découpes dénudées",
+      "axe": "detail",
+      "occurrences": 2
+    },
+    {
+      "terme": "dentelle apparente",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "taille empire",
+      "axe": "taille",
+      "occurrences": 1
+    },
+    {
+      "terme": "manches bouffantes",
+      "axe": "manche",
+      "occurrences": 1
+    },
+    {
+      "terme": "ballerines plates",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "mocassins",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottines froncées",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bout pointu",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "talon kitten heel",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bout fendu",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussure bateau",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon capri",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "pantalon taffetas",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "encolure bateau",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jean barrel",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "jean large",
+      "axe": "coupe",
+      "occurrences": 2
+    },
+    {
+      "terme": "pantalon volumineux",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "ourlet ballon",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "double ceinture",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "manchette large",
+      "axe": "detail",
+      "occurrences": 1
+    },
+    {
+      "terme": "veste lady",
+      "axe": "genre",
+      "occurrences": 2
+    },
+    {
+      "terme": "cape",
+      "axe": "categorie",
+      "occurrences": 1
+    },
+    {
+      "terme": "robe sculpturale",
+      "axe": "tombe",
+      "occurrences": 1
+    },
+    {
+      "terme": "tweed",
+      "axe": "texture",
+      "occurrences": 1
+    }
+  ]
+}
