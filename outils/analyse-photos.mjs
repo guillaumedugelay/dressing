@@ -174,7 +174,15 @@ function reponseSaine(lu) {
 
 /* Réparable, par opposition aux griefs ci-dessus : l'analyse est bonne, seule
    la cohérence entre deux champs cloche. */
+/* Quatrième forme d'artefact, apparue avec Sonnet 5.5 le 21 octobre 2026 :
+   14 doutes sur 272 finissaient par « } », « </br> » ou « ]}<br> », débris de
+   JSON ou de HTML collés à une phrase par ailleurs juste. On coupe la traîne
+   plutôt que de jeter l'analyse. */
+const TRAINE = /\s*(?:[{}\[\]]|<\/?br\s*\/?>)+\s*$/i;
+
 function reparer(lu) {
+  for (const champ of ["doute", "description", "nom"])
+    if (TRAINE.test(lu[champ] || "")) lu[champ] = lu[champ].replace(TRAINE, "");
   if (lu.confiance === "haute" && (lu.doute || "").trim()) {
     lu.confiance = "moyenne";
     return "confiance ramenée à moyenne — un doute était exprimé";
