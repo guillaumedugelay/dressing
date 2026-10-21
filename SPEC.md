@@ -28,7 +28,7 @@ D'où l'export JSON, à faire après chaque grosse session de saisie.
 | `categorie` | haut, bas, robe, pull, manteau, chaussures, accessoire | composition de la tenue |
 | `chaleur` | 1 (léger) → 4 (très chaud) | adéquation à la température — voir § 4 |
 | `formaliteMin` / `formaliteMax` | 1 (sport) → 4 (habillé) | **intervalle** — adéquation à l'activité |
-| `couleurs` | 1 à 2 parmi 14 | harmonie chromatique |
+| `couleurs` | 1 à 2 parmi 14, plus celles que l'analyse ajoute (doré, argenté, bordeaux…), rangées dans `couleurs` de l'export | harmonie chromatique |
 | `saisons` | 0 à 4 saisons | **filtre strict** — aucune cochée = toute l'année |
 | `coupe` | ajusté, droit, ample | contraste de silhouette |
 | `motif` | uni, rayé, carreaux, imprimé | un motif se porte seul |

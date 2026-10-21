@@ -664,6 +664,22 @@ const FAMILLES = {
   achrome:["noir", "blanc", "gris"],
 };
 
+/* Couleurs ajoutées à la palette, par l'analyse des photos quand aucune des
+   quatorze ne convient : une ceinture dorée notée « beige » se marierait
+   comme du beige, ce qu'elle n'est pas. Elles voyagent avec la sauvegarde
+   (`couleurs` dans l'export) et sont rangées dans les réglages. */
+let couleursAjoutees = [];
+function ajouterCouleurs(liste) {
+  for (const c of liste || []) {
+    if (!c?.id || COULEURS.some((x) => x.id === c.id)) continue;
+    const famille = FAMILLES[c.famille] ? c.famille : (c.neutre ? "achrome" : "chaud");
+    COULEURS.push({ id: c.id, nom: c.nom || c.id, hex: c.hex || "#999999", neutre: Boolean(c.neutre) });
+    FAMILLES[famille].push(c.id);
+    NOM_COULEUR_PIECE[c.id] = c.nomPiece || (c.nom || c.id).toLowerCase();
+    couleursAjoutees.push({ id: c.id, nom: c.nom || c.id, hex: c.hex, neutre: Boolean(c.neutre), famille, nomPiece: c.nomPiece });
+  }
+}
+
 /* Garde-robe d'exemple : de quoi essayer le moteur avant d'avoir photographié
    la moindre pièce. Volontairement passe-partout — à modifier ou à retirer. */
 const PRINTEMPS_ETE = ["printemps", "ete"];
@@ -2551,7 +2567,8 @@ async function supprimerPiece() {
 /* ═══════════ Sauvegarde ═══════════ */
 
 function exporter() {
-  const donnees = { version: 1, exporteLe: new Date().toISOString(), pieces: etat.pieces, tenues: etat.tenues, avis: etat.avis };
+  const donnees = { version: 1, exporteLe: new Date().toISOString(), couleurs: couleursAjoutees,
+                    pieces: etat.pieces, tenues: etat.tenues, avis: etat.avis };
   const url = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url; a.download = `dressing-${aujourdhui()}.json`;
@@ -2587,6 +2604,10 @@ async function importer(fichier, mode) {
       + `Ton journal et tes avis ne sont pas touchés.`)) return;
   }
 
+  /* Les couleurs ajoutées s'additionnent, même en remplacement : une pièce
+     qui en porte une ne doit jamais arriver sans elle. */
+  ajouterCouleurs(donnees.couleurs);
+  await DB.poser("reglages", { cle: "couleurs", valeur: couleursAjoutees });
   for (const p of donnees.pieces) await DB.poser("pieces", p);
   await charger();
   rendre();
@@ -2746,6 +2767,8 @@ function majOnglets() {
 /* ═══════════ Démarrage ═══════════ */
 
 async function charger() {
+  const couleurs = await DB.prendre("reglages", "couleurs");
+  if (couleurs) ajouterCouleurs(couleurs.valeur);
   etat.pieces = await DB.tout("pieces");
   /* Conversion des fiches antérieures à l'intervalle de formalité, écrite une
      seule fois : au passage suivant il n'y a plus rien à migrer. */

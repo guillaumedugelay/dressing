@@ -38,6 +38,10 @@ const SITUATIONS_VOULUES = Number(option("--situations", 20));
 const PLAFOND_CANDIDATES = Number(option("--candidates", 50));
 const MODELE = process.env.MODELE || "claude-sonnet-5-5";
 const EFFORT = process.env.EFFORT || "high";
+/* DUEL=claude-opus-5-5 : un second modèle juge les mêmes candidates, et la
+   page met trois sources en regard au lieu de deux. Pas d'exploration pour
+   lui : on compare le jugement, pas la seconde passe. */
+const DUEL = process.env.DUEL || "";
 const SIMULER = drapeau("--simuler");
 /* La seconde passe coûte 60 % de la première. On la déclenche à la demande,
    pour pouvoir comparer « passe 1 seule » et « passe 1 + exploration ». */
@@ -84,7 +88,8 @@ function chargerMoteur() {
     "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;" +
     "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteSur10 = noteSur10;" +
     "\n;__out.adaptee = adapteeALaSituation; __out.offre = offreDeLaGardeRobe;" +
-    "\n;__out.noterTenue = noterTenue; __out.tableAffinites = tableAffinites; __out.formaliteMax = formaliteMax;")(out);
+    "\n;__out.noterTenue = noterTenue; __out.tableAffinites = tableAffinites; __out.formaliteMax = formaliteMax;" +
+    "\n;__out.ajouterCouleurs = ajouterCouleurs;")(out);
   if (typeof out.proposerTenues !== "function") throw new Error("moteur : proposerTenues introuvable");
   return out;
 }
@@ -228,6 +233,7 @@ const REJOUER = drapeau("--rejouer");
 const M = REJOUER ? null : chargerMoteur();
 if (M) {
   M.poserTendances(corpus);
+  M.ajouterCouleurs(donnees.couleurs);
   M.etat.pieces = donnees.pieces;
   M.etat.tenues = donnees.tenues || [];
   M.etat.avis = donnees.avis || [];
@@ -235,11 +241,15 @@ if (M) {
 }
 
 /* On balaie les situations plausibles et on garde celles qui ont de la
-   matière, réparties sur les occasions. */
+   matière, réparties sur les occasions. Jusqu'en octobre 2026 le balayage
+   s'arrêtait à l'été : la garde-robe n'avait ni manteau ni chaussure d'hiver.
+   Chaque saison n'a que ses températures vraisemblables — un été froid ne
+   dirait rien du moteur. */
+const TEMPERATURES = { printemps: ["doux", "frais"], ete: ["chaud", "doux"], automne: ["doux", "frais"], hiver: ["frais", "froid"] };
 const toutes = [];
-for (const saison of ["printemps", "ete"])
-  for (const meteo of ["soleil", "nuages", "pluie"])
-    for (const temp of ["chaud", "doux"])
+for (const saison of ["printemps", "ete", "automne", "hiver"])
+  for (const meteo of ["soleil", "nuages", "pluie", ...(saison === "hiver" ? ["neige"] : [])])
+    for (const temp of TEMPERATURES[saison])
       for (const activite of ["travail", "loisir", "vacances"])
         toutes.push({ saison, meteo, temp, activite });
 
@@ -263,7 +273,47 @@ console.error(`Modèle ${MODELE}, effort ${EFFORT}.${SIMULER ? "  (--simuler : a
 
 const client = (SIMULER || REJOUER) ? null : new Anthropic();
 const usage = { entree: 0, sortie: 0 };
+const usageDuel = { entree: 0, sortie: 0 };
 const resultats = [];
+
+/* Le premier appel, partagé par les deux modèles d'un duel. */
+async function premierePasse(modele, compteur, charge) {
+  let lu = null, erreur = null;
+  try {
+    const reponse = await client.messages.create({
+      model: modele, max_tokens: 16000, system: CONSIGNE,
+      output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
+      messages: [{ role: "user", content: JSON.stringify(charge) }],
+    });
+    compteur.entree += reponse.usage.input_tokens;
+    compteur.sortie += reponse.usage.output_tokens;
+    if (reponse.stop_reason === "refusal") throw new Error("demande déclinée");
+    const texte = reponse.content.find((b) => b.type === "text")?.text;
+    if (!texte) throw new Error("réponse vide");
+    lu = JSON.parse(texte);
+    /* Les identifiants doivent exister, et la tenue correspondre à une
+       candidate : sans ce contrôle, une tenue inventée entrerait dans la
+       comparaison et la fausserait. */
+    const connus = new Set(donnees.pieces.map((p) => p.id));
+    for (const rec of lu.recommendations) {
+      const inconnus = rec.pieces.filter((x) => !connus.has(x));
+      if (inconnus.length) throw new Error(`identifiants inconnus : ${inconnus.join(", ")}`);
+    }
+    if (lu.recommendations.length !== 3) throw new Error(`${lu.recommendations.length} tenues au lieu de 3`);
+    /* La même contrainte que le moteur : une pièce de base ne sort qu'une
+       fois. Sans ce contrôle, la comparaison opposerait un moteur bridé à un
+       modèle libre de répéter, et le verdict ne vaudrait rien. */
+    const BASES = ["haut", "bas", "robe"];
+    const parPiece = new Map(donnees.pieces.map((p) => [p.id, p]));
+    const bases = [];
+    for (const rec of lu.recommendations)
+      for (const x of rec.pieces)
+        if (BASES.includes(parPiece.get(x)?.categorie)) bases.push(x);
+    const repetees = bases.filter((x, k) => bases.indexOf(x) !== k);
+    if (repetees.length) throw new Error(`pièce de base répétée : ${[...new Set(repetees)].map((x) => parPiece.get(x)?.nom).join(", ")}`);
+  } catch (e) { erreur = e.message; lu = null; }
+  return { lu, erreur };
+}
 
 if (REJOUER) {
   const chemin = fichier.replace(/\.json$/i, "") + "-comparatif.json";
@@ -299,44 +349,21 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
     continue;
   }
 
-  let lu = null, erreur = null;
-  try {
-    const reponse = await client.messages.create({
-      model: MODELE, max_tokens: 16000, system: CONSIGNE,
-      output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
-      messages: [{ role: "user", content: JSON.stringify(charge) }],
-    });
-    usage.entree += reponse.usage.input_tokens;
-    usage.sortie += reponse.usage.output_tokens;
-    if (reponse.stop_reason === "refusal") throw new Error("demande déclinée");
-    const texte = reponse.content.find((b) => b.type === "text")?.text;
-    if (!texte) throw new Error("réponse vide");
-    lu = JSON.parse(texte);
-    /* Les identifiants doivent exister, et la tenue correspondre à une
-       candidate : sans ce contrôle, une tenue inventée entrerait dans la
-       comparaison et la fausserait. */
-    const connus = new Set(donnees.pieces.map((p) => p.id));
-    for (const rec of lu.recommendations) {
-      const inconnus = rec.pieces.filter((x) => !connus.has(x));
-      if (inconnus.length) throw new Error(`identifiants inconnus : ${inconnus.join(", ")}`);
-    }
-    if (lu.recommendations.length !== 3) throw new Error(`${lu.recommendations.length} tenues au lieu de 3`);
-    /* La même contrainte que le moteur : une pièce de base ne sort qu'une
-       fois. Sans ce contrôle, la comparaison opposerait un moteur bridé à un
-       modèle libre de répéter, et le verdict ne vaudrait rien. */
-    const BASES = ["haut", "bas", "robe"];
-    const parPiece = new Map(donnees.pieces.map((p) => [p.id, p]));
-    const bases = [];
-    for (const rec of lu.recommendations)
-      for (const x of rec.pieces)
-        if (BASES.includes(parPiece.get(x)?.categorie)) bases.push(x);
-    const repetees = bases.filter((x, k) => bases.indexOf(x) !== k);
-    if (repetees.length) throw new Error(`pièce de base répétée : ${[...new Set(repetees)].map((x) => parPiece.get(x)?.nom).join(", ")}`);
-  } catch (e) { erreur = e.message; }
+  let { lu, erreur } = await premierePasse(MODELE, usage, charge);
 
   console.error(`  [${i + 1}/${retenues.length}] ${etiquette} — ${top.length} candidates` +
     (erreur ? `  ÉCHEC : ${erreur}` : `  → ${lu.recommendations.map((x) => "#" + x.candidate).join(" ")}` +
       (lu.explorations.length ? `, ${lu.explorations.length} exploration(s)` : "")));
+
+  /* Le second modèle reçoit exactement la même charge : mêmes candidates,
+     même tirage. Deux passages séparés compareraient aussi deux tirages au
+     sort du moteur, et on ne saurait plus lequel des deux on juge. */
+  let duel = null;
+  if (DUEL) {
+    duel = await premierePasse(DUEL, usageDuel, charge);
+    console.error(`        ${DUEL} :` + (duel.erreur ? ` ÉCHEC : ${duel.erreur}`
+      : ` → ${duel.lu.recommendations.map((x) => "#" + x.candidate).join(" ")}`));
+  }
 
   /* ═══════════ Seconde passe : l'exploration ═══════════
      Au plus une demande par tenue — une tenue ne se répare pas en changeant
@@ -410,6 +437,7 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
     moteur: st.moteur.map((t) => ({ pieces: t.pieces.map((p) => p.id), note: Number(t.note.toFixed(2)) })),
     llm: erreur ? null : lu,
     erreur, exploration: explo,
+    ...(DUEL ? { llm2: duel.erreur ? null : duel.lu, erreur2: duel.erreur } : {}),
     candidatesEnvoyees: top.map((t) => t.pieces.map((p) => p.id)),
   });
 }
@@ -417,7 +445,7 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
 /* ═══════════ Sorties ═══════════ */
 const base = fichier.replace(/\.json$/i, "");
 if (!REJOUER) writeFileSync(`${base}-comparatif.json`, JSON.stringify({
-  fait: new Date().toISOString(), modele: MODELE, effort: EFFORT,
+  fait: new Date().toISOString(), modele: MODELE, effort: EFFORT, duel: DUEL || undefined,
   corpus: corpus.revision, resultats,
 }, null, 1));
 
@@ -428,6 +456,11 @@ if (!SIMULER && !REJOUER) {
     const cout = usage.entree * tarif.entree + usage.sortie * tarif.sortie;
     console.error(`Coût : environ ${cout.toFixed(2)} $${tarif.lancement ? " (tarif de lancement)" : ""}, soit ${(cout / retenues.length).toFixed(3)} $ par situation.`);
     console.error(`Projection à un appel par jour : ${(cout / retenues.length * 365).toFixed(2)} $ par an.`);
+  }
+  const tarif2 = DUEL && tarifDu(DUEL);
+  if (tarif2) {
+    const cout2 = usageDuel.entree * tarif2.entree + usageDuel.sortie * tarif2.sortie;
+    console.error(`${DUEL} : ${usageDuel.entree} entrée, ${usageDuel.sortie} sortie — environ ${cout2.toFixed(2)} $, soit ${(cout2 / retenues.length).toFixed(3)} $ par situation.`);
   }
 }
 
@@ -457,19 +490,27 @@ if (SIMULER) {
   process.exit(0);
 }
 
-const blocs = resultats.filter((r) => r.llm).map((r, i) => {
+/* Les noms ne paraissent qu'après le vote. En duel, une situation où l'un des
+   deux modèles a échoué est écartée : elle opposerait deux sources à trois. */
+const lisible = (m) => m.replace(/^claude-/, "").replace(/-(\d)-(\d)$/, " $1.$2").replace(/^./, (c) => c.toUpperCase());
+const meta = REJOUER ? JSON.parse(readFileSync(`${base}-comparatif.json`, "utf8")) : { modele: MODELE, duel: DUEL };
+const NOMS = { moteur: "règles actuelles", llm: `IA (${lisible(meta.modele)})`, llm2: meta.duel ? `IA (${lisible(meta.duel)})` : "" };
+const enDuel = Boolean(meta.duel);
+const blocs = resultats.filter((r) => r.llm && (!enDuel || r.llm2)).map((r, i) => {
   const st = r.situation;
-  /* On mélange les six, et on ne dit rien de leur origine avant le vote. */
+  /* On mélange tout, et on ne dit rien de l'origine avant le vote. */
   const lot = [...r.moteur.map((t) => ({ ids: t.pieces, cle: "moteur" })),
-               ...r.llm.recommendations.map((x) => ({ ids: x.pieces, cle: "llm" }))];
+               ...r.llm.recommendations.map((x) => ({ ids: x.pieces, cle: "llm" })),
+               ...(enDuel ? r.llm2.recommendations.map((x) => ({ ids: x.pieces, cle: "llm2" })) : [])];
   for (let k = lot.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [lot[k], lot[j]] = [lot[j], lot[k]]; }
   const explos = r.llm.explorations.map((e) => `<li>${echapper(e.categorie)} ${echapper((e.couleurs || []).join(", "))} — ${echapper(e.pourquoi)}</li>`).join("");
+  const raisons = (cle, l) => l.recommendations.map((x) => `<p class="raison"><b>${echapper(NOMS[cle])} — son choix n° ${x.rang}</b> (${x.score}/100) — ${echapper(x.raison)}</p>`).join("");
   return `<section>
     <h2>Situation ${i + 1} — ${echapper(st.saison)} · ${echapper(st.meteo)} · ${echapper(st.temp)} · ${echapper(st.activite)}</h2>
     <div class="lot">${lot.map((x) => tenueHtml(x.ids, x.cle)).join("")}</div>
     <div class="reveal" hidden>
-      <p><b>Origine :</b> ${lot.map((x, k) => `${k + 1} = ${x.cle === "llm" ? "IA (Claude)" : "règles actuelles"}`).join(" · ")}</p>
-      ${r.llm.recommendations.map((x) => `<p class="raison"><b>IA — son choix n° ${x.rang}</b> (${x.score}/100) — ${echapper(x.raison)}</p>`).join("")}
+      <p><b>Origine :</b> ${lot.map((x, k) => `${k + 1} = ${echapper(NOMS[x.cle])}`).join(" · ")}</p>
+      ${raisons("llm", r.llm)}${enDuel ? raisons("llm2", r.llm2) : ""}
       ${explos ? `<p><b>Recherches demandées :</b></p><ul>${explos}</ul>` : `<p><i>Aucune recherche demandée.</i></p>`}
     </div>
   </section>`;
@@ -492,12 +533,13 @@ const page = `<!doctype html><meta charset="utf-8">
  .raison{color:#3d4354} .bilan{position:sticky;bottom:0;background:#1f2534;color:#fff;padding:12px;border-radius:10px;margin-top:24px}
 </style>
 <h1>Règles actuelles contre IA — comparaison à l'aveugle</h1>
-<p>Pour chaque situation, six tenues : trois choisies par le <b>moteur de règles actuel</b>, trois par l'<b>IA</b>, mélangées et sans étiquette.
+<p>Pour chaque situation, ${enDuel ? "neuf" : "six"} tenues : trois choisies par le <b>moteur de règles actuel</b>, ${enDuel ? "trois par chacune des <b>deux IA</b>" : "trois par l'<b>IA</b>"}, mélangées et sans étiquette.
 Choisis celle que tu porterais. L'origine n'apparaît qu'après ton vote.</p>
 ${blocs}
 <div class="bilan" id="bilan">Aucun vote pour l'instant.</div>
 <script>
  const PHOTOS = __PHOTOS__;
+ const NOMS = ${JSON.stringify(NOMS)};
  document.querySelectorAll("img[data-p]").forEach((i) => { i.src = PHOTOS[i.dataset.p] || ""; });
  const votes = [];
  document.querySelectorAll("section").forEach((s) => {
@@ -508,9 +550,9 @@ ${blocs}
      t.classList.add("choisi");
      s.querySelector(".reveal").hidden = false;
      votes.push(t.dataset.cle);
-     const m = votes.filter((v) => v === "moteur").length, l = votes.length - m;
-     document.getElementById("bilan").textContent =
-       votes.length + " situation(s) jugée(s) — règles actuelles : " + m + "  |  IA : " + l;
+     document.getElementById("bilan").textContent = votes.length + " situation(s) jugée(s) — "
+       + Object.entries(NOMS).filter(([, n]) => n)
+           .map(([c, n]) => n + " : " + votes.filter((v) => v === c).length).join("  |  ");
    });
  });
 </script>`;

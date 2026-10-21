@@ -65,7 +65,7 @@ téléphone, puis Journal → `Fusionner un fichier`.
 |---|---|---|
 | `nom` | si vide | un nom tapé à la main n'est jamais écrasé |
 | `categorie` | oui | haut, bas, robe, pull, manteau, chaussures, accessoire |
-| `couleurs` | oui | une ou deux parmi les quatorze |
+| `couleurs` | oui | une ou deux parmi les quatorze, ou une couleur créée par le modèle (`nouvelleCouleur`) quand la plus proche tromperait |
 | `chaleur` | oui | jugée sur la matière et l'épaisseur, pas sur la couleur |
 | `formaliteMin` / `formaliteMax` | oui | un **intervalle** : une jupe unie est « décontracté à soigné ». Les pièces univoques ont min = max |
 | `coupe` | oui | ajusté, droit, ample |
