@@ -211,6 +211,16 @@
   }
 
   .filtres { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0 10px; }
+  .recherche { width: 100%; padding: 12px 14px; border-radius: 11px; border: 1px solid var(--trait);
+    background: var(--carte); font: inherit; font-size: 15px; margin-bottom: 10px; box-sizing: border-box; }
+  .listes-filtres { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .listes-filtres label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--texte-doux); }
+  .listes-filtres select { padding: 8px; border-radius: 9px; border: 1px solid var(--trait); background: var(--carte);
+    font: inherit; font-size: 14px; color: var(--texte); }
+  .listes-filtres select.actif { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-fond); }
+  .compte-filtres { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 6px;
+    font-size: 13px; color: var(--texte-doux); }
+  .compte-filtres button { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; padding: 0; }
   .filtres button {
     flex: 0 0 auto; padding: 7px 13px; border-radius: 999px; font-size: 13.5px;
     background: var(--carte); border: 1px solid var(--trait); color: var(--texte-doux);
@@ -386,7 +396,9 @@
 
   <!-- ============ GARDE-ROBE ============ -->
   <section class="vue" id="vue-dressing">
-    <div class="filtres" id="filtres"></div>
+    <input type="search" id="recherche" class="recherche" placeholder="Rechercher une pièce" autocomplete="off">
+    <div class="listes-filtres" id="filtres"></div>
+    <p class="compte-filtres" id="compte-filtres"></p>
     <div class="grille" id="grille"></div>
   </section>
 
@@ -973,7 +985,8 @@ const etat = {
   meteo: "soleil", temp: "doux", activite: "travail", saison: saisonCourante(),
   poidsTendance: 1,
   lieu: null, releve: null,
-  filtre: "tout", vue: "jour",
+  filtres: { recherche: "", categorie: "", coupe: "", saison: "", registre: "", intemperies: "", couleur: "" },
+  vue: "jour",
   propositions: [], ecartees: new Set(),
 };
 
@@ -2533,35 +2546,69 @@ function rendreJour() {
 /* Une pièce que l'analyse n'a pas su décrire avec certitude reste marquée
    jusqu'à ce que tu l'ouvres et l'enregistres. C'est ce qui rend le tri
    praticable sur plusieurs centaines de fiches. */
-const aVerifier = (p) => p.confiance && p.confiance !== "haute";
+const aVerifier = (p) => (p.confiance && p.confiance !== "haute") || Boolean(p.categorieADeviner);
+
+/* La recherche lit le nom et la description ; les listes filtrent sur ce que
+   la fiche coche. Une saison choisie garde aussi les pièces « toute
+   l'année », puisqu'elles se portent cette saison-là. Les filtres se
+   cumulent. */
+const sansAccent = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const FILTRES = [
+  { cle: "categorie", nom: "Catégorie", options: () => [
+      { id: "verifier", nom: "À vérifier", test: aVerifier },
+      ...CATEGORIES.filter((c) => etat.fiches.some((p) => p.categorie === c.id))
+        .map((c) => ({ id: c.id, nom: c.nom, test: (p) => p.categorie === c.id }))] },
+  { cle: "couleur", nom: "Couleur", options: () => PALETTE.map((f) => ({ id: "f:" + f.famille, nom: f.famille,
+      test: (p) => (p.couleurs || []).some((c) => f.couleurs.some((x) => x.id === c)) })) },
+  { cle: "coupe", nom: "Coupe", options: () => COUPES.map((c) => ({ id: c.id, nom: c.nom, test: (p) => p.coupe === c.id })) },
+  { cle: "saison", nom: "Saison", options: () => [
+      ...SAISONS.map((s) => ({ id: s.id, nom: s.nom, test: (p) => !(p.saisons || []).length || p.saisons.includes(s.id) })),
+      { id: "toute", nom: "Toute l'année", test: (p) => !(p.saisons || []).length }] },
+  { cle: "registre", nom: "Registre", options: () => REGISTRES.map((r) => ({ id: r.id, nom: r.nom, test: (p) => (p.registres || []).includes(r.id) })) },
+  { cle: "intemperies", nom: "Intempéries", options: () => INTEMPERIES.map((x) => ({ id: x.id, nom: x.nom, test: (p) => p.intemperies === x.id })) },
+];
+function filtrer(fiches, sauf) {
+  const q = sansAccent(etat.filtres.recherche).trim();
+  const mots = q ? q.split(/\s+/) : [];
+  /* Les tests des filtres en place, calculés une fois et non par pièce. */
+  const tests = FILTRES.filter((f) => f.cle !== sauf && etat.filtres[f.cle])
+    .map((f) => f.options().find((o) => o.id === etat.filtres[f.cle])?.test || (() => false));
+  return fiches.filter((p) =>
+    (!mots.length || mots.every((mot) => sansAccent(`${p.nom} ${p.description || ""}`).includes(mot)))
+    && tests.every((t) => t(p)));
+}
 
 function rendreDressing() {
-  const douteuses = etat.fiches.filter(aVerifier).length;
-  /* Seules les catégories qu'elle possède ont un filtre : vingt-trois
-     boutons dont la moitié vides ne servent à rien. */
-  const presentes = CATEGORIES.filter((c) => etat.fiches.some((p) => p.categorie === c.id));
-  const filtres = [{ id: "tout", nom: "Tout" },
-    ...(douteuses ? [{ id: "verifier", nom: "À vérifier" }] : []),
-    ...presentes];
-  $("#filtres").innerHTML = filtres.map((c) => {
-    const n = c.id === "tout" ? etat.fiches.length
-      : c.id === "verifier" ? douteuses
-      : etat.fiches.filter((p) => p.categorie === c.id).length;
-    return `<button data-id="${c.id}" aria-pressed="${etat.filtre === c.id}">${c.nom} ${n ? `<span style="opacity:.6">${n}</span>` : ""}</button>`;
+  /* Chaque option dit combien de pièces elle donnerait, compte tenu des
+     autres filtres en place. */
+  $("#filtres").innerHTML = FILTRES.map((f) => {
+    const base = filtrer(etat.fiches, f.cle);
+    const options = f.options().map((o) => ({ ...o, n: base.filter(o.test).length }))
+      .filter((o) => o.n || o.id === etat.filtres[f.cle]);
+    return `<label>${f.nom}<select data-cle="${f.cle}" class="${etat.filtres[f.cle] ? "actif" : ""}">
+      <option value="">Tout</option>${options.map((o) => `<option value="${o.id}" ${o.id === etat.filtres[f.cle] ? "selected" : ""}>${echapper(o.nom)} (${o.n})</option>`).join("")}
+    </select></label>`;
   }).join("");
-  $("#filtres").querySelectorAll("button").forEach((b) => {
-    b.onclick = () => { etat.filtre = b.dataset.id; rendreDressing(); };
+  $("#filtres").querySelectorAll("select").forEach((s) => {
+    s.onchange = () => { etat.filtres[s.dataset.cle] = s.value; rendreDressing(); };
   });
+  const recherche = $("#recherche");
+  if (recherche.value !== etat.filtres.recherche) recherche.value = etat.filtres.recherche;
+  recherche.oninput = () => { etat.filtres.recherche = recherche.value; rendreDressing(); };
 
-  const liste = etat.filtre === "tout" ? etat.fiches
-    : etat.filtre === "verifier" ? etat.fiches.filter(aVerifier)
-    : etat.fiches.filter((p) => p.categorie === etat.filtre);
+  const liste = filtrer(etat.fiches);
+  const actifs = Object.values(etat.filtres).some(Boolean);
+  $("#compte-filtres").innerHTML = etat.fiches.length
+    ? `<span>${liste.length} pièce${liste.length > 1 ? "s" : ""}${actifs ? ` sur ${etat.fiches.length}` : ""}</span>${
+      actifs ? `<button type="button" id="effacer-filtres">Effacer les filtres</button>` : ""}` : "";
+  const effacer = $("#effacer-filtres");
+  if (effacer) effacer.onclick = () => { for (const k of Object.keys(etat.filtres)) etat.filtres[k] = ""; rendreDressing(); };
   const grille = $("#grille");
   if (!liste.length) {
     grille.innerHTML = etat.fiches.length
       ? `<div class="vide" style="grid-column:1/-1">
-          <strong>Rien dans cette catégorie</strong>
-          Appuie sur le bouton + pour y ajouter une pièce.</div>`
+          <strong>Aucune pièce ne correspond</strong>
+          Change ou efface les filtres.</div>`
       : `<div class="vide" style="grid-column:1/-1">
           <strong>Ta garde-robe est vide</strong>
           Appuie sur le bouton + pour photographier une première pièce, ou pars
@@ -2898,6 +2945,7 @@ async function enregistrerPiece() {
      travail. */
   delete brouillon.confiance;
   delete brouillon.doute;
+  delete brouillon.categorieADeviner;
   if (brouillon.analyseeLe) brouillon.corrigeeLe = aujourdhui();
   await DB.poser("pieces", brouillon);
   await rechargerPieces();
