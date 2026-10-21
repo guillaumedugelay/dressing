@@ -407,6 +407,19 @@
       <div id="lacunes"></div>
     </div>
     <div class="bloc">
+      <span class="legende">Opus</span>
+      <p id="texte-opus" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
+      <input type="password" id="cle-api" placeholder="sk-ant-…" autocomplete="off"
+        style="padding:12px;border-radius:11px;border:1px solid var(--trait);background:var(--carte);width:100%">
+      <div style="display:flex;gap:9px">
+        <button class="secondaire" id="btn-cle" style="flex:1">Enregistrer la clé</button>
+        <button class="secondaire danger" id="btn-oublier-cle" style="flex:1" hidden>Effacer la clé</button>
+      </div>
+      <p style="margin:0;font-size:12.5px;color:var(--texte-doux)">Une clé dédiée, créée sur console.anthropic.com, avec un plafond de dépense mensuel.
+        Elle reste dans ce téléphone. Chaque choix de tenues coûte de 0,50 à 0,85 $ et envoie une quinzaine de mégaoctets de photos — mieux vaut le wifi —, trois par jour au plus ; l'analyse d'une photo, environ un centime.</p>
+    </div>
+
+    <div class="bloc">
       <span class="legende">Météo automatique</span>
       <p id="texte-meteo" style="margin:0;font-size:14px;color:var(--texte-doux)"></p>
       <div style="display:flex;gap:9px">
@@ -470,6 +483,7 @@
       <img class="apercu" id="apercu" alt="">
       <input type="file" id="prise-photo" accept="image/*" hidden>
       <button type="button" class="secondaire" id="btn-photo">Prendre ou choisir une photo</button>
+      <button type="button" class="secondaire" id="btn-analyser" hidden>Remplir la fiche avec l'IA</button>
     </div>
 
     <div class="champ">
@@ -2471,10 +2485,10 @@ function rendreJour() {
   hote.innerHTML = etat.propositions.map((t, i) => `
     <article class="tenue">
       <div class="entete">
-        <span class="rang">Tenue ${i + 1}${t.origine === "rotation" ? " · à ressortir" : ""}</span>
-        ${jauge(t.note)}
+        <span class="rang">Tenue ${i + 1}${t.titre ? ` · ${echapper(t.titre)}` : t.origine === "rotation" ? " · à ressortir" : ""}</span>
+        ${t.origine === "opus" ? "" : jauge(t.note)}
       </div>
-      <p class="note">${t.detail.slice(0, 3).join(" · ") || "au plus proche"}</p>
+      <p class="note">${t.origine === "opus" ? echapper(t.raison) : t.detail.slice(0, 3).join(" · ") || "au plus proche"}</p>
       <div class="portant">
         ${t.pieces.map((p) => `
           <div class="piece">
@@ -2482,11 +2496,11 @@ function rendreJour() {
             <div class="etiq">${echapper(p.nom)}</div>
           </div>`).join("")}
       </div>
-      <details class="pourquoi">
+      ${t.origine === "opus" ? "" : `<details class="pourquoi">
         <summary>Pourquoi cette tenue ?</summary>
         ${argumenter(t.pieces, t).map((a) =>
           `<p><b>${echapper(a.titre)}</b> — ${echapper(a.texte)}</p>`).join("")}
-      </details>
+      </details>`}
       <div class="actions">
         <button class="secondaire porte" data-porte="${i}">Je porte ça</button>
         <button class="secondaire avis" data-avis="${i}" data-sens="1" aria-pressed="false" aria-label="J'aime">👍</button>
@@ -2497,7 +2511,8 @@ function rendreJour() {
       Montre-moi autre chose
     </button>
     <p style="font-size:11.5px;color:var(--texte-doux);text-align:center;margin:10px 0 0">
-      ${TENDANCES.regles.length
+      ${etat.propositions[0]?.origine === "opus" ? "Composé par Opus · chaque nouvelle demande compte dans les trois du jour"
+        : TENDANCES.regles.length
         ? `Tendances du ${echapper(TENDANCES.revision)}${etat.poidsTendance ? "" : " — ignorées"}`
         : "Règles de composition seules"}
     </p>`;
@@ -2592,6 +2607,7 @@ function rendreLacunes() {
 }
 
 function rendreJournal() {
+  rendreReglagesOpus();
   const histo = $("#historique");
   const recentes = [...etat.tenues].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
   histo.innerHTML = recentes.length ? recentes.map((t) => {
@@ -2651,22 +2667,32 @@ function rendre() {
 
 /* « Autre chose » écarte les pièces déjà vues, pour balayer la garde-robe
    plutôt que tourner autour des mêmes valeurs sûres. */
-function lancer(relance) {
-  if (relance) etat.propositions.forEach((t) => t.pieces.forEach((p) => etat.ecartees.add(p.id)));
-  else etat.ecartees.clear();
-
-  /* C'est Opus qui compose, et lui seul : s'il n'est pas joignable, rien
-     n'est proposé — consigne de la propriétaire, 21 octobre 2026. Tant qu'il
-     n'est pas branché, l'écran dit ce qui lui serait envoyé. */
-  const { fiches, retirees } = piecesEligibles();
-  const motifs = {};
-  for (const r of retirees) motifs[r.raison] = (motifs[r.raison] || 0) + 1;
-  etat.propositions = [];
-  $("#propositions").innerHTML = `<div class="vide"><strong>Opus n'est pas disponible</strong>
-    Le choix des tenues par Opus n'est pas encore branché : rien n'est proposé.
-    <span style="display:block;margin-top:10px;font-size:12.5px">Pour cette journée, ${fiches.length} pièce${fiches.length > 1 ? "s" : ""} lui
-    ${fiches.length > 1 ? "seraient envoyées" : "serait envoyée"}${retirees.length ? ` ; ${retirees.length} retirée${retirees.length > 1 ? "s" : ""} — ${
-      Object.entries(motifs).map(([m, n]) => `${n} ${echapper(m)}`).join(", ")}` : ""}.</span></div>`;
+/* C'est Opus qui compose, et lui seul : s'il n'est pas joignable, rien
+   n'est proposé — consigne de la propriétaire, 21 octobre 2026. */
+let enCours = false;
+async function lancer(relance) {
+  if (enCours) return;
+  const aEcarter = relance ? (etat.dejaVues || []) : [];
+  if (!relance) etat.dejaVues = [];
+  const { fiches } = piecesEligibles();
+  const hote = $("#propositions");
+  const attente = (texte) => { hote.innerHTML = `<div class="vide"><strong>Un instant</strong>${echapper(texte)}</div>`; };
+  enCours = true;
+  $("#btn-proposer").disabled = true;
+  attente("Opus regarde ta garde-robe…");
+  try {
+    etat.propositions = await composerAvecOpus({ fiches, aEcarter, progres: attente });
+    etat.dejaVues = [...aEcarter, ...etat.propositions.map((t) => t.pieces.map((p) => p.id))];
+    rendreJour();
+    if (relance) hote.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    etat.propositions = [];
+    hote.innerHTML = `<div class="vide"><strong>Opus n'est pas disponible</strong>${echapper(motifIndisponible(e))}.
+      <span style="display:block;margin-top:8px;font-size:12.5px">Rien n'est proposé.</span></div>`;
+  } finally {
+    enCours = false;
+    $("#btn-proposer").disabled = false;
+  }
 }
 
 async function enregistrerPort(tenue) {
@@ -2709,8 +2735,9 @@ function ouvrirFiche(piece) {
     : { id: null, nom: "", categorie: "tshirt", couleurs: [], saisons: [], coupe: "droit",
         registres: ["decontracte"], intemperies: "nc", photo: "", porteLe: [], ficheV: 5 };
 
-  $("#fiche-titre").textContent = piece ? "Modifier" : "Nouveau vêtement";
-  $("#btn-supprimer").hidden = !piece;
+  $("#fiche-titre").textContent = brouillon.id ? "Modifier" : "Nouveau vêtement";
+  $("#btn-analyser").hidden = !brouillon.photo;
+  $("#btn-supprimer").hidden = !brouillon.id;
   $("#nom").value = brouillon.nom;
   majApercu();
 
@@ -2784,7 +2811,34 @@ function ouvrirFiche(piece) {
      montrer quoi corriger. */
   $("#details-pieces").open = aVerifier(brouillon);
 
-  $("#fiche").showModal();
+  if (!$("#fiche").open) $("#fiche").showModal();
+}
+
+/* L'IA remplit ce qui ne l'est pas : le nom qu'elle a tapé, les saisons et
+   la pluie qu'elle a cochées restent les siens. */
+async function remplirAvecIA() {
+  const bouton = $("#btn-analyser");
+  bouton.disabled = true; bouton.textContent = "Analyse en cours…";
+  try {
+    brouillon.nom = $("#nom").value.trim() || brouillon.nom;
+    const lu = await analyserPhoto(brouillon);
+    const neuve = !brouillon.id;
+    if (!brouillon.nom) brouillon.nom = lu.nom;
+    if (neuve || brouillon.categorieADeviner) { brouillon.categorie = lu.categorie; delete brouillon.categorieADeviner; }
+    brouillon.couleurs = (lu.couleurs || []).slice(0, 2);
+    brouillon.coupe = lu.coupe;
+    if (neuve) brouillon.registres = lu.registres?.length ? lu.registres : brouillon.registres;
+    if (!(brouillon.saisons || []).length) brouillon.saisons = lu.saisons || [];
+    if (!brouillon.intemperies || brouillon.intemperies === "nc") brouillon.intemperies = lu.intemperies;
+    Object.assign(brouillon, { motif: lu.motif, longueur: lu.longueur, matiere: lu.matiere, description: lu.description,
+      analyseeLe: aujourdhui() });
+    ouvrirFiche(brouillon);
+    toast("Fiche remplie — vérifie, puis enregistre");
+  } catch (e) {
+    toast("Analyse impossible : " + motifIndisponible(e));
+  } finally {
+    bouton.disabled = false; bouton.textContent = "Remplir la fiche avec l'IA";
+  }
 }
 
 const nomCouleur = (id) => (COULEURS.find((c) => c.id === id) || {}).nom?.toLowerCase() || id;
@@ -2859,6 +2913,338 @@ async function supprimerPiece() {
   $("#fiche").close();
   rendre();
   toast("Supprimé");
+}
+
+/* ═══════════ Opus et l'analyse des photos ═══════════
+   Depuis le 21 octobre 2026, c'est Opus 5.5 qui compose les tenues, seul,
+   en voyant la photo et la fiche de chaque pièce que les éliminations ont
+   laissée. Il n'y a pas de repli : s'il n'est pas joignable — pas de clé,
+   hors ligne, limite du jour atteinte, erreur —, l'application le dit et ne
+   propose rien. C'est la consigne de la propriétaire.
+
+   La clé d'API est la sienne, saisie dans l'application et rangée dans ce
+   téléphone seulement : une page publiée sur GitHub ne peut pas garder de
+   secret. Elle doit être une clé dédiée, avec un plafond de dépense mensuel
+   réglé dans la console Anthropic.
+
+   Les photos partent avec chaque demande, réduites à 512 pixels de côté. Le
+   dépôt une fois pour toutes (API Files) était prévu, mais il refuse les
+   appels venus d'un navigateur — essai du 21 octobre 2026 —, alors que
+   l'API des messages les accepte. À leur taille d'origine, 230 photos
+   pèseraient 40 Mo, au-delà des 32 Mo qu'accepte une requête ; réduites,
+   elles en pèsent une quinzaine, et coûtent moins de jetons. */
+
+const IA = {
+  /* Le SDK officiel, chargé à la demande depuis un CDN, à une version figée. */
+  sdk: "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.70.1/+esm",
+  modeleTenues: "claude-opus-5-5",
+  modeleAnalyse: "claude-sonnet-5-5",
+  /* Trois compositions par jour au plus : à ~0,70 $ l'appel, c'est le
+     garde-fou qu'elle a voulu. L'analyse d'une photo (~1 centime) n'y compte pas. */
+  plafondJour: 3,
+  betas: ["server-side-fallback-2026-07-01"],
+  /* Le côté le plus long d'une photo envoyée à Opus. */
+  cotePhoto: 512,
+};
+
+class Indisponible extends Error {}
+
+let clientIA = null;
+async function clientAnthropic() {
+  const cle = (await DB.prendre("reglages", "cleApi"))?.valeur;
+  if (!cle) throw new Indisponible("aucune clé d'API n'est enregistrée — voir Journal › Opus");
+  if (clientIA?.cle !== cle) {
+    let Anthropic;
+    try { ({ default: Anthropic } = await import(IA.sdk)); }
+    catch { throw new Indisponible("impossible de joindre Anthropic — es-tu connectée ?"); }
+    clientIA = { cle, c: new Anthropic({ apiKey: cle, dangerouslyAllowBrowser: true }) };
+  }
+  return clientIA.c;
+}
+
+/* Les erreurs de l'API, dites en clair. */
+function motifIndisponible(e) {
+  if (e instanceof Indisponible) return e.message;
+  const s = e?.status;
+  if (s === 401) return "la clé d'API est refusée — vérifie-la dans Journal › Opus";
+  if (s === 429) return "trop de demandes d'un coup chez Anthropic — réessaie dans une minute";
+  if (s === 402 || /credit|billing/i.test(e?.message || "")) return "le crédit du compte Anthropic est épuisé ou le plafond mensuel atteint";
+  if (s >= 500) return "Anthropic ne répond pas pour l'instant";
+  if (!navigator.onLine) return "pas de connexion";
+  return "erreur inattendue (" + (e?.message || e) + ")";
+}
+
+async function appelsDuJour() {
+  const r = (await DB.prendre("reglages", "appelsOpus"))?.valeur;
+  return r && r.date === aujourdhui() ? r.n : 0;
+}
+async function compterAppel() {
+  await DB.poser("reglages", { cle: "appelsOpus", valeur: { date: aujourdhui(), n: (await appelsDuJour()) + 1 } });
+}
+
+/* ═══════════ Les photos, réduites pour Opus ═══════════
+   Réduites une fois par session et gardées en mémoire : « Montre-moi autre
+   chose » ne refait pas le travail. */
+const photosReduites = new Map();
+function reduirePhoto(p) {
+  const deja = photosReduites.get(p.id);
+  if (deja?.source === p.photo) return Promise.resolve(deja.data);
+  return new Promise((ok, ko) => {
+    const img = new Image();
+    img.onload = () => {
+      const r = Math.min(1, IA.cotePhoto / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      const data = c.toDataURL("image/jpeg", 0.8).split(",")[1];
+      photosReduites.set(p.id, { source: p.photo, data });
+      ok(data);
+    };
+    img.onerror = () => ko(new Error("photo illisible"));
+    img.src = p.photo;
+  });
+}
+
+/* ═══════════ La composition ═══════════ */
+
+/* Ce qu'Opus lit de chaque pièce : tout ce qu'elle a rempli, et la
+   description de l'analyse. Les noms de valeurs sont en clair. */
+const nomDe = (liste, id) => liste.find((x) => x.id === id)?.nom || id;
+function ficheLue(p) {
+  return {
+    id: p.id, nom: p.nom,
+    categorie: nomDe(CATEGORIES, p.categorie),
+    couleurs: (p.couleurs || []).map((c) => nomDe(COULEURS, c)),
+    coupe: nomDe(COUPES, p.coupe),
+    registres: (p.registres || []).map((r) => nomDe(REGISTRES, r)),
+    saisons: (p.saisons || []).length ? p.saisons.map((s) => nomDe(SAISONS, s)) : "toute l'année",
+    pluie: nomDe(INTEMPERIES, p.intemperies),
+    ...(p.motif ? { motif: nomDe(MOTIFS, p.motif) } : {}),
+    ...(p.longueur ? { longueur: nomDe(LONGUEURS, p.longueur) } : {}),
+    ...(p.matiere ? { matiere: nomDe(MATIERES, p.matiere) } : {}),
+    ...(p.description ? { description: p.description } : {}),
+  };
+}
+
+const CONSIGNE_TENUES = `Tu es la styliste personnelle de la propriétaire de cette garde-robe. Pour la journée décrite, tu composes les trois tenues les plus réussies avec ses vêtements, et seulement avec eux.
+
+Chaque pièce t'est montrée en photo, avec sa fiche. Les photos sont prises chez elle, à plat ou sur cintre : la lumière et le fond varient. La fiche, elle, fait foi — ce qu'elle a coché (catégorie, saisons, registre, pluie) et ce que dit le nom qu'elle a donné l'emportent sur ce que tu crois voir.
+
+Les pièces impossibles pour la journée ont déjà été retirées (saison, registre, pluie). Tout ce que tu vois est permis ; à toi de juger le reste : la température, le style, ce qui va avec quoi.
+
+Comment une tenue se compose :
+- un haut (tee-shirt, chemise, crop top, blouse, débardeur, top) et un bas (jupe, short, jupe-short, bermuda, pantalon) — ou une pièce d'un seul tenant (robe, combinaison, salopette) — et une paire de chaussures ;
+- par-dessus, jusqu'à trois couches : pull, gilet, veste, manteau. Un pull peut aussi se porter seul, à la place du haut ;
+- une chemise se porte fermée comme un haut, ou ouverte par-dessus un tee-shirt, un débardeur ou un top ;
+- un pull fin ne se met pas sur un tee-shirt : deux épaisseurs égales l'une sur l'autre, c'est deux tee-shirts. Un pull fin se porte seul, ou sous un gilet, une veste, un manteau, un gros pull ;
+- une pièce transparente (mesh, résille, tulle) peut se glisser sous tout : un tee-shirt, une robe ;
+- un sous-pull va sous une robe ou une salopette, mais une robe d'été faite pour se porter seule se porte seule ;
+- une pièce des beaux jours et une pièce qui fuit l'été ne vont pas ensemble ;
+- des accessoires si la tenue y gagne : ceinture, foulard, couvre-chef, sac — au plus un de chaque.
+
+Pense à la température : par temps froid, une tenue doit tenir chaud dehors ; par temps chaud, pas de couche de trop. Par pluie faible, mieux vaut des chaussures et une couche qui supportent l'eau.
+
+Tes trois tenues ne partagent ni haut, ni bas, ni pièce d'un seul tenant : trois propositions autour du même tee-shirt donnent l'impression de tourner en rond. Les couches, les chaussures et les accessoires peuvent revenir.
+
+Les identifiants doivent être repris exactement, tels qu'ils figurent dans les fiches. N'invente aucune pièce.
+
+Pour chaque tenue, un titre court et deux ou trois phrases pour elle, comme une amie styliste : ce qui fait tenir la tenue, comment la porter (rentrer la blouse, ouvrir la chemise, retrousser les manches), et sa réserve s'il y en a une. Nomme les vêtements, jamais leurs identifiants.`;
+
+const SCHEMA_TENUES = {
+  type: "object",
+  properties: {
+    tenues: {
+      type: "array",
+      description: "Exactement trois tenues, de la plus réussie à la moins réussie.",
+      items: {
+        type: "object",
+        properties: {
+          titre: { type: "string", description: "Quelques mots : « Bureau en camaïeu de beiges »." },
+          pieces: { type: "array", items: { type: "string" }, description: "Les identifiants exacts des pièces, de la plus intérieure à la plus extérieure." },
+          raison: { type: "string", description: "Deux ou trois phrases pour elle." },
+        },
+        required: ["titre", "pieces", "raison"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["tenues"],
+  additionalProperties: false,
+};
+
+/* La journée, et ce qu'elle a déjà dit de ses goûts. */
+function contexteDuJour(fiches, aEcarter) {
+  const journee = ACTIVITES.find((a) => a.id === etat.activite);
+  const lignes = [
+    `La journée : ${journee.nom}${journee.detail ? ` (${journee.detail})` : ""}.`,
+    `Le temps : ${nomDe(METEOS, etat.meteo)}. Température : ${nomDe(TEMPS, etat.temp)} (${TEMPS.find((t) => t.id === etat.temp).detail}). Saison : ${nomDe(SAISONS, etat.saison)}.`,
+  ];
+  if (etat.releve?.degres !== undefined) lignes.push(`Ressenti maximal prévu : ${etat.releve.degres} °C.`);
+  const presentes = new Map(fiches.map((p) => [p.id, p]));
+  const refusees = etat.avis.filter((a) => a.score < 0).map((a) => a.paire.split("|"))
+    .filter(([x, y]) => presentes.has(x) && presentes.has(y))
+    .map(([x, y]) => `« ${presentes.get(x).nom} » avec « ${presentes.get(y).nom} »`);
+  if (refusees.length) lignes.push(`Associations qu'elle n'aime pas, à ne pas reproposer : ${refusees.join(" ; ")}.`);
+  const semaine = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  const portees = [...new Set(etat.tenues.filter((t) => t.date >= semaine).flatMap((t) => t.pieces))]
+    .filter((id) => presentes.has(id)).map((id) => presentes.get(id).nom);
+  if (portees.length) lignes.push(`Pièces portées ces sept derniers jours — à faire tourner si possible : ${portees.join(", ")}.`);
+  if (TENDANCES.regles?.length && etat.poidsTendance) {
+    const t = TENDANCES.regles.filter((r) => r.type !== "descriptive").slice(0, 12).map((r) => r.note || r.valeur).filter(Boolean);
+    if (t.length) lignes.push(`Ce qui se porte en ce moment, sans en faire une obsession : ${t.join(" ; ")}.`);
+  }
+  if (aEcarter.length) lignes.push(`Elle a déjà vu ces tenues aujourd'hui et en veut d'autres : ${aEcarter.map((ids) => ids.map((id) => presentes.get(id)?.nom).filter(Boolean).join(" + ")).join(" ; ")}. Propose-lui autre chose.`);
+  lignes.push("Compose ses trois tenues.");
+  return lignes.join("\n");
+}
+
+/* Ce qu'on vérifie, sans juger le style : des pièces qui existent et sont
+   permises, une tenue complète, pas de pièce de base partagée. */
+function verifierTenues(tenues, fiches) {
+  const parId = new Map(fiches.map((p) => [p.id, p]));
+  const bonnes = [], erreurs = [];
+  const basesVues = new Set();
+  for (const [k, t] of tenues.entries()) {
+    const ps = t.pieces.map((id) => parId.get(id));
+    const role = (r) => ps.filter((p) => p && roleDe(p.categorie) === r);
+    const probleme =
+      ps.some((p) => !p) ? `la tenue ${k + 1} cite une pièce inconnue ou retirée`
+      : new Set(t.pieces).size !== t.pieces.length ? `la tenue ${k + 1} cite deux fois la même pièce`
+      : role("chaussures").length !== 1 ? `la tenue ${k + 1} doit avoir une paire de chaussures, une seule`
+      : role("une-piece").length > 1 ? `la tenue ${k + 1} a deux pièces d'un seul tenant`
+      : role("une-piece").length && role("bas").length ? `la tenue ${k + 1} associe une robe et un bas`
+      : !role("une-piece").length && (role("bas").length !== 1 || !(role("haut").length || ps.some((p) => p.categorie === "pull"))) ? `la tenue ${k + 1} n'a pas un haut et un bas`
+      : role("couche").length + role("manteau").length > 3 ? `la tenue ${k + 1} empile plus de trois couches`
+      : ps.filter((p) => ["haut", "bas", "une-piece"].includes(roleDe(p.categorie))).some((p) => basesVues.has(p.id)) ? `la tenue ${k + 1} reprend un haut, un bas ou une robe d'une autre tenue`
+      : null;
+    if (probleme) { erreurs.push(probleme); continue; }
+    ps.filter((p) => ["haut", "bas", "une-piece"].includes(roleDe(p.categorie))).forEach((p) => basesVues.add(p.id));
+    bonnes.push({ titre: t.titre, raison: t.raison, pieces: ps, origine: "opus" });
+  }
+  return { bonnes, erreurs };
+}
+
+async function composerAvecOpus({ fiches, aEcarter = [], progres }) {
+  if ((await appelsDuJour()) >= IA.plafondJour)
+    throw new Indisponible(`la limite de ${IA.plafondJour} demandes par jour est atteinte — à demain`);
+  const client = await clientAnthropic();
+
+  /* La garde-robe, sans mise en cache. Le cache facture son écriture 25 % plus
+     cher, et ne rembourse que si « Montre-moi autre chose » suit dans les cinq
+     minutes : sur les essais du 21 octobre 2026, il faisait passer une demande
+     de 0,84 à 1,04 $. Une demande par jour est le cas ordinaire. */
+  const garde = [];
+  let n = 0;
+  for (const p of fiches) {
+    garde.push({ type: "text", text: `Pièce ${p.id} :\n${JSON.stringify(ficheLue(p))}` });
+    if (p.photo) {
+      try { garde.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: await reduirePhoto(p) } }); }
+      catch { /* une photo illisible n'empêche pas les autres */ }
+    }
+    if (++n % 20 === 0) progres?.(`Préparation des photos : ${n} / ${fiches.length}`);
+  }
+
+  const demander = async (supplement) => {
+    progres?.("Opus compose tes tenues… (30 secondes à une minute)");
+    const flux = client.beta.messages.stream({
+      model: IA.modeleTenues,
+      max_tokens: 16000,
+      betas: IA.betas,
+      fallbacks: "default",
+      system: CONSIGNE_TENUES,
+      output_config: { effort: "high", format: { type: "json_schema", schema: SCHEMA_TENUES } },
+      messages: [{ role: "user", content: [...garde, { type: "text", text: contexteDuJour(fiches, aEcarter) + (supplement || "") }] }],
+    });
+    const reponse = await flux.finalMessage();
+    /* Seul un appel qui a abouti compte dans les trois du jour : une clé
+       refusée ou une coupure ne coûtent rien. */
+    await compterAppel();
+    IA.surReponse?.(reponse);   // pour les bancs hors ligne : jetons, durée
+    if (reponse.stop_reason === "refusal") throw new Indisponible("Opus a décliné la demande");
+    const texte = reponse.content.find((b) => b.type === "text")?.text;
+    if (!texte) throw new Indisponible("Opus n'a rien répondu");
+    return JSON.parse(texte).tenues || [];
+  };
+
+  let { bonnes, erreurs } = verifierTenues(await demander(), fiches);
+  /* Une seule reprise, et seulement si rien n'est utilisable : chaque appel
+     coûte. On lui dit ce qui n'allait pas. */
+  if (!bonnes.length && erreurs.length) {
+    if ((await appelsDuJour()) >= IA.plafondJour) throw new Indisponible(`ses tenues étaient incomplètes, et la limite du jour est atteinte`);
+    ({ bonnes, erreurs } = verifierTenues(await demander(`\n\nTa réponse précédente n'était pas utilisable : ${erreurs.join(" ; ")}. Recommence en respectant ces points.`), fiches));
+  }
+  if (!bonnes.length) throw new Indisponible("ses tenues ne respectaient pas les règles de composition");
+  return bonnes;
+}
+
+/* ═══════════ L'analyse d'une photo, dans la fiche ═══════════
+   Sonnet 5.5 à effort élevé : la consigne de l'analyse par lots (outils/
+   analyse-photos.mjs), resserrée sur la fiche version 5. Ce qu'elle a déjà
+   rempli dans la fiche n'est jamais écrasé. ~1 centime la photo. */
+const SCHEMA_ANALYSE = {
+  type: "object",
+  properties: {
+    nom: { type: "string", description: "Nom court en français : « chemise en lin blanc »." },
+    categorie: { type: "string", enum: CATEGORIES.map((c) => c.id) },
+    couleurs: { type: "array", items: { type: "string", enum: COULEURS.map((c) => c.id) }, description: "Une ou deux nuances de la palette, la dominante d'abord." },
+    coupe: { type: "string", enum: COUPES.map((c) => c.id) },
+    registres: { type: "array", items: { type: "string", enum: REGISTRES.map((r) => r.id) }, description: "Tous les registres où la pièce se porte." },
+    saisons: { type: "array", items: { type: "string", enum: SAISONS.map((s) => s.id) }, description: "Vide = toute l'année. Un haut qui ne se porte pas sous un pull (bretelles fines, crop, body, ajouré, dénudé) : printemps et été." },
+    intemperies: { type: "string", enum: INTEMPERIES.map((x) => x.id), description: "non : se mouille et s'abîme (chaussures, vestes, manteaux, sacs qui ne résistent pas) ; resiste : imperméable ; nc : la question ne se pose pas (hauts, bas, robes…)." },
+    motif: { type: "string", enum: MOTIFS.map((m) => m.id).filter(Boolean) },
+    longueur: { type: "string", enum: ["", ...LONGUEURS.map((l) => l.id).filter(Boolean)] },
+    matiere: { type: "string", enum: MATIERES.map((m) => m.id).filter(Boolean) },
+    description: { type: "string", description: "Deux phrases sur ce qu'on voit en main : matière et tissage, coupe précise, détails de construction." },
+  },
+  required: ["nom", "categorie", "couleurs", "coupe", "registres", "saisons", "intemperies", "motif", "longueur", "matiere", "description"],
+  additionalProperties: false,
+};
+const CONSIGNE_ANALYSE = `Tu regardes la photo d'un vêtement, prise chez sa propriétaire, pour remplir sa fiche dans une application de garde-robe. Décris la pièce telle qu'elle est. Une pièce posée à plat ou sur cintre est le cas ordinaire : choisis l'option la plus probable. Le nom qu'elle a pu donner fait foi pour ce qu'il affirme (couleur, matière, détail).
+
+La catégorie dit la place dans la tenue : un pull se porte seul ou par-dessus un haut, un gilet et une veste par-dessus, une chemise est une chemise. Le motif est une affaire de couleur, pas de relief : une dentelle ou une maille côtelée unie reste unie. Les couleurs se choisissent dans la palette : la nuance la plus juste (écru, camel, kaki, bordeaux…), pas la plus proche par défaut.`;
+
+async function analyserPhoto(brouillon) {
+  const client = await clientAnthropic();
+  const [entete, data] = brouillon.photo.split(",");
+  const reponse = await client.beta.messages.create({
+    model: IA.modeleAnalyse,
+    max_tokens: 4000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    system: CONSIGNE_ANALYSE,
+    output_config: { effort: "high", format: { type: "json_schema", schema: SCHEMA_ANALYSE } },
+    messages: [{ role: "user", content: [
+      { type: "image", source: { type: "base64", media_type: /data:([^;]+)/.exec(entete)?.[1] || "image/jpeg", data } },
+      { type: "text", text: brouillon.nom ? `Elle a nommé cette pièce « ${brouillon.nom} ».` : "La pièce n'a pas encore de nom." },
+    ] }],
+  });
+  if (reponse.stop_reason === "refusal") throw new Indisponible("l'analyse a été déclinée");
+  return JSON.parse(reponse.content.find((b) => b.type === "text")?.text || "{}");
+}
+
+/* ═══════════ Les réglages d'Opus, dans le Journal ═══════════ */
+async function rendreReglagesOpus() {
+  const cle = (await DB.prendre("reglages", "cleApi"))?.valeur;
+  const n = await appelsDuJour();
+  $("#texte-opus").textContent = cle
+    ? `Clé enregistrée (…${cle.slice(-4)}). Aujourd'hui : ${n} demande${n > 1 ? "s" : ""} sur ${IA.plafondJour}.`
+    : "Aucune clé : Opus n'est pas disponible. Colle ici une clé d'API Anthropic dédiée à l'application.";
+  $("#btn-oublier-cle").hidden = !cle;
+}
+async function enregistrerCle() {
+  const cle = $("#cle-api").value.trim();
+  if (!/^sk-ant-/.test(cle)) return toast("Ce n'est pas une clé d'API Anthropic (elle commence par sk-ant-)");
+  await DB.poser("reglages", { cle: "cleApi", valeur: cle });
+  $("#cle-api").value = "";
+  clientIA = null;
+  await rendreReglagesOpus();
+  toast("Clé enregistrée dans ce téléphone");
+}
+async function oublierCle() {
+  if (!confirm("Effacer la clé d'API de ce téléphone ? Opus ne sera plus disponible.")) return;
+  await DB.retirer("reglages", "cleApi");
+  clientIA = null;
+  await rendreReglagesOpus();
 }
 
 /* ═══════════ Sauvegarde ═══════════ */
@@ -3105,6 +3491,9 @@ async function demarrer() {
   $("#btn-enregistrer").onclick = enregistrerPiece;
   $("#btn-supprimer").onclick = supprimerPiece;
   $("#btn-photo").onclick = () => $("#prise-photo").click();
+  $("#btn-analyser").onclick = remplirAvecIA;
+  $("#btn-cle").onclick = enregistrerCle;
+  $("#btn-oublier-cle").onclick = oublierCle;
   $("#prise-photo").onchange = async (e) => {
     const f = e.target.files[0];
     if (!f) return;
@@ -3112,6 +3501,7 @@ async function demarrer() {
       const { photo, couleurs } = await photoCompacte(f);
       brouillon.photo = photo;
       majApercu();
+      $("#btn-analyser").hidden = false;
       /* La lecture propose, elle ne décide pas : elle ne touche aux couleurs
          que si tu n'en as pas encore choisi. */
       if (couleurs.length && !brouillon.couleurs.length) {
