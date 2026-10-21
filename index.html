@@ -314,6 +314,13 @@
     background: var(--lin-creux); border: 1px solid var(--trait);
   }
   .pastilles { display: flex; flex-wrap: wrap; gap: 8px; }
+  #choix-couleurs { display: flex; flex-direction: column; gap: 10px; }
+  .famille > span { display: block; font-size: 11.5px; color: var(--texte-doux); margin-bottom: 5px; }
+  .apercu-couleurs { display: flex; gap: 8px; flex-wrap: wrap; min-height: 34px; }
+  .nuance { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px;
+    border: 1px solid var(--bord, #e6e1d8); border-radius: 18px; font-size: 13px; }
+  .nuance i { width: 24px; height: 24px; border-radius: 12px; border: 1px solid #0002; display: block; }
+  .nuance.vide { color: var(--texte-doux); padding-left: 12px; }
   .pastille {
     width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--trait);
     padding: 0; position: relative;
@@ -477,7 +484,8 @@
 
     <div class="champ">
       <span class="legende">Couleurs — une ou deux</span>
-      <div class="pastilles" id="choix-couleurs"></div>
+      <div class="apercu-couleurs" id="apercu-couleurs"></div>
+      <div id="choix-couleurs"></div>
       <p id="lu-photo" hidden style="margin:0;font-size:12.5px;color:var(--accent)"></p>
     </div>
 
@@ -492,14 +500,8 @@
     </div>
 
     <div class="champ">
-      <span class="legende">Chaleur</span>
-      <div class="curseur" id="choix-chaleur"></div>
-    </div>
-
-    <div class="champ">
-      <span class="legende">Registre — un appui, ou deux pour un intervalle</span>
-      <div class="curseur" id="choix-formalite"></div>
-      <p id="aide-formalite" style="margin:0;font-size:12.5px;color:var(--texte-doux)"></p>
+      <span class="legende">Registre — coche tout ce qui convient</span>
+      <div class="choix" id="choix-registres"></div>
     </div>
 
     <div class="champ">
@@ -534,74 +536,143 @@
 (() => {
 "use strict";
 
-/* ═══════════ Référentiels ═══════════ */
+/* ═══════════ Référentiels ═══════════
+   Version 5, dictée par la propriétaire le 21 octobre 2026 : cinq temps, trois
+   températures, trois journées, vingt-trois catégories, une palette de
+   nuances, cinq coupes, un registre en cases à cocher. La chaleur et les
+   passants de ceinture ont disparu de la fiche.
+
+   L'ancien moteur de règles, lui, parlait la langue d'avant (sept catégories,
+   chaleur, registre en intervalle). Il ne compose plus pour la propriétaire —
+   c'est Opus qui le fera — mais il sert encore aux bancs d'essai et aux
+   conseils ; il reçoit donc une traduction des fiches, `versMoteur`, plus
+   bas. */
 
 const METEOS = [
-  { id: "soleil", nom: "Soleil", pict: "☀️" },
-  { id: "nuages", nom: "Nuages", pict: "☁️" },
-  { id: "pluie",  nom: "Pluie",  pict: "🌧️" },
-  { id: "neige",  nom: "Neige",  pict: "❄️" },
+  { id: "soleil",   nom: "Soleil",       pict: "☀️" },
+  { id: "nuages",   nom: "Nuageux",      pict: "☁️" },
+  { id: "bruine",   nom: "Pluie faible", pict: "🌦️" },
+  { id: "pluie",    nom: "Pluvieux",     pict: "🌧️" },
+  { id: "neige",    nom: "Neige",        pict: "❄️" },
 ];
+/* Ce qui retire les pièces « Non » aux intempéries. La pluie faible ne
+   retire rien : c'est la règle de la propriétaire. */
+const MOUILLE = (meteo) => meteo === "pluie" || meteo === "neige";
 
-/* Cibles recalculées le 19 août 2026 pour l'échelle à quatre crans. Elles se
-   lisent comme des sommes de tenue : trois pièces légères font 3, un pull
-   moyen ajoute 2, un manteau chaud 3, une doudoune 4. */
+/* Les seuils sont les siens : moins de 15°, de 15 à 25°, plus de 25°.
+   `cible` ne sert qu'à l'ancien moteur, qui lit la tenue comme une somme de
+   chaleurs. */
 const TEMPS = [
-  { id: "chaud", nom: "Chaud",  pict: "🔥", cible: 3,  detail: "22°+" },
-  { id: "doux",  nom: "Doux",   pict: "🌤️", cible: 5,  detail: "12–22°" },
-  { id: "frais", nom: "Frais",  pict: "🍂", cible: 7,  detail: "3–12°" },
-  { id: "froid", nom: "Froid",  pict: "🥶", cible: 9,  detail: "< 3°" },
+  { id: "froid", nom: "Froid", pict: "🥶", cible: 8, detail: "< 15°" },
+  { id: "doux",  nom: "Doux",  pict: "🌤️", cible: 5, detail: "15–25°" },
+  { id: "chaud", nom: "Chaud", pict: "🔥", cible: 3, detail: "25°+" },
 ];
 
-/* `cible` est le registre visé ; `plancher` est celui en dessous duquel une
-   pièce devient inacceptable. Les deux ne se déduisent pas l'un de l'autre :
-   le travail impose un plancher — un minishort reste un minishort quoi qu'on
-   mette au-dessus — alors qu'un loisir accepte tout, du survêtement à la
-   chemise. */
+/* `registres` : ce que la journée accepte — une pièce doit en avoir au moins
+   un de coché. `cible`, `plancher` et `plafond` traduisent la même règle pour
+   l'ancien moteur, sur l'échelle décontracté 2, soigné 3, habillé 4. */
 const ACTIVITES = [
-  { id: "travail",  nom: "Travail",  pict: "💼", cible: 3,   plancher: 3 },
-  { id: "loisir",   nom: "Loisir",   pict: "🚲", cible: 2,   plancher: 1 },
-  { id: "vacances", nom: "Vacances", pict: "🌴", cible: 1.5, plancher: 1 },
+  { id: "travail", nom: "Travail",        pict: "💼", registres: ["decontracte", "soigne"], cible: 2.5, plancher: 2, plafond: 3 },
+  { id: "chill",   nom: "Loisir chill",   pict: "🥐", registres: ["decontracte", "soigne"], cible: 2.2, plancher: 2, plafond: 3,
+    detail: "brunch, sortie en ville" },
+  { id: "habille", nom: "Loisir habillé", pict: "🥂", registres: ["soigne", "habille"],     cible: 3.5, plancher: 3, plafond: 4,
+    detail: "dîner, soirée, cocktail" },
 ];
 
+/* Le rôle dit où la pièce se place dans une tenue ; il n'est pas affiché.
+   Jusqu'à trois couches au-dessus du haut ; un pull se porte seul ou
+   par-dessus ; une chemise fermée comme un haut, ou ouverte par-dessus. */
 const CATEGORIES = [
-  { id: "haut",        nom: "Haut",        pict: "👕" },
-  { id: "bas",         nom: "Bas",         pict: "👖" },
-  { id: "robe",        nom: "Robe",        pict: "👗" },
-  { id: "pull",        nom: "Pull",        pict: "🧶" },
-  { id: "manteau",     nom: "Manteau",     pict: "🧥" },
-  { id: "chaussures",  nom: "Chaussures",  pict: "👞" },
-  { id: "accessoire",  nom: "Accessoire",  pict: "🧣" },
+  { id: "tshirt",      nom: "Tee-shirt",   role: "haut",       pict: "👕" },
+  { id: "chemise",     nom: "Chemise",     role: "haut",       pict: "👔" },
+  { id: "croptop",     nom: "Crop top",    role: "haut",       pict: "🎽" },
+  { id: "blouse",      nom: "Blouse",      role: "haut",       pict: "👚" },
+  { id: "debardeur",   nom: "Débardeur",   role: "haut",       pict: "🎽" },
+  { id: "top",         nom: "Top",         role: "haut",       pict: "👚" },
+  { id: "pull",        nom: "Pull",        role: "couche",     pict: "🧶" },
+  { id: "gilet",       nom: "Gilet",       role: "couche",     pict: "🧶" },
+  { id: "veste",       nom: "Veste",       role: "couche",     pict: "🧥" },
+  { id: "jupe",        nom: "Jupe",        role: "bas",        pict: "👗" },
+  { id: "short",       nom: "Short",       role: "bas",        pict: "🩳" },
+  { id: "jupeshort",   nom: "Jupe-short",  role: "bas",        pict: "🩳" },
+  { id: "bermuda",     nom: "Bermuda",     role: "bas",        pict: "🩳" },
+  { id: "pantalon",    nom: "Pantalon",    role: "bas",        pict: "👖" },
+  { id: "robe",        nom: "Robe",        role: "une-piece",  pict: "👗" },
+  { id: "combinaison", nom: "Combinaison", role: "une-piece",  pict: "👗" },
+  { id: "salopette",   nom: "Salopette",   role: "une-piece",  pict: "👗" },
+  { id: "manteau",     nom: "Manteau",     role: "manteau",    pict: "🧥" },
+  { id: "chaussures",  nom: "Chaussures",  role: "chaussures", pict: "👞" },
+  { id: "ceinture",    nom: "Ceinture",    role: "accessoire", pict: "🪢" },
+  { id: "foulard",     nom: "Foulard",     role: "accessoire", pict: "🧣" },
+  { id: "couvrechef",  nom: "Couvre-chef", role: "accessoire", pict: "🧢" },
+  { id: "sac",         nom: "Sac",         role: "accessoire", pict: "👜" },
+];
+const roleDe = (categorie) => CATEGORIES.find((c) => c.id === categorie)?.role || "haut";
+
+/* Une palette de nuances rangées par famille. `neutre` : se porte avec tout ;
+   `ton` : pour reconnaître un camaïeu. */
+const PALETTE = [
+  { famille: "Neutres", couleurs: [
+    { id: "noir", nom: "Noir", hex: "#1A1A1C", neutre: true, ton: "achrome" },
+    { id: "anthracite", nom: "Anthracite", hex: "#3A3D42", neutre: true, ton: "achrome" },
+    { id: "gris", nom: "Gris", hex: "#8C8F96", neutre: true, ton: "achrome" },
+    { id: "grisclair", nom: "Gris clair", hex: "#C9CBCF", neutre: true, ton: "achrome" },
+    { id: "blanc", nom: "Blanc", hex: "#F7F5F0", neutre: true, ton: "achrome" },
+    { id: "ecru", nom: "Écru", hex: "#EFE6D2", neutre: true, ton: "chaud" } ] },
+  { famille: "Beiges et bruns", couleurs: [
+    { id: "beige", nom: "Beige", hex: "#D8C6A8", neutre: true, ton: "chaud" },
+    { id: "taupe", nom: "Taupe", hex: "#8B7D6B", neutre: true, ton: "chaud" },
+    { id: "camel", nom: "Camel", hex: "#C19A6B", neutre: true, ton: "chaud" },
+    { id: "cognac", nom: "Cognac", hex: "#9A5B2E", neutre: true, ton: "chaud" },
+    { id: "marron", nom: "Marron", hex: "#6B4A31", neutre: true, ton: "chaud" },
+    { id: "chocolat", nom: "Chocolat", hex: "#4A3121", neutre: true, ton: "chaud" } ] },
+  { famille: "Rouges et roses", couleurs: [
+    { id: "rouge", nom: "Rouge", hex: "#A32E28", ton: "chaud" },
+    { id: "bordeaux", nom: "Bordeaux", hex: "#6D1F2A", ton: "chaud" },
+    { id: "corail", nom: "Corail", hex: "#E07A5F", ton: "chaud" },
+    { id: "rosepale", nom: "Rose pâle", hex: "#E8C4CB", ton: "chaud" },
+    { id: "rose", nom: "Rose", hex: "#C07B8E", ton: "chaud" },
+    { id: "fuchsia", nom: "Fuchsia", hex: "#C2357A", ton: "chaud" } ] },
+  { famille: "Jaunes et orangés", couleurs: [
+    { id: "jaune", nom: "Jaune", hex: "#E3C14A", ton: "chaud" },
+    { id: "moutarde", nom: "Moutarde", hex: "#C9A03A", ton: "chaud" },
+    { id: "orange", nom: "Orange", hex: "#C4692A", ton: "chaud" },
+    { id: "rouille", nom: "Rouille", hex: "#A4532B", ton: "chaud" } ] },
+  { famille: "Verts", couleurs: [
+    { id: "sauge", nom: "Sauge", hex: "#9CAF88", ton: "froid" },
+    { id: "vert", nom: "Vert", hex: "#48704C", ton: "froid" },
+    { id: "kaki", nom: "Kaki", hex: "#6B6B3A", ton: "froid" },
+    { id: "sapin", nom: "Vert sapin", hex: "#2F4A35", ton: "froid" } ] },
+  { famille: "Bleus", couleurs: [
+    { id: "bleuciel", nom: "Bleu ciel", hex: "#9CC3E0", ton: "froid" },
+    { id: "bleu", nom: "Bleu", hex: "#2E6E9E", ton: "froid" },
+    { id: "denim", nom: "Denim", hex: "#5A7295", neutre: true, ton: "froid" },
+    { id: "marine", nom: "Marine", hex: "#22304F", neutre: true, ton: "froid" } ] },
+  { famille: "Violets", couleurs: [
+    { id: "lavande", nom: "Lavande", hex: "#B4A3CC", ton: "froid" },
+    { id: "violet", nom: "Violet", hex: "#6A4A82", ton: "froid" },
+    { id: "prune", nom: "Prune", hex: "#5B2C4A", ton: "froid" } ] },
+  { famille: "Métaux", couleurs: [
+    { id: "dore", nom: "Doré", hex: "#C9A44C", neutre: true, ton: "achrome" },
+    { id: "argente", nom: "Argenté", hex: "#B8BCC2", neutre: true, ton: "achrome" } ] },
+];
+const COULEURS = PALETTE.flatMap((f) => f.couleurs);
+
+/* Familles chromatiques, pour reconnaître un camaïeu — tirées de la palette. */
+const FAMILLES = { chaud: [], froid: [], achrome: [] };
+for (const c of COULEURS) FAMILLES[c.ton].push(c.id);
+
+const REGISTRES = [
+  { id: "decontracte", nom: "Décontracté", rang: 2 },
+  { id: "soigne",      nom: "Soigné",      rang: 3 },
+  { id: "habille",     nom: "Habillé",     rang: 4 },
 ];
 
-const COULEURS = [
-  { id: "noir",   nom: "Noir",   hex: "#1A1A1C", neutre: true },
-  { id: "blanc",  nom: "Blanc",  hex: "#F7F5F0", neutre: true },
-  { id: "gris",   nom: "Gris",   hex: "#8C8F96", neutre: true },
-  { id: "beige",  nom: "Beige",  hex: "#CDBBA0", neutre: true },
-  { id: "marine", nom: "Marine", hex: "#22304F", neutre: true },
-  { id: "denim",  nom: "Denim",  hex: "#5A7295", neutre: true },
-  { id: "marron", nom: "Marron", hex: "#6B4A31", neutre: true },
-  { id: "rouge",  nom: "Rouge",  hex: "#A32E28" },
-  { id: "orange", nom: "Orange", hex: "#C4692A" },
-  { id: "jaune",  nom: "Jaune",  hex: "#D6AE3A" },
-  { id: "vert",   nom: "Vert",   hex: "#48704C" },
-  { id: "bleu",   nom: "Bleu",   hex: "#2E6E9E" },
-  { id: "violet", nom: "Violet", hex: "#6A4A82" },
-  { id: "rose",   nom: "Rose",   hex: "#C07B8E" },
+const INTEMPERIES = [
+  { id: "non",     nom: "Non" },
+  { id: "resiste", nom: "Résiste à la pluie" },
+  { id: "nc",      nom: "Non concernée" },
 ];
-
-/* Quatre crans depuis le 19 août 2026, contre cinq. « Léger » et « fin » ont
-   fusionné : la distinction ne se voit pas sur une photo — le modèle de vision
-   lui-même hésitait — et personne ne la sent en s'habillant au mois d'août.
-   C'est elle qui produisait un classement erratique : toute la garde-robe
-   vivant sur ces deux crans, un seul cran d'écart faisait basculer les notes.
-
-   Le haut de l'échelle est conservé, lui : une doudoune, un manteau de laine
-   et un gilet épais ne se valent pas, et c'est ce qui décidera des tenues
-   d'hiver. On n'a fusionné que là où ça coinçait. */
-const CHALEURS = ["Léger", "Moyen", "Chaud", "Très chaud"];
-const REGISTRES = ["Sport", "Décontracté", "Soigné", "Habillé"];
 
 /* Une pièce sans saison cochée est réputée portable toute l'année. */
 const SAISONS = [
@@ -612,14 +683,16 @@ const SAISONS = [
 ];
 
 const COUPES = [
-  { id: "ajuste", nom: "Ajusté" },
-  { id: "droit",  nom: "Droit" },
-  { id: "ample",  nom: "Ample" },
+  { id: "cintre",   nom: "Cintré" },
+  { id: "pres",     nom: "Près du corps" },
+  { id: "droit",    nom: "Droit" },
+  { id: "oversize", nom: "Oversize" },
+  { id: "ample",    nom: "Ample" },
 ];
 
 /* Trois champs que personne n'est censé remplir : l'analyse par photo s'en
-   charge, et « non précisé » reste neutre pour le moteur. Ils existent pour
-   que les tendances aient prise sur autre chose que la couleur. */
+   charge, et « non précisé » reste neutre. Ils existent pour que les
+   tendances aient prise sur autre chose que la couleur. */
 const MOTIFS = [
   { id: "", nom: "Non précisé" }, { id: "uni", nom: "Uni" },
   { id: "raye", nom: "Rayé" }, { id: "carreaux", nom: "Carreaux" },
@@ -637,13 +710,16 @@ const MATIERES = [
   { id: "synthetique", nom: "Synthétique" },
 ];
 
-/* La longueur ne veut rien dire sur un accessoire ou des chaussures. */
-const A_UNE_LONGUEUR = ["bas", "robe", "manteau"];
+/* La longueur ne veut rien dire sur un haut, un accessoire ou des chaussures. */
+const A_UNE_LONGUEUR = (categorie) => ["bas", "une-piece", "manteau"].includes(roleDe(categorie));
 
-/* Codes temps de l'OMM, ramenés aux quatre boutons de l'application. */
+/* Codes temps de l'OMM, ramenés aux cinq boutons de l'application. La bruine
+   et les averses faibles sont de la pluie faible ; la pluie franche, les
+   averses fortes et les orages, du temps pluvieux. */
 function meteoDuCode(code) {
   if ([71, 73, 75, 77, 85, 86].includes(code)) return "neige";
-  if (code >= 51 && code <= 99) return "pluie";      // bruine, pluie, averses, orages
+  if ([51, 53, 55, 56, 61, 80].includes(code)) return "bruine";
+  if (code >= 51 && code <= 99) return "pluie";
   if ([2, 3, 45, 48].includes(code)) return "nuages"; // couvert ou brouillard
   return "soleil";                                    // 0 et 1
 }
@@ -651,33 +727,134 @@ function meteoDuCode(code) {
 /* On raisonne sur le ressenti maximal de la journée, pas sur la température
    du petit matin : c'est ce qu'on portera à quatorze heures qui compte. */
 function tempDuRessenti(deg) {
-  if (deg >= 22) return "chaud";
-  if (deg >= 12) return "doux";
-  if (deg >= 3) return "frais";
+  if (deg > 25) return "chaud";
+  if (deg >= 15) return "doux";
   return "froid";
 }
 
-/* Familles chromatiques, pour reconnaître un camaïeu. */
-const FAMILLES = {
-  chaud:  ["beige", "marron", "orange", "jaune", "rouge", "rose"],
-  froid:  ["marine", "denim", "bleu", "vert", "violet"],
-  achrome:["noir", "blanc", "gris"],
-};
+/* ═══════════ La fiche version 5, et sa traduction pour l'ancien moteur ═══════════ */
 
-/* Couleurs ajoutées à la palette, par l'analyse des photos quand aucune des
-   quatorze ne convient : une ceinture dorée notée « beige » se marierait
-   comme du beige, ce qu'elle n'est pas. Elles voyagent avec la sauvegarde
-   (`couleurs` dans l'export) et sont rangées dans les réglages. */
-let couleursAjoutees = [];
-function ajouterCouleurs(liste) {
-  for (const c of liste || []) {
-    if (!c?.id || COULEURS.some((x) => x.id === c.id)) continue;
-    const famille = FAMILLES[c.famille] ? c.famille : (c.neutre ? "achrome" : "chaud");
-    COULEURS.push({ id: c.id, nom: c.nom || c.id, hex: c.hex || "#999999", neutre: Boolean(c.neutre) });
-    FAMILLES[famille].push(c.id);
-    NOM_COULEUR_PIECE[c.id] = c.nomPiece || (c.nom || c.id).toLowerCase();
-    couleursAjoutees.push({ id: c.id, nom: c.nom || c.id, hex: c.hex, neutre: Boolean(c.neutre), famille, nomPiece: c.nomPiece });
+/* Conversion d'une fiche d'avant le 21 octobre 2026. Les correspondances sont
+   celles d'outils/convertir-v5.mjs, qui la fait tourner sur un export et en
+   tire une page de validation des catégories : c'est cette fonction-ci
+   qu'il appelle, pour qu'il n'y en ait qu'une. */
+const CAT_PAR_NOM = [
+  [/combishort|combinaison|\bcombi\b/i, "combinaison"],
+  [/salopette/i, "salopette"],
+  [/robe/i, "robe"],
+  [/jupe[- ]?short|jupe culotte/i, "jupeshort"],
+  [/bermuda/i, "bermuda"],
+  [/\bshort/i, "short"],
+  [/\bjupe/i, "jupe"],
+  [/pantalon|\bjean\b|jogging|legging|chino|cargo/i, "pantalon"],
+  [/ceinture/i, "ceinture"],
+  [/foulard|écharpe|echarpe|étole/i, "foulard"],
+  [/casquette|chapeau|bonnet|béret|beret|\bbob\b|bandeau|serre-tête/i, "couvrechef"],
+  [/\bsac\b|pochette|cabas|besace/i, "sac"],
+  [/doudoune|parka|manteau|mantea\b|ciré|trench|caban/i, "manteau"],
+  [/veste|blazer|blouson|perfecto|coupe[- ]vent|kimono|polaire|surchemise/i, "veste"],
+  [/gilet|cardigan|cache[- ]c(œ|oe)ur/i, "gilet"],
+  [/crop/i, "croptop"],
+  [/d[ée]bardeur|marcel/i, "debardeur"],
+  [/tee[- ]?shirt|t-shirt|tshirt/i, "tshirt"],
+  [/chemisier|blouse/i, "blouse"],
+  [/chemise/i, "chemise"],
+  [/pull|sweat|sous[- ]pull|marini[èe]re|col roul/i, "pull"],
+  [/\btop\b|body|caraco|bustier|haut\b/i, "top"],
+];
+const CAT_PAR_DEFAUT = { haut: "top", pull: "pull", bas: "pantalon", robe: "robe", manteau: "manteau",
+                         chaussures: "chaussures", accessoire: "foulard" };
+const CAT_POSSIBLES = {
+  haut: ["tshirt", "chemise", "croptop", "blouse", "debardeur", "top", "gilet", "veste", "pull"],
+  pull: ["pull", "gilet", "veste", "croptop", "tshirt", "top", "debardeur"],
+  bas: ["jupe", "short", "jupeshort", "bermuda", "pantalon"],
+  robe: ["robe", "combinaison", "salopette"],
+  manteau: ["manteau", "veste", "gilet"],
+  chaussures: ["chaussures"],
+  accessoire: ["ceinture", "foulard", "couvrechef", "sac"],
+};
+/* Le premier indice du nom l'emporte : c'est presque toujours le nom de la
+   pièce, le reste la décrit. « Pull bleu en polaire » est un pull. */
+function categorieV5(p) {
+  let meilleur = null;
+  CAT_PAR_NOM.forEach(([re, id], rang) => {
+    const m = re.exec(p.nom || "");
+    if (!m || !CAT_POSSIBLES[p.categorie]?.includes(id)) return;
+    if (!meilleur || m.index < meilleur.index || (m.index === meilleur.index && rang < meilleur.rang))
+      meilleur = { id, index: m.index, rang };
+  });
+  return meilleur ? { id: meilleur.id, sure: true } : { id: CAT_PAR_DEFAUT[p.categorie] || "top", sure: false };
+}
+/* Une nuance du nom ne remplace que la couleur dont elle précise la teinte :
+   « écru » affine un blanc ou un beige, jamais un bleu. */
+const NUANCES = [
+  [/[ée]cru/i, "ecru", ["blanc", "beige", "gris"]],
+  [/camel|caramel/i, "camel", ["marron", "beige", "orange"]],
+  [/cognac/i, "cognac", ["marron", "orange", "rouge"]],
+  [/chocolat/i, "chocolat", ["marron"]],
+  [/taupe/i, "taupe", ["marron", "gris", "beige"]],
+  [/bordeaux|grenat/i, "bordeaux", ["rouge", "violet", "marron"]],
+  [/corail/i, "corail", ["orange", "rose", "rouge"]],
+  [/rose (p[âa]le|clair)|vieux rose/i, "rosepale", ["rose", "beige"]],
+  [/fuchsia|framboise/i, "fuchsia", ["rose", "rouge"]],
+  [/moutarde/i, "moutarde", ["jaune", "orange"]],
+  [/rouille|terracotta|brique/i, "rouille", ["orange", "marron", "rouge"]],
+  [/kaki/i, "kaki", ["vert", "marron"]],
+  [/sauge|vert d.eau|menthe|vert p[âa]le|vert clair/i, "sauge", ["vert"]],
+  [/sapin|vert fonc/i, "sapin", ["vert"]],
+  [/bleu (ciel|clair)/i, "bleuciel", ["bleu"]],
+  [/lavande|lilas|parme/i, "lavande", ["violet"]],
+  [/prune|aubergine/i, "prune", ["violet"]],
+  [/anthracite|gris fonc/i, "anthracite", ["gris", "noir"]],
+  [/gris (clair|perle)/i, "grisclair", ["gris", "blanc"]],
+];
+const SE_MOUILLE = ["chaussures", "veste", "manteau", "sac"];
+function migrerV5(piece) {
+  if (piece.ficheV === 5) return false;
+  const v4 = { categorie: piece.categorie, couleurs: piece.couleurs, coupe: piece.coupe,
+    formaliteMin: piece.formaliteMin ?? piece.formalite, formaliteMax: piece.formaliteMax ?? piece.formalite,
+    dehors: piece.dehors, chaleur: piece.chaleur, passants: piece.passants };
+  const cat = categorieV5(piece);
+  let couleurs = (piece.couleurs || []).filter((x) => COULEURS.some((k) => k.id === x));
+  for (const [re, id, parents] of NUANCES) {
+    if (!re.test(piece.nom || "")) continue;
+    const i = couleurs.findIndex((x) => parents.includes(x));
+    if (i >= 0) couleurs[i] = id;
   }
+  const texte = `${piece.nom || ""} ${piece.description || ""}`;
+  const min = Math.min(v4.formaliteMin ?? 2, v4.formaliteMax ?? 2), max = Math.max(v4.formaliteMin ?? 2, v4.formaliteMax ?? 2);
+  const registres = [];
+  if (min <= 2) registres.push("decontracte");
+  if (min <= 3 && max >= 3) registres.push("soigne");
+  if (max >= 4) registres.push("habille");
+  Object.assign(piece, {
+    v4, categorie: cat.id, couleurs: [...new Set(couleurs)].slice(0, 2),
+    coupe: /oversize/i.test(texte) ? "oversize" : /cintr[ée]/i.test(texte) ? "cintre"
+      : ({ ajuste: "pres", droit: "droit", ample: "ample" }[v4.coupe] || "droit"),
+    registres: registres.length ? registres : ["decontracte"],
+    intemperies: v4.dehors ? "resiste" : SE_MOUILLE.includes(cat.id) ? "non" : "nc",
+    ficheV: 5,
+  });
+  if (!cat.sure) piece.categorieADeviner = true;
+  for (const k of ["formaliteMin", "formaliteMax", "formalite", "dehors", "chaleur", "chaleurV", "passants"]) delete piece[k];
+  return true;
+}
+
+/* La traduction pour l'ancien moteur : il lit sept catégories, une chaleur
+   et un intervalle de registre. La chaleur d'avant la refonte est reprise
+   telle quelle ; pour une pièce nouvelle, elle est estimée sur le rôle. */
+const ROLE_V4 = { haut: "haut", bas: "bas", "une-piece": "robe", manteau: "manteau", chaussures: "chaussures", accessoire: "accessoire" };
+function versMoteur(p) {
+  const role = roleDe(p.categorie);
+  const rangs = (p.registres || ["decontracte"]).map((r) => REGISTRES.find((x) => x.id === r)?.rang || 2);
+  return { ...p,
+    fiche: p,
+    categorie: role === "couche" ? (p.categorie === "veste" ? "manteau" : "pull") : ROLE_V4[role],
+    chaleur: p.v4?.chaleur ?? (role === "manteau" ? 3 : role === "couche" ? 2 : 1),
+    formaliteMin: Math.min(...rangs), formaliteMax: Math.max(...rangs),
+    dehors: p.intemperies === "resiste",
+    coupe: { cintre: "ajuste", pres: "ajuste", oversize: "ample" }[p.coupe] || p.coupe,
+  };
 }
 
 /* Garde-robe d'exemple : de quoi essayer le moteur avant d'avoir photographié
@@ -774,8 +951,11 @@ const DB = {
 const saisonCourante = () =>
   (SAISONS.find((s) => s.mois.includes(new Date().getMonth())) || SAISONS[0]).id;
 
+/* `fiches` : les pièces telles qu'elle les a saisies (version 5), que l'écran
+   affiche et que l'on enregistre. `pieces` : leur traduction pour l'ancien
+   moteur (versMoteur), qu'il lit sans savoir que la fiche a changé. */
 const etat = {
-  pieces: [], tenues: [], avis: [],
+  fiches: [], pieces: [], tenues: [], avis: [],
   meteo: "soleil", temp: "doux", activite: "travail", saison: saisonCourante(),
   poidsTendance: 1,
   lieu: null, releve: null,
@@ -790,7 +970,18 @@ const idNeuf = () => Date.now().toString(36) + Math.random().toString(36).slice(
 const echapper = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const clePaire = (a, b) => [a, b].sort().join("|");
 const aujourdhui = () => new Date().toISOString().slice(0, 10);
-const parId = (id) => etat.pieces.find((p) => p.id === id);
+const parId = (id) => etat.fiches.find((p) => p.id === id);
+async function rechargerPieces() {
+  etat.fiches = await DB.tout("pieces");
+  etat.pieces = etat.fiches.map(versMoteur);
+}
+/* Pour les outils hors ligne (bancs, simulateur) : une garde-robe lue dans un
+   export, convertie comme au chargement de l'application. */
+function poserGardeRobe(pieces) {
+  for (const p of pieces) if (p.ficheV !== 5) { migrerFormalite(p); migrerChaleur(p); migrerV5(p); }
+  etat.fiches = pieces;
+  etat.pieces = pieces.map(versMoteur);
+}
 const pictoCat = (c) => (CATEGORIES.find((x) => x.id === c) || {}).pict || "👕";
 
 let minuteurToast;
@@ -1038,7 +1229,9 @@ function noteStyle(pieces, manques, atouts) {
      champ disant qu'une pièce se porte ouverte, on prend la plus extérieure
      telle quelle. Réserve connue : un manteau s'enlève en arrivant, donc il
      décide de la silhouette du trajet plus que de celle de la journée. */
-  const buste = de("manteau") || de("pull") || haut;
+  /* Le pull le plus extérieur, pas le premier : un pull fin sert de base
+     sous un gros pull, et c'est le gros qu'on voit. */
+  const buste = de("manteau") || pieces.filter((p) => p.categorie === "pull").at(-1) || haut;
   if (buste && bas) {
     const ch = coupe(buste), cb = coupe(bas);
     if ((ch === "ample" && cb === "ajuste") || (ch === "ajuste" && cb === "ample")) {
@@ -1179,8 +1372,8 @@ function lacunes() {
 
   const saisons = [etat.saison];   /* la saison en cours : acheter pour l'hiver en août n'aide personne */
   for (const saison of saisons)
-    for (const temp of ["chaud", "doux", "frais", "froid"])
-      for (const activite of ["travail", "loisir", "vacances"])
+    for (const temp of TEMPS.map((t) => t.id))
+      for (const activite of ACTIVITES.map((a) => a.id))
         for (let k = 0; k < 4; k++) {
           Object.assign(etat, { saison, meteo: "soleil", temp, activite, ecartees: new Set() });
           let r;
@@ -1492,8 +1685,11 @@ function noteTendances(pieces, manques, atouts) {
 const NOM_COULEUR_PIECE = {
   noir: "noire", blanc: "blanche", gris: "grise", beige: "beige", marine: "bleu marine",
   denim: "en jean", marron: "camel", rouge: "rouge", orange: "orange", jaune: "jaune",
-  vert: "kaki", bleu: "bleue", violet: "lilas", rose: "rose",
+  vert: "verte", bleu: "bleue", violet: "violette", rose: "rose",
 };
+/* Les nuances de la palette qui n'ont pas d'accord particulier prennent leur
+   nom tel quel : « une pièce camel », « une pièce bordeaux ». */
+for (const c of COULEURS) NOM_COULEUR_PIECE[c.id] ||= c.nom.toLowerCase();
 /* À quoi ressemble, dans la garde-robe, la pièce qu'on s'apprête à conseiller.
    Sans ce test, l'application recommandait d'acheter une chemise oversize à
    quelqu'un qui en possède neuf. Le bloc ne sert qu'à préparer un achat : il
@@ -1696,6 +1892,92 @@ function chaleurTenue(pieces) {
     : somme + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
 }
 
+/* ═══════════ Les pièces éliminées d'office ═══════════
+   Avant de composer quoi que ce soit, on retire les pièces impossibles pour
+   la journée — et seulement d'après ce qui est coché dans la fiche. Ce sont
+   les règles de la propriétaire, 21 octobre 2026, mot pour mot :
+   - pluvieux ou neige : on retire les pièces « Non » aux intempéries ; la
+     pluie faible ne retire rien ;
+   - la saison du jour doit être cochée, sauf si aucune ne l'est (toute
+     l'année) ;
+   - travail et loisir chill : il faut « décontracté » ou « soigné » coché ;
+   - loisir habillé : il faut « soigné » ou « habillé » coché.
+   Tout le reste — la température, le style, ce qui va avec quoi — revient à
+   celui qui compose. Elle lit les fiches ; `gardees` rend leurs traductions
+   pour l'ancien moteur, `fiches` les fiches elles-mêmes. */
+function piecesEligibles() {
+  const journee = ACTIVITES.find((a) => a.id === etat.activite);
+  const mouille = MOUILLE(etat.meteo);
+  const fiches = [], retirees = [];
+  for (const p of etat.fiches) {
+    const raison =
+      !portable(p) ? "saison non cochée"
+      : !(p.registres || []).some((r) => journee.registres.includes(r)) ? "registre qui ne convient pas à la journée"
+      : mouille && p.intemperies === "non" ? "ne résiste pas à la pluie"
+      : null;
+    if (raison) retirees.push({ piece: p, raison }); else fiches.push(p);
+  }
+  const gardees = new Set(fiches.map((p) => p.id));
+  return { fiches, gardees: etat.pieces.filter((p) => gardees.has(p.id)), retirees };
+}
+
+/* ═══════════ Ce qui se porte sous quoi ═══════════
+   Jusqu'au 21 octobre 2026, tout « pull » se posait sur tout « haut ». Or la
+   garde-robe range en pull des pièces qui sont des hauts à manches longues :
+   sous-pulls, pulls fins près du corps, marinières. 30 % des tenues
+   candidates superposaient ainsi deux épaisseurs égales — un pull fin sur un
+   top en mesh, « comme deux tee-shirts l'un sur l'autre ».
+
+   Les règles, telles que la propriétaire les a dites :
+   - un pull fin et enfilé est une base : il se porte seul, ou sous un gilet,
+     une veste, un manteau ou un gros pull — jamais sur un haut ;
+   - un sous-pull se porte aussi sous une robe ou une salopette ;
+   - une pièce transparente (mesh, résille, tulle), haut ou pull, peut se
+     porter en dessous de tout : sous un tee-shirt, sous une robe ;
+   - un gilet, un cardigan, une veste restent des couches, même fins.
+   Faute d'un champ disant qu'une pièce se porte ouverte, on le lit dans le
+   nom et la description. */
+/* Pour un haut, « boutonné » ne suffit pas : presque toutes les chemises le
+   sont, et « ouvert » se lit aussi dans « ouvert dans le dos ». */
+const OUVERTE = /gilet|cardigan|kimono|veste|surchemise|cache-c|bol[ée]ro|blazer/i;
+const OUVERTE_PULL = /gilet|cardigan|kimono|veste|surchemise|cache-c|bol[ée]ro|blazer|boutonn|zipp|devant ouvert/i;
+const TRANSPARENTE = /transparen|mesh|r[ée]sille|tulle|voile/i;
+const texteDe = (p) => `${p.nom || ""} ${p.description || ""}`;
+const estOuverte = (p) => (p.categorie === "pull" ? OUVERTE_PULL : OUVERTE).test(texteDe(p));
+const estTransparente = (p) => (p.categorie === "haut" || p.categorie === "pull") && TRANSPARENTE.test(texteDe(p));
+const estPullFin = (p) => p.categorie === "pull" && p.chaleur === 1 && !estOuverte(p);
+
+/* Les saisons d'une pièce disent aussi son caractère. Une pièce réservée aux
+   beaux jours et une pièce qui fuit l'été ne se marient pas, même au
+   printemps où les deux sont permises : une ceinture en daim d'automne sur
+   une robe d'été sans manches sonne faux. */
+const SAISONS_FROIDES = ["automne", "hiver"];
+const desBeauxJours = (p) => (p.saisons || []).length > 0 && p.saisons.every((s) => s === "printemps" || s === "ete");
+const deSaisonFroide = (p) => (p.saisons || []).length > 0 && !p.saisons.includes("ete")
+  && p.saisons.some((s) => SAISONS_FROIDES.includes(s));
+const saisonsAccordees = (pieces) => !(pieces.some(desBeauxJours) && pieces.some(deSaisonFroide));
+
+/* Une tenue ne montre qu'un seul haut « plein » au buste : les autres pièces
+   du haut du corps sont soit dessous (transparentes, ou un pull fin sous une
+   robe), soit dessus (ouvertes, ou un pull épais). */
+function superpositionCoherente(pieces) {
+  const robe = pieces.some((p) => p.categorie === "robe");
+  const dessous = pieces.filter(estTransparente);
+  if (dessous.length > 1) return false;
+  const pleins = pieces.filter((p) => !estTransparente(p)
+    && (p.categorie === "haut" ? !estOuverte(p) : estPullFin(p)));
+  /* Sous une robe, un pull fin est un sous-pull : il ne compte pas — sauf
+     sous une robe des beaux jours, faite pour se porter seule. Une robe d'été
+     sans manches sur un pull fin noir ne va pas : ce n'est pas une chasuble. */
+  const visibles = robe ? pleins.filter((p) => p.categorie === "haut") : pleins;
+  if (visibles.length > 1) return false;
+  if (robe && pleins.length > 1) return false;
+  if (pieces.some((p) => p.categorie === "robe" && desBeauxJours(p)) && pleins.some(estPullFin)) return false;
+  /* Une pièce transparente seule sous rien n'a rien à couvrir : c'est alors
+     elle, le haut. */
+  return true;
+}
+
 /* ═══════════ Deux temps, et il faut les garder distincts ═══════════
 
    D'abord l'adéquation, qui filtre : la météo, la saison et le type de
@@ -1746,6 +2028,11 @@ function adapteeALaSituation(pieces, offre) {
      proposée, et « bien couvert » ouvrait la ligne de résumé de chacune sans
      rien y apprendre. */
 
+  if (!superpositionCoherente(pieces))
+    return { ok: false, raison: "deux hauts de même épaisseur l'un sur l'autre" };
+  if (!saisonsAccordees(pieces))
+    return { ok: false, raison: "une pièce d'été avec une pièce d'automne" };
+
   /* La somme peut tomber juste sur un assemblage intenable : un short sous
      une doudoune, des sandales sous une parka. */
   const couvrantes = pieces.filter((p) => p.categorie === "pull" || p.categorie === "manteau");
@@ -1763,6 +2050,8 @@ function adapteeALaSituation(pieces, offre) {
     return { ok: false, raison: "pas le registre de la journée" };
   if (pieces.some((p) => formaliteMax(p) < activite.plancher))
     return { ok: false, raison: "sous le registre exigé" };
+  if (pieces.some((p) => formaliteMin(p) > activite.plafond))
+    return { ok: false, raison: "trop habillé pour la journée" };
 
   /* Pluie et neige — filtre conditionnel, voir plus haut. */
   if (etat.meteo === "pluie" || etat.meteo === "neige") {
@@ -1922,16 +2211,23 @@ function proposerTenues(combien = 5) {
      de travail, quoi qu'on lui associe. */
   const plancher = ACTIVITES.find((a) => a.id === etat.activite).plancher;
   const admissible = (p) => formaliteMax(p) >= plancher;
+  const eligibles = new Set(piecesEligibles().gardees);
 
-  const par = (c, garder) => {
-    const liste = etat.pieces.filter((p) => p.categorie === c && portable(p) && admissible(p));
+  const parFiltre = (garde, garder) => {
+    const liste = etat.pieces.filter((p) => garde(p) && eligibles.has(p));
     if (liste.length <= garder) return liste;
     return liste.map((p) => ({ p, n: promesse(p) }))
                 .sort((a, b) => b.n - a.n).slice(0, garder).map((x) => x.p);
   };
+  const par = (c, garder) => parFiltre((p) => p.categorie === c, garder);
 
+  /* Les pulls fins enfilés sont des bases, pas des couches — voir « Ce qui
+     se porte sous quoi ». Les pièces transparentes peuvent en plus passer
+     sous un haut ou une robe. */
   const hauts = par("haut", 7), bas = par("bas", 6), robes = par("robe", 4);
-  const pulls = par("pull", 3), manteaux = par("manteau", 3);
+  const fins = parFiltre(estPullFin, 3);
+  const transparentes = parFiltre(estTransparente, 2);
+  const pulls = parFiltre((p) => p.categorie === "pull" && !estPullFin(p), 3), manteaux = par("manteau", 3);
   const chaussures = par("chaussures", 5), accessoires = par("accessoire", 4);
 
   const horsSaison = etat.pieces.length - etat.pieces.filter(portable).length;
@@ -1948,9 +2244,17 @@ function proposerTenues(combien = 5) {
   if (!robes.length && (!hauts.length || !bas.length))
     return { erreur: `Il faut au moins un haut et un bas de ${saison}, ou bien une robe.${rappel}` };
 
+  /* Le haut visible vient en premier : la notation lit le premier haut
+     qu'elle trouve, et c'est celui-là qu'on voit. */
   const bases = [];
-  for (const h of hauts) for (const b of bas) bases.push([h, b]);
-  for (const r of robes) bases.push([r]);
+  for (const h of [...hauts, ...fins]) for (const b of bas) {
+    bases.push([h, b]);
+    for (const t of transparentes) if (t !== h && !estTransparente(h)) bases.push([h, b, t]);
+  }
+  for (const r of robes) {
+    bases.push([r]);
+    for (const dessous of new Set([...transparentes, ...fins])) bases.push([r, dessous]);
+  }
 
   const cible = TEMPS.find((t) => t.id === etat.temp).cible;
   const couches = [[]];
@@ -2157,7 +2461,7 @@ function jauge(score) {
 function vignette(piece, classe = "vignette") {
   return piece.photo
     ? `<img class="${classe}" src="${piece.photo}" alt="${echapper(piece.nom)}">`
-    : `<div class="sans-photo" aria-hidden="true">${pictoCat(piece.categorie)}</div>`;
+    : `<div class="sans-photo" aria-hidden="true">${pictoCat((piece.fiche || piece).categorie)}</div>`;
 }
 
 function rendreJour() {
@@ -2217,26 +2521,29 @@ function rendreJour() {
 const aVerifier = (p) => p.confiance && p.confiance !== "haute";
 
 function rendreDressing() {
-  const douteuses = etat.pieces.filter(aVerifier).length;
+  const douteuses = etat.fiches.filter(aVerifier).length;
+  /* Seules les catégories qu'elle possède ont un filtre : vingt-trois
+     boutons dont la moitié vides ne servent à rien. */
+  const presentes = CATEGORIES.filter((c) => etat.fiches.some((p) => p.categorie === c.id));
   const filtres = [{ id: "tout", nom: "Tout" },
     ...(douteuses ? [{ id: "verifier", nom: "À vérifier" }] : []),
-    ...CATEGORIES];
+    ...presentes];
   $("#filtres").innerHTML = filtres.map((c) => {
-    const n = c.id === "tout" ? etat.pieces.length
+    const n = c.id === "tout" ? etat.fiches.length
       : c.id === "verifier" ? douteuses
-      : etat.pieces.filter((p) => p.categorie === c.id).length;
+      : etat.fiches.filter((p) => p.categorie === c.id).length;
     return `<button data-id="${c.id}" aria-pressed="${etat.filtre === c.id}">${c.nom} ${n ? `<span style="opacity:.6">${n}</span>` : ""}</button>`;
   }).join("");
   $("#filtres").querySelectorAll("button").forEach((b) => {
     b.onclick = () => { etat.filtre = b.dataset.id; rendreDressing(); };
   });
 
-  const liste = etat.filtre === "tout" ? etat.pieces
-    : etat.filtre === "verifier" ? etat.pieces.filter(aVerifier)
-    : etat.pieces.filter((p) => p.categorie === etat.filtre);
+  const liste = etat.filtre === "tout" ? etat.fiches
+    : etat.filtre === "verifier" ? etat.fiches.filter(aVerifier)
+    : etat.fiches.filter((p) => p.categorie === etat.filtre);
   const grille = $("#grille");
   if (!liste.length) {
-    grille.innerHTML = etat.pieces.length
+    grille.innerHTML = etat.fiches.length
       ? `<div class="vide" style="grid-column:1/-1">
           <strong>Rien dans cette catégorie</strong>
           Appuie sur le bouton + pour y ajouter une pièce.</div>`
@@ -2250,17 +2557,16 @@ function rendreDressing() {
     if (amorce) amorce.onclick = chargerExemple;
     return;
   }
-  const ordre = [...liste].sort((a, b) => a.categorie.localeCompare(b.categorie) || a.nom.localeCompare(b.nom));
+  const rang = (c) => CATEGORIES.findIndex((x) => x.id === c);
+  const ordre = [...liste].sort((a, b) => rang(a.categorie) - rang(b.categorie) || a.nom.localeCompare(b.nom));
   grille.innerHTML = ordre.map((p) => `
     <button class="carte-piece" data-id="${p.id}">
       ${vignette(p, "")}
       ${aVerifier(p) ? `<span class="a-verifier">à vérifier</span>` : ""}
       <div class="infos">
         <div class="nom">${echapper(p.nom)}</div>
-        <div class="meta">${CHALEURS[p.chaleur - 1]} · ${
-          formaliteMin(p) === formaliteMax(p)
-            ? REGISTRES[formaliteMin(p) - 1]
-            : `${REGISTRES[formaliteMin(p) - 1]}→${REGISTRES[formaliteMax(p) - 1]}`}</div>
+        <div class="meta">${echapper(CATEGORIES.find((c) => c.id === p.categorie)?.nom || "")} · ${
+          REGISTRES.filter((r) => (p.registres || []).includes(r.id)).map((r) => r.nom).join(", ")}</div>
       </div>
     </button>`).join("");
   grille.querySelectorAll("[data-id]").forEach((b) => {
@@ -2349,16 +2655,18 @@ function lancer(relance) {
   if (relance) etat.propositions.forEach((t) => t.pieces.forEach((p) => etat.ecartees.add(p.id)));
   else etat.ecartees.clear();
 
-  const r = proposerTenues();
-  if (r.erreur) {
-    etat.propositions = [];
-    $("#propositions").innerHTML =
-      `<div class="vide"><strong>Rien à proposer</strong>${echapper(r.erreur)}</div>`;
-    return;
-  }
-  etat.propositions = r.tenues;
-  rendreJour();
-  if (relance) $("#propositions").scrollIntoView({ behavior: "smooth", block: "start" });
+  /* C'est Opus qui compose, et lui seul : s'il n'est pas joignable, rien
+     n'est proposé — consigne de la propriétaire, 21 octobre 2026. Tant qu'il
+     n'est pas branché, l'écran dit ce qui lui serait envoyé. */
+  const { fiches, retirees } = piecesEligibles();
+  const motifs = {};
+  for (const r of retirees) motifs[r.raison] = (motifs[r.raison] || 0) + 1;
+  etat.propositions = [];
+  $("#propositions").innerHTML = `<div class="vide"><strong>Opus n'est pas disponible</strong>
+    Le choix des tenues par Opus n'est pas encore branché : rien n'est proposé.
+    <span style="display:block;margin-top:10px;font-size:12.5px">Pour cette journée, ${fiches.length} pièce${fiches.length > 1 ? "s" : ""} lui
+    ${fiches.length > 1 ? "seraient envoyées" : "serait envoyée"}${retirees.length ? ` ; ${retirees.length} retirée${retirees.length > 1 ? "s" : ""} — ${
+      Object.entries(motifs).map(([m, n]) => `${n} ${echapper(m)}`).join(", ")}` : ""}.</span></div>`;
 }
 
 async function enregistrerPort(tenue) {
@@ -2397,19 +2705,20 @@ let brouillon = null;
 function ouvrirFiche(piece) {
   brouillon = piece
     ? { ...piece, couleurs: [...(piece.couleurs || [])], saisons: [...(piece.saisons || [])],
-        coupe: piece.coupe || "droit", porteLe: [...(piece.porteLe || [])] }
-    : { id: null, nom: "", categorie: "haut", couleurs: [], saisons: [], coupe: "droit",
-        chaleur: 2, formaliteMin: 2, formaliteMax: 2, dehors: false, photo: "", porteLe: [] };
-  migrerFormalite(brouillon);
-  migrerChaleur(brouillon);
-  formaliteAttendDebut = true;   // chaque fiche s'ouvre prête pour un premier appui
+        registres: [...(piece.registres || [])], coupe: piece.coupe || "droit", porteLe: [...(piece.porteLe || [])] }
+    : { id: null, nom: "", categorie: "tshirt", couleurs: [], saisons: [], coupe: "droit",
+        registres: ["decontracte"], intemperies: "nc", photo: "", porteLe: [], ficheV: 5 };
 
   $("#fiche-titre").textContent = piece ? "Modifier" : "Nouveau vêtement";
   $("#btn-supprimer").hidden = !piece;
   $("#nom").value = brouillon.nom;
   majApercu();
 
-  boutonsChoix($("#choix-categorie"), CATEGORIES, brouillon.categorie, (v) => { brouillon.categorie = v; });
+  boutonsChoix($("#choix-categorie"), CATEGORIES, brouillon.categorie, (v) => {
+    brouillon.categorie = v;
+    delete brouillon.categorieADeviner;
+    $("#bloc-longueur").hidden = !A_UNE_LONGUEUR(v);
+  });
 
   const bandeau = $("#doute");
   bandeau.hidden = !aVerifier(brouillon);
@@ -2445,9 +2754,21 @@ function ouvrirFiche(piece) {
     COUPES.findIndex((c) => c.id === brouillon.coupe),
     (i) => { brouillon.coupe = COUPES[i].id; });
 
-  curseur($("#choix-chaleur"), CHALEURS, brouillon.chaleur - 1, (i) => { brouillon.chaleur = i + 1; });
-  majFormalite();
-  curseur($("#choix-dehors"), ["Non", "Résiste à la pluie"], brouillon.dehors ? 1 : 0, (i) => { brouillon.dehors = i === 1; });
+  /* Le registre se coche : une pièce peut aller du décontracté au soigné, ou
+     ne se porter qu'habillée. C'est ce que lisent les éliminations. */
+  $("#choix-registres").innerHTML = REGISTRES.map((r) => `
+    <button type="button" data-id="${r.id}" aria-pressed="${brouillon.registres.includes(r.id)}"><span>${r.nom}</span></button>`).join("");
+  $("#choix-registres").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      const id = b.dataset.id;
+      brouillon.registres = brouillon.registres.includes(id)
+        ? brouillon.registres.filter((x) => x !== id) : [...brouillon.registres, id];
+      b.setAttribute("aria-pressed", brouillon.registres.includes(id));
+    };
+  });
+  curseur($("#choix-dehors"), INTEMPERIES.map((x) => x.nom),
+    Math.max(0, INTEMPERIES.findIndex((x) => x.id === brouillon.intemperies)),
+    (i) => { brouillon.intemperies = INTEMPERIES[i].id; });
 
   const liste = (hote, options, champ) => {
     const actif = Math.max(0, options.findIndex((o) => o.id === (brouillon[champ] || "")));
@@ -2456,7 +2777,7 @@ function ouvrirFiche(piece) {
   liste("#choix-motif", MOTIFS, "motif");
   liste("#choix-longueur", LONGUEURS, "longueur");
   liste("#choix-matiere", MATIERES, "matiere");
-  $("#bloc-longueur").hidden = !A_UNE_LONGUEUR.includes(brouillon.categorie);
+  $("#bloc-longueur").hidden = !A_UNE_LONGUEUR(brouillon.categorie);
   /* Repliée d'ordinaire — personne n'a à remplir ces champs. Mais quand
      l'analyse signale un doute, il porte souvent sur la matière ou la
      longueur : les laisser cachés reviendrait à demander une correction sans
@@ -2468,54 +2789,29 @@ function ouvrirFiche(piece) {
 
 const nomCouleur = (id) => (COULEURS.find((c) => c.id === id) || {}).nom?.toLowerCase() || id;
 
+/* La palette, rangée par famille, et au-dessus l'aperçu de ce qui est choisi :
+   une pastille de vingt pixels ne dit pas assez si c'est du camel ou du cognac. */
 function majPastilles() {
+  const apercu = $("#apercu-couleurs");
+  apercu.innerHTML = brouillon.couleurs.length
+    ? brouillon.couleurs.map((id) => { const c = COULEURS.find((x) => x.id === id) || { nom: id, hex: "#999" };
+        return `<span class="nuance"><i style="background:${c.hex}"></i>${echapper(c.nom)}</span>`; }).join("")
+    : `<span class="nuance vide">Aucune couleur choisie</span>`;
   const hote = $("#choix-couleurs");
-  hote.innerHTML = COULEURS.map((c) => `
-    <button type="button" class="pastille" data-id="${c.id}" title="${c.nom}" aria-label="${c.nom}"
-      style="background:${c.hex}" aria-pressed="${brouillon.couleurs.includes(c.id)}"></button>`).join("");
+  hote.innerHTML = PALETTE.map((f) => `
+    <div class="famille"><span>${f.famille}</span><div class="pastilles">${f.couleurs.map((c) => `
+      <button type="button" class="pastille" data-id="${c.id}" title="${c.nom}" aria-label="${c.nom}"
+        style="background:${c.hex}" aria-pressed="${brouillon.couleurs.includes(c.id)}"></button>`).join("")}</div></div>`).join("");
   hote.querySelectorAll("button").forEach((b) => {
     b.onclick = () => {
       const id = b.dataset.id;
       if (brouillon.couleurs.includes(id)) brouillon.couleurs = brouillon.couleurs.filter((x) => x !== id);
       else if (brouillon.couleurs.length >= 2) return toast("Deux couleurs au maximum");
       else brouillon.couleurs.push(id);
-      b.setAttribute("aria-pressed", brouillon.couleurs.includes(id));
       $("#lu-photo").hidden = true;   // dès que tu corriges, la lecture s'efface
+      majPastilles();
     };
   });
-}
-
-/* « J'appuie sur le début, puis sur la fin. » Le premier appui pose toujours
-   une valeur unique — le cas courant se règle donc en un geste — et le suivant
-   étend jusqu'à lui. Le troisième repart d'une valeur unique.
-   Sans cet état, un premier appui étendrait depuis la valeur en place, ce qui
-   surprend : partant de « sport », choisir « décontracté » donnerait
-   « sport à décontracté » au lieu de « décontracté ». */
-let formaliteAttendDebut = true;
-
-function majFormalite() {
-  const hote = $("#choix-formalite");
-  const min = brouillon.formaliteMin, max = brouillon.formaliteMax;
-  hote.innerHTML = REGISTRES.map((nom, i) => {
-    const n = i + 1;
-    return `<button type="button" data-n="${n}" aria-pressed="${n >= min && n <= max}">${nom}</button>`;
-  }).join("");
-  hote.querySelectorAll("button").forEach((b) => {
-    b.onclick = () => {
-      const n = +b.dataset.n;
-      if (formaliteAttendDebut) {
-        brouillon.formaliteMin = brouillon.formaliteMax = n;
-      } else {
-        brouillon.formaliteMin = Math.min(brouillon.formaliteMin, n);
-        brouillon.formaliteMax = Math.max(brouillon.formaliteMax, n);
-      }
-      formaliteAttendDebut = !formaliteAttendDebut;
-      majFormalite();
-    };
-  });
-  $("#aide-formalite").textContent = min === max
-    ? "Un seul registre. Appuie sur un second bouton si la pièce se porte aussi autrement."
-    : `De ${REGISTRES[min - 1].toLowerCase()} à ${REGISTRES[max - 1].toLowerCase()} : elle s'adaptera à l'occasion.`;
 }
 
 function curseur(hote, etiquettes, actif, auClic) {
@@ -2539,6 +2835,7 @@ async function enregistrerPiece() {
   const nom = $("#nom").value.trim();
   if (!nom) { $("#nom").focus(); return toast("Donne un nom à cette pièce"); }
   if (!brouillon.couleurs.length) return toast("Choisis au moins une couleur");
+  if (!brouillon.registres.length) return toast("Coche au moins un registre");
   brouillon.nom = nom;
   if (!brouillon.id) brouillon.id = idNeuf();
   /* Enregistrer, c'est avoir tranché : la marque et le doute s'effacent.
@@ -2549,7 +2846,7 @@ async function enregistrerPiece() {
   delete brouillon.doute;
   if (brouillon.analyseeLe) brouillon.corrigeeLe = aujourdhui();
   await DB.poser("pieces", brouillon);
-  etat.pieces = await DB.tout("pieces");
+  await rechargerPieces();
   $("#fiche").close();
   etat.vue = "dressing"; majOnglets(); rendre();
   toast("Enregistré");
@@ -2558,7 +2855,7 @@ async function enregistrerPiece() {
 async function supprimerPiece() {
   if (!confirm(`Supprimer « ${brouillon.nom} » de la garde-robe ?`)) return;
   await DB.retirer("pieces", brouillon.id);
-  etat.pieces = await DB.tout("pieces");
+  await rechargerPieces();
   $("#fiche").close();
   rendre();
   toast("Supprimé");
@@ -2567,8 +2864,8 @@ async function supprimerPiece() {
 /* ═══════════ Sauvegarde ═══════════ */
 
 function exporter() {
-  const donnees = { version: 1, exporteLe: new Date().toISOString(), couleurs: couleursAjoutees,
-                    pieces: etat.pieces, tenues: etat.tenues, avis: etat.avis };
+  const donnees = { version: 5, exporteLe: new Date().toISOString(),
+                    pieces: etat.fiches, tenues: etat.tenues, avis: etat.avis };
   const url = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url; a.download = `dressing-${aujourdhui()}.json`;
@@ -2587,7 +2884,7 @@ async function importer(fichier, mode) {
   catch { return toast("Ce fichier n'est pas une sauvegarde lisible"); }
   if (!Array.isArray(donnees.pieces)) return toast("Ce fichier n'est pas une sauvegarde Dressing");
 
-  const connus = new Set(etat.pieces.map((p) => p.id));
+  const connus = new Set(etat.fiches.map((p) => p.id));
   const majs = donnees.pieces.filter((p) => connus.has(p.id)).length;
   const neuves = donnees.pieces.length - majs;
 
@@ -2604,10 +2901,6 @@ async function importer(fichier, mode) {
       + `Ton journal et tes avis ne sont pas touchés.`)) return;
   }
 
-  /* Les couleurs ajoutées s'additionnent, même en remplacement : une pièce
-     qui en porte une ne doit jamais arriver sans elle. */
-  ajouterCouleurs(donnees.couleurs);
-  await DB.poser("reglages", { cle: "couleurs", valeur: couleursAjoutees });
   for (const p of donnees.pieces) await DB.poser("pieces", p);
   await charger();
   rendre();
@@ -2767,13 +3060,13 @@ function majOnglets() {
 /* ═══════════ Démarrage ═══════════ */
 
 async function charger() {
-  const couleurs = await DB.prendre("reglages", "couleurs");
-  if (couleurs) ajouterCouleurs(couleurs.valeur);
-  etat.pieces = await DB.tout("pieces");
-  /* Conversion des fiches antérieures à l'intervalle de formalité, écrite une
-     seule fois : au passage suivant il n'y a plus rien à migrer. */
-  const migrees = etat.pieces.filter((p) => [migrerFormalite(p), migrerChaleur(p)].some(Boolean));
+  /* Conversion des fiches antérieures, écrite une seule fois : au passage
+     suivant il n'y a plus rien à migrer. Les étapes d'avant (intervalle de
+     formalité, chaleur à quatre crans) passent d'abord, la version 5 ensuite. */
+  const fiches = await DB.tout("pieces");
+  const migrees = fiches.filter((p) => p.ficheV !== 5 && (migrerFormalite(p), migrerChaleur(p), migrerV5(p)));
   for (const p of migrees) await DB.poser("pieces", p);
+  await rechargerPieces();
   etat.tenues = await DB.tout("tenues");
   etat.avis = await DB.tout("avis");
   const poids = await DB.prendre("reglages", "poidsTendance");

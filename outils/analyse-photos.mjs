@@ -107,11 +107,12 @@ const schemaPour = (palette) => ({
     motif: { type: "string", enum: MOTIFS, description: "La grande majorité des vêtements sont unis." },
     longueur: { type: "string", description: "court, genoux ou long. Chaîne vide pour un haut, un pull, des chaussures ou un accessoire, où la notion n'a pas de sens." },
     matiere: { type: "string", enum: MATIERES, description: "La matière dominante. Choisis la plus proche si elle n'est pas dans la liste." },
+    passants: { type: "string", enum: ["oui", "non", ""], description: "Pour un bas ou une robe : la taille a-t-elle des passants de ceinture ? Chaîne vide pour les autres catégories, ou si la photo ne permet pas de le voir." },
     description: { type: "string", description: "Deux phrases décrivant la pièce telle qu'on la verrait en main : matière et tissage, longueur, coupe précise, motif, détails de construction — col, poches, boutons, taille, doublure, fermeture. Consigne le concret et l'observable, pas le jugement : « coton épais non extensible » plutôt que « jolie matière ». C'est la mémoire de ce que la fiche ne sait pas encore stocker." },
     confiance: { type: "string", enum: ["haute", "moyenne", "basse"], description: "Ton degré de certitude sur l'ensemble, pour signaler les pièces à revérifier." },
     doute: { type: "string", description: "Si la confiance n'est pas haute : une phrase courte disant ce dont tu doutes et pourquoi, assez précise pour que le propriétaire sache quoi regarder — « la matière pourrait être du lin ou du coton mélangé », « la jupe est posée à plat, la coupe est difficile à juger ». Chaîne vide si la confiance est haute." },
   },
-  required: ["nom", "description", "categorie", "couleurs", "nouvelleCouleur", "chaleur", "formaliteMin", "formaliteMax", "coupe", "motif", "longueur", "matiere", "saisons", "dehors", "confiance", "doute"],
+  required: ["nom", "description", "categorie", "couleurs", "nouvelleCouleur", "passants", "chaleur", "formaliteMin", "formaliteMax", "coupe", "motif", "longueur", "matiere", "saisons", "dehors", "confiance", "doute"],
   additionalProperties: false,
 });
 
@@ -407,6 +408,11 @@ function appliquer(piece, lu) {
   piece.longueur = LONGUEURS.includes(lu.longueur) ? lu.longueur : "";
   piece.matiere = MATIERES.includes(lu.matiere) ? lu.matiere : "";
   if (!(piece.saisons || []).length) piece.saisons = lu.saisons;
+  /* Comme la pluie : ce qu'elle a coché prime, le modèle ne comble qu'un
+     vide. Sans passants, une ceinture ne tient pas — 21 octobre 2026, une
+     ceinture proposée sur une robe qui n'en a pas. */
+  if (piece.passants === undefined && lu.passants && ["bas", "robe"].includes(piece.categorie))
+    piece.passants = lu.passants === "oui";
   piece.dehors = piece.dehors === true || lu.dehors;
   piece.analyseeLe = new Date().toISOString().slice(0, 10);
   piece.confiance = lu.confiance;

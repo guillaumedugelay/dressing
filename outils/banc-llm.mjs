@@ -85,11 +85,10 @@ function chargerMoteur() {
   `;
   const out = {};
   new Function("__out", stubs + sc +
-    "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;" +
+    "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable; __out.poserGardeRobe = poserGardeRobe;" +
     "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteSur10 = noteSur10;" +
     "\n;__out.adaptee = adapteeALaSituation; __out.offre = offreDeLaGardeRobe;" +
-    "\n;__out.noterTenue = noterTenue; __out.tableAffinites = tableAffinites; __out.formaliteMax = formaliteMax;" +
-    "\n;__out.ajouterCouleurs = ajouterCouleurs;")(out);
+    "\n;__out.noterTenue = noterTenue; __out.tableAffinites = tableAffinites; __out.formaliteMax = formaliteMax;")(out);
   if (typeof out.proposerTenues !== "function") throw new Error("moteur : proposerTenues introuvable");
   return out;
 }
@@ -104,6 +103,10 @@ const fichePiece = (p) => ({
   coupe: p.coupe, motif: p.motif || "", longueur: p.longueur || "",
   matiere: p.matiere || "", formalite: [p.formaliteMin, p.formaliteMax],
   chaleur: p.chaleur, description: p.description || "",
+  /* Les saisons disent aussi le caractère d'une pièce : une robe réservée aux
+     beaux jours se porte seule, une ceinture qui fuit l'été fait automnal. */
+  saisons: (p.saisons || []).length ? p.saisons : "toute l'année",
+  ...(["bas", "robe"].includes(p.categorie) && p.passants !== undefined ? { passants: p.passants } : {}),
 });
 
 const SCHEMA = {
@@ -233,8 +236,8 @@ const REJOUER = drapeau("--rejouer");
 const M = REJOUER ? null : chargerMoteur();
 if (M) {
   M.poserTendances(corpus);
-  M.ajouterCouleurs(donnees.couleurs);
-  M.etat.pieces = donnees.pieces;
+
+  M.poserGardeRobe(donnees.pieces);
   M.etat.tenues = donnees.tenues || [];
   M.etat.avis = donnees.avis || [];
   M.etat.poidsTendance = 1;
@@ -245,12 +248,12 @@ if (M) {
    s'arrêtait à l'été : la garde-robe n'avait ni manteau ni chaussure d'hiver.
    Chaque saison n'a que ses températures vraisemblables — un été froid ne
    dirait rien du moteur. */
-const TEMPERATURES = { printemps: ["doux", "frais"], ete: ["chaud", "doux"], automne: ["doux", "frais"], hiver: ["frais", "froid"] };
+const TEMPERATURES = { printemps: ["froid", "doux"], ete: ["doux", "chaud"], automne: ["froid", "doux"], hiver: ["froid"] };
 const toutes = [];
 for (const saison of ["printemps", "ete", "automne", "hiver"])
-  for (const meteo of ["soleil", "nuages", "pluie", ...(saison === "hiver" ? ["neige"] : [])])
+  for (const meteo of ["soleil", "nuages", "bruine", "pluie", ...(saison === "hiver" ? ["neige"] : [])])
     for (const temp of TEMPERATURES[saison])
-      for (const activite of ["travail", "loisir", "vacances"])
+      for (const activite of ["travail", "chill", "habille"])
         toutes.push({ saison, meteo, temp, activite });
 
 const utilisables = [];
@@ -272,9 +275,32 @@ console.error(`${utilisables.length} situations exploitables, ${retenues.length}
 console.error(`Modèle ${MODELE}, effort ${EFFORT}.${SIMULER ? "  (--simuler : aucun appel, aucune dépense)" : ""}\n`);
 
 const client = (SIMULER || REJOUER) ? null : new Anthropic();
+const COMPTER = SIMULER && drapeau("--compter");
+const compteur = COMPTER ? new Anthropic() : null;
+const comptes = [];
 const usage = { entree: 0, sortie: 0 };
 const usageDuel = { entree: 0, sortie: 0 };
 const resultats = [];
+
+/* --photos joint la photo de chaque pièce citée, devant la fiche. Sans elles,
+   le modèle juge sur des descriptions qu'un autre modèle a écrites depuis les
+   photos — une copie de copie, qui perd la nuance exacte d'un beige, l'éclat
+   d'une matière, l'échelle d'un motif. La propriétaire, elle, vote photos
+   sous les yeux. Une photo compacte pèse environ 420 jetons. */
+const PHOTOS = drapeau("--photos");
+function contenu(charge) {
+  if (!PHOTOS) return JSON.stringify(charge);
+  const parId = new Map(donnees.pieces.map((p) => [p.id, p]));
+  const blocs = [];
+  for (const f of charge.pieces) {
+    const m = /^data:(image\/[a-z+]+);base64,(.+)$/s.exec(parId.get(f.id)?.photo || "");
+    if (!m) continue;
+    blocs.push({ type: "text", text: `Photo de la pièce ${f.id} — ${f.nom}` },
+               { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } });
+  }
+  blocs.push({ type: "text", text: "Les photos ci-dessus montrent les pièces telles qu'elles sont, prises à plat ou sur cintre chez la propriétaire ; le fond et la lumière varient. Voici la journée, les fiches et les candidates :\n\n" + JSON.stringify(charge) });
+  return blocs;
+}
 
 /* Le premier appel, partagé par les deux modèles d'un duel. */
 async function premierePasse(modele, compteur, charge) {
@@ -283,7 +309,7 @@ async function premierePasse(modele, compteur, charge) {
     const reponse = await client.messages.create({
       model: modele, max_tokens: 16000, system: CONSIGNE,
       output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
-      messages: [{ role: "user", content: JSON.stringify(charge) }],
+      messages: [{ role: "user", content: contenu(charge) }],
     });
     compteur.entree += reponse.usage.input_tokens;
     compteur.sortie += reponse.usage.output_tokens;
@@ -304,7 +330,7 @@ async function premierePasse(modele, compteur, charge) {
        fois. Sans ce contrôle, la comparaison opposerait un moteur bridé à un
        modèle libre de répéter, et le verdict ne vaudrait rien. */
     const BASES = ["haut", "bas", "robe"];
-    const parPiece = new Map(donnees.pieces.map((p) => [p.id, p]));
+    const parPiece = new Map(M.etat.pieces.map((p) => [p.id, p])); // les traductions pour le moteur : catégories d'avant
     const bases = [];
     for (const rec of lu.recommendations)
       for (const x of rec.pieces)
@@ -344,7 +370,15 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
 
   const etiquette = `${st.saison}/${st.meteo}/${st.temp}/${st.activite}`;
   if (SIMULER) {
-    console.error(`  [${i + 1}/${retenues.length}] ${etiquette} — ${top.length} candidates, ${vues.size} pièces, ~${Math.round(JSON.stringify(charge).length / 3.5)} jetons`);
+    /* --compter remplace l'estimation par le comptage exact de l'API, qui est
+       gratuit : avec les photos, la longueur du texte ne dit plus rien. */
+    let jetons = `~${Math.round(JSON.stringify(charge).length / 3.5)}`;
+    if (COMPTER) {
+      const n = await compteur.messages.countTokens({ model: MODELE, system: CONSIGNE, messages: [{ role: "user", content: contenu(charge) }] });
+      comptes.push(n.input_tokens);
+      jetons = String(n.input_tokens);
+    }
+    console.error(`  [${i + 1}/${retenues.length}] ${etiquette} — ${top.length} candidates, ${vues.size} pièces, ${jetons} jetons`);
     resultats.push({ situation: st, moteur: st.moteur, llm: null, charge: { candidates: top.length, pieces: vues.size } });
     continue;
   }
@@ -372,7 +406,7 @@ for (const [i, st] of (REJOUER ? [] : retenues).entries()) {
      autant savoir avant de payer. */
   let explo = null;
   if (EXPLORER && !erreur && lu.explorations.length) {
-    const parPiece = new Map(donnees.pieces.map((p) => [p.id, p]));
+    const parPiece = new Map(M.etat.pieces.map((p) => [p.id, p])); // les traductions pour le moteur : catégories d'avant
     const viseesa = new Set();
     const demandes = lu.explorations
       .filter((e) => !viseesa.has(e.candidate) && (viseesa.add(e.candidate), true))
@@ -479,13 +513,14 @@ const vignette = (id) => {
   if (p.photo) photos.set(id, p.photo);
   return `<div class="p">${p.photo ? `<img data-p="${id}" alt="">` : ""}<span>${echapper(p.nom)}</span></div>`;
 };
-const tenueHtml = (ids, cle) => `<div class="t" data-cle="${cle}"><div class="pieces">${ids.map(vignette).join("")}</div>
-  <button class="vote">Je préfère celle-ci</button></div>`;
+const tenueHtml = (ids, cle) => `<div class="t" data-cle="${cle}"><span class="rang"></span><div class="pieces">${ids.map(vignette).join("")}</div>
+  <button class="vote">Classer</button></div>`;
 
 /* En simulation il n'y a rien à comparer : on n'écrit pas de page vide. */
 if (SIMULER) {
   const total = resultats.reduce((n, r) => n + r.charge.candidates, 0);
   console.error(`\nSimulation : ${resultats.length} situations, ${total} candidates au total.`);
+  if (comptes.length) console.error(`Entrée exacte : ${comptes.reduce((a, b) => a + b, 0)} jetons, soit ${Math.round(comptes.reduce((a, b) => a + b, 0) / comptes.length)} par situation.`);
   console.error("Aucune page écrite — sans appel, il n'y a rien à mettre en regard.");
   process.exit(0);
 }
@@ -498,18 +533,29 @@ const NOMS = { moteur: "règles actuelles", llm: `IA (${lisible(meta.modele)})`,
 const enDuel = Boolean(meta.duel);
 const blocs = resultats.filter((r) => r.llm && (!enDuel || r.llm2)).map((r, i) => {
   const st = r.situation;
-  /* On mélange tout, et on ne dit rien de l'origine avant le vote. */
-  const lot = [...r.moteur.map((t) => ({ ids: t.pieces, cle: "moteur" })),
-               ...r.llm.recommendations.map((x) => ({ ids: x.pieces, cle: "llm" })),
-               ...(enDuel ? r.llm2.recommendations.map((x) => ({ ids: x.pieces, cle: "llm2" })) : [])];
+  /* On mélange tout, et on ne dit rien de l'origine avant le vote. Une tenue
+     choisie par plusieurs sources n'apparaît qu'une fois, et son vote compte
+     pour chacune : au premier duel, Sonnet et Opus en partageaient 19 sur 51,
+     et le doublon aurait attribué le vote au hasard. */
+  const parTenue = new Map();
+  const poser = (ids, cle) => {
+    const k = ids.slice().sort().join("|");
+    if (!parTenue.has(k)) parTenue.set(k, { ids, cles: [] });
+    if (!parTenue.get(k).cles.includes(cle)) parTenue.get(k).cles.push(cle);
+  };
+  r.moteur.forEach((t) => poser(t.pieces, "moteur"));
+  r.llm.recommendations.forEach((x) => poser(x.pieces, "llm"));
+  if (enDuel) r.llm2.recommendations.forEach((x) => poser(x.pieces, "llm2"));
+  const lot = [...parTenue.values()].map((t) => ({ ids: t.ids, cle: t.cles.join("+") }));
   for (let k = lot.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [lot[k], lot[j]] = [lot[j], lot[k]]; }
   const explos = r.llm.explorations.map((e) => `<li>${echapper(e.categorie)} ${echapper((e.couleurs || []).join(", "))} — ${echapper(e.pourquoi)}</li>`).join("");
   const raisons = (cle, l) => l.recommendations.map((x) => `<p class="raison"><b>${echapper(NOMS[cle])} — son choix n° ${x.rang}</b> (${x.score}/100) — ${echapper(x.raison)}</p>`).join("");
   return `<section>
     <h2>Situation ${i + 1} — ${echapper(st.saison)} · ${echapper(st.meteo)} · ${echapper(st.temp)} · ${echapper(st.activite)}</h2>
     <div class="lot">${lot.map((x) => tenueHtml(x.ids, x.cle)).join("")}</div>
+    <div class="actions"><button class="valider" disabled>Valider ce classement</button><button class="effacer">Recommencer</button></div>
     <div class="reveal" hidden>
-      <p><b>Origine :</b> ${lot.map((x, k) => `${k + 1} = ${echapper(NOMS[x.cle])}`).join(" · ")}</p>
+      <p><b>Origine :</b> ${lot.map((x, k) => `${k + 1} = ${x.cle.split("+").map((c) => echapper(NOMS[c])).join(" et ")}`).join(" · ")}</p>
       ${raisons("llm", r.llm)}${enDuel ? raisons("llm2", r.llm2) : ""}
       ${explos ? `<p><b>Recherches demandées :</b></p><ul>${explos}</ul>` : `<p><i>Aucune recherche demandée.</i></p>`}
     </div>
@@ -522,39 +568,87 @@ const page = `<!doctype html><meta charset="utf-8">
  body{font:15px/1.5 system-ui,sans-serif;max-width:1100px;margin:0 auto;padding:20px;background:#faf8f4;color:#1f2534}
  h1{font-size:22px} h2{font-size:16px;margin:28px 0 10px;color:#5a6274;font-weight:600}
  .lot{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
- .t{background:#fff;border:1px solid #e6e1d8;border-radius:10px;padding:10px}
- .t.choisi{border-color:#3e5288;box-shadow:0 0 0 2px #e2e6f2}
+ .t{position:relative;background:#fff;border:1px solid #e6e1d8;border-radius:10px;padding:10px}
+ .t.classee{border-color:#3e5288;box-shadow:0 0 0 2px #e2e6f2}
+ .rang{position:absolute;top:-10px;right:-10px;min-width:30px;height:30px;border-radius:15px;background:#3e5288;color:#fff;font-weight:700;display:none;align-items:center;justify-content:center;font-size:14px}
+ .t.classee .rang{display:flex}
  .pieces{display:flex;gap:5px;flex-wrap:wrap;min-height:88px}
  .p{width:62px;font-size:10px;text-align:center;color:#5a6274}
  .p img{width:62px;height:62px;object-fit:cover;border-radius:6px;display:block}
  .p span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  button{margin-top:8px;width:100%;padding:6px;border:1px solid #cfc9bd;border-radius:7px;background:#f4f1ea;cursor:pointer;font:inherit;font-size:13px}
+ button:disabled{opacity:.45;cursor:default}
+ .actions{display:flex;gap:10px;margin-top:10px} .actions button{width:auto;padding:7px 14px}
+ .valider{background:#3e5288;color:#fff;border-color:#3e5288}
+ section.validee .vote,section.validee .actions{display:none}
  .reveal{background:#fff;border-left:3px solid #3e5288;padding:10px 14px;margin-top:10px;font-size:13.5px}
  .raison{color:#3d4354} .bilan{position:sticky;bottom:0;background:#1f2534;color:#fff;padding:12px;border-radius:10px;margin-top:24px}
 </style>
 <h1>Règles actuelles contre IA — comparaison à l'aveugle</h1>
-<p>Pour chaque situation, ${enDuel ? "neuf" : "six"} tenues : trois choisies par le <b>moteur de règles actuel</b>, ${enDuel ? "trois par chacune des <b>deux IA</b>" : "trois par l'<b>IA</b>"}, mélangées et sans étiquette.
-Choisis celle que tu porterais. L'origine n'apparaît qu'après ton vote.</p>
+<p>Pour chaque situation, jusqu'à ${enDuel ? "neuf" : "six"} tenues : trois choisies par le <b>moteur de règles actuel</b>, ${enDuel ? "trois par chacune des <b>deux IA</b>" : "trois par l'<b>IA</b>"}, mélangées et sans étiquette. Une tenue choisie par plusieurs n'apparaît qu'une fois, et ses points comptent pour chacune.</p>
+<p><b>Classe-les</b> : clique « Classer » sur ta préférée, puis sur la suivante, et ainsi de suite — au moins trois, autant que tu veux. Re-cliquer une tenue la retire du classement, avec celles qui la suivent. « Valider » révèle l'origine. Ton classement est gardé si tu fermes la page.</p>
+<p>Points : 3 pour la 1<sup>re</sup> place, 2 pour la 2<sup>e</sup>, 1 pour la 3<sup>e</sup>.</p>
 ${blocs}
-<div class="bilan" id="bilan">Aucun vote pour l'instant.</div>
+<div class="bilan" id="bilan">Aucun classement pour l'instant.</div>
 <script>
  const PHOTOS = __PHOTOS__;
  const NOMS = ${JSON.stringify(NOMS)};
+ /* La clé change à chaque page écrite : le mélange des tenues aussi. */
+ const CLE = "classement-${new Date().toISOString()}";
  document.querySelectorAll("img[data-p]").forEach((i) => { i.src = PHOTOS[i.dataset.p] || ""; });
- const votes = [];
- document.querySelectorAll("section").forEach((s) => {
-   s.querySelectorAll(".vote").forEach((b) => b.onclick = () => {
-     if (s.dataset.vote) return;
-     const t = b.closest(".t");
-     s.dataset.vote = t.dataset.cle;
-     t.classList.add("choisi");
-     s.querySelector(".reveal").hidden = false;
-     votes.push(t.dataset.cle);
-     document.getElementById("bilan").textContent = votes.length + " situation(s) jugée(s) — "
-       + Object.entries(NOMS).filter(([, n]) => n)
-           .map(([c, n]) => n + " : " + votes.filter((v) => v === c).length).join("  |  ");
+ const sections = [...document.querySelectorAll("section")];
+ /* état : pour chaque section, l'ordre des tenues classées et si c'est validé */
+ let etat = sections.map(() => ({ ordre: [], validee: false }));
+ try { const lu = JSON.parse(localStorage.getItem(CLE)); if (Array.isArray(lu) && lu.length === sections.length) etat = lu; } catch {}
+ const garder = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch {} };
+ const ORD = (n) => n === 1 ? "1re" : n + "e";
+
+ function peindre(k) {
+   const s = sections[k], e = etat[k], tenues = [...s.querySelectorAll(".t")];
+   tenues.forEach((t, j) => {
+     const r = e.ordre.indexOf(j);
+     t.classList.toggle("classee", r >= 0);
+     t.querySelector(".rang").textContent = r >= 0 ? ORD(r + 1) : "";
    });
+   s.querySelector(".valider").disabled = e.ordre.length < Math.min(3, tenues.length);
+   s.classList.toggle("validee", e.validee);
+   s.querySelector(".reveal").hidden = !e.validee;
+ }
+
+ function bilan() {
+   const pts = {}, premiers = {};
+   Object.keys(NOMS).forEach((c) => { pts[c] = 0; premiers[c] = 0; });
+   let n = 0;
+   etat.forEach((e, k) => {
+     if (!e.validee) return;
+     n++;
+     const tenues = [...sections[k].querySelectorAll(".t")];
+     e.ordre.slice(0, 3).forEach((j, r) => {
+       for (const c of tenues[j].dataset.cle.split("+")) {
+         pts[c] += 3 - r;
+         if (r === 0) premiers[c]++;
+       }
+     });
+   });
+   document.getElementById("bilan").textContent = n
+     ? n + " situation(s) classée(s) — " + Object.entries(NOMS).filter(([, x]) => x)
+         .map(([c, x]) => x + " : " + pts[c] + " pts, " + premiers[c] + " fois 1re").join("  |  ")
+     : "Aucun classement pour l'instant.";
+ }
+
+ sections.forEach((s, k) => {
+   s.querySelectorAll(".t").forEach((t, j) => t.querySelector(".vote").onclick = () => {
+     const e = etat[k];
+     if (e.validee) return;
+     const r = e.ordre.indexOf(j);
+     if (r >= 0) e.ordre = e.ordre.slice(0, r); else e.ordre.push(j);
+     garder(); peindre(k);
+   });
+   s.querySelector(".valider").onclick = () => { etat[k].validee = true; garder(); peindre(k); bilan(); };
+   s.querySelector(".effacer").onclick = () => { etat[k] = { ordre: [], validee: false }; garder(); peindre(k); };
+   peindre(k);
  });
+ bilan();
 </script>`;
 
 /* La table des photos est injectee une seule fois, apres coup : les vignettes

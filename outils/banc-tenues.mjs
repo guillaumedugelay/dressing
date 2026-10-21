@@ -126,7 +126,8 @@ function chargerMoteur() {
   `;
   const out = {};
   new Function("__out", stubs + sc +
-    "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable;" +
+    "\n;__out.proposerTenues = proposerTenues; __out.etat = etat; __out.portable = portable; __out.poserGardeRobe = poserGardeRobe;" +
+    "\n;__out.estPullFin = estPullFin; __out.estTransparente = estTransparente;" +
     "\n;__out.poserTendances = (c) => { TENDANCES = c; }; __out.noteTendances = noteTendances;" +
     "\n;__out.argumenter = argumenter; __out.conseilsUtiles = conseilsUtiles; __out.pieceQuiManque = pieceQuiManque;")(out);
   if (typeof out.proposerTenues !== "function") throw new Error("moteur : proposerTenues introuvable");
@@ -139,19 +140,26 @@ function chargerMoteur() {
    Les **qualitatifs** ont un seuil, parce qu'une troisième proposition
    moyenne vaut mieux que deux propositions seulement. */
 const NEUTRES = ["noir","blanc","gris","beige","marine","denim","marron"];
-const CIBLES = { chaud: 3, doux: 5, frais: 7, froid: 9 };   // échelle à 4 crans
-const PLANCHERS = { travail: 3, loisir: 1, vacances: 1 };
+/* Les cibles de chaleur de TEMPS (index.html), trois températures depuis le
+   21 octobre 2026. */
+const CIBLES = { chaud: 3, doux: 5, froid: 8 };
+/* Doivent suivre ACTIVITES dans index.html (travail : décontracté à soigné, 21 octobre 2026). */
+const PLANCHERS = { travail: 2, chill: 2, habille: 3 };
+const PLAFONDS = { travail: 3, chill: 3, habille: 4 };
 const sommeChaleur = (t) => t.pieces.reduce((n, p) => p.categorie === "accessoire" ? n
   : n + p.chaleur * (p.categorie === "robe" ? 2 : 1), 0);
 
 const DETECTEURS = [
   { nom: "tenue sans chaussures", dur: true,
     test: (t) => !t.pieces.some((p) => p.categorie === "chaussures") },
+  /* Un pull fin se porte seul, comme un haut : il peut donc côtoyer un pull
+     épais ou un gilet par-dessus, et une pièce transparente peut se glisser
+     sous un haut. Ces cas-là ne sont pas des doublons. */
   { nom: "deux pièces de la même catégorie", dur: true,
     test: (t) => ["haut","bas","robe","pull","manteau","chaussures","accessoire"]
-      .some((c) => t.pieces.filter((p) => p.categorie === c).length > 1) },
+      .some((c) => t.pieces.filter((p) => p.categorie === c && !M.estPullFin(p) && !M.estTransparente(p)).length > 1) },
   { nom: "ni haut ni robe", dur: true,
-    test: (t) => !t.pieces.some((p) => p.categorie === "haut" || p.categorie === "robe") },
+    test: (t) => !t.pieces.some((p) => p.categorie === "haut" || p.categorie === "robe" || M.estPullFin(p)) },
   { nom: "un haut et une robe ensemble", dur: true,
     test: (t) => t.pieces.some((p) => p.categorie === "robe") && t.pieces.some((p) => p.categorie === "haut") },
   { nom: "une robe avec un bas", dur: true,
@@ -160,6 +168,8 @@ const DETECTEURS = [
     test: (t, s) => t.pieces.some((p) => (p.saisons||[]).length && !p.saisons.includes(s.saison)) },
   { nom: "pièce sous le plancher de l'occasion", dur: true,
     test: (t, s) => t.pieces.some((p) => p.formaliteMax < PLANCHERS[s.activite]) },
+  { nom: "pièce au-dessus du plafond de l'occasion", dur: true,
+    test: (t, s) => t.pieces.some((p) => (p.formaliteMin ?? 2) > PLAFONDS[s.activite]) },
   { nom: "fuite du filtre de chaleur", dur: true,
     test: (t, s) => { const e = sommeChaleur(t) - CIBLES[s.temp]; return e > 1 || e < -2; } },
   { nom: "chaussures non étanches sous la pluie, alors qu'il en existe", dur: true,
@@ -186,13 +196,13 @@ const corpus = JSON.parse(readFileSync(new URL("../tendances.json", import.meta.
 M.poserTendances(corpus);
 const POIDS = Number(option("--tendance", 1));
 const pieces = fichier ? JSON.parse(readFileSync(fichier, "utf8")).pieces : gardeRobeSynthetique();
-M.etat.pieces = pieces; M.etat.tenues = []; M.etat.avis = []; M.etat.poidsTendance = POIDS;
+M.poserGardeRobe(pieces); M.etat.tenues = []; M.etat.avis = []; M.etat.poidsTendance = POIDS;
 
 const SITUATIONS = [];
 for (const saison of ["printemps","ete","automne","hiver"])
   for (const meteo of ["soleil","nuages","pluie","neige"])
-    for (const temp of ["chaud","doux","frais","froid"])
-      for (const activite of ["travail","loisir","vacances"])
+    for (const temp of ["chaud","doux","froid"])
+      for (const activite of ["travail","chill","habille"])
         SITUATIONS.push({ saison, meteo, temp, activite });
 
 const compte = new Map(), exemples = new Map(), usage = new Map(), echantillon = [];
