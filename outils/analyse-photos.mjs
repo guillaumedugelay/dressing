@@ -31,23 +31,30 @@ const MOTIFS = ["uni", "raye", "carreaux", "imprime"];
 const LONGUEURS = ["court", "genoux", "long"];
 const MATIERES = ["coton", "lin", "laine", "denim", "maille", "cuir", "soie", "synthetique"];
 
-/* Sonnet 5 à effort élevé. L'effort moyen, essayé d'abord, s'est révélé
-   instable : sur huit pièces il a produit deux réponses aberrantes — une
-   question sans rapport sur un chauffe-eau, une phrase en chinois — et ignoré
-   trois fois la consigne demandant de ne pas douter d'une nuance de fibre.
-   À effort élevé, plus d'aberration et des doutes qui apprennent quelque
-   chose, pour 14 % de plus. Se change avec MODELE= et EFFORT=. */
-const MODELE = process.env.MODELE || "claude-sonnet-5";
+/* Sonnet 5.5 à effort élevé. Sur Sonnet 5, l'effort moyen, essayé d'abord,
+   s'est révélé instable : sur huit pièces il a produit deux réponses
+   aberrantes — une question sans rapport sur un chauffe-eau, une phrase en
+   chinois — et ignoré trois fois la consigne demandant de ne pas douter d'une
+   nuance de fibre. À effort élevé, plus d'aberration et des doutes qui
+   apprennent quelque chose, pour 14 % de plus.
+   Sonnet 5.5 coûte le même prix, mais ses niveaux d'effort ont été
+   recalibrés : « high » n'y veut pas dire exactement la même chose. Le
+   passage a été vérifié sur dix pièces déjà analysées (21 octobre 2026).
+   Se change avec MODELE= et EFFORT=. */
+const MODELE = process.env.MODELE || "claude-sonnet-5-5";
 const EFFORT = process.env.EFFORT || "high";
 const PARALLELE = 4;
 
-/* Tarifs par million de jetons, pour le décompte final. Claude Sonnet 5 est
-   en tarif de lancement jusqu'au 31 août 2026 ; passée cette date, le calcul
-   bascule tout seul sur le tarif normal. */
+/* Tarifs par million de jetons, pour le décompte final. Le tarif de
+   lancement de Sonnet 5 est devenu son tarif normal. Un modèle absent de la
+   table n'a pas d'estimation : l'ajouter ici en même temps que le modèle. */
 const TARIFS = {
-  "claude-opus-5":    { entree: 5, sortie: 25 },
-  "claude-sonnet-5":  { entree: 3, sortie: 15, lancement: { entree: 2, sortie: 10, jusquA: "2026-08-31" } },
-  "claude-haiku-4-5": { entree: 1, sortie: 5 },
+  "claude-opus-5-5":   { entree: 4, sortie: 20 },
+  "claude-opus-5":     { entree: 5, sortie: 25 },
+  "claude-sonnet-5-5": { entree: 2, sortie: 10 },
+  "claude-sonnet-5":   { entree: 2, sortie: 10 },
+  "claude-haiku-5-5":  { entree: 0.1, sortie: 0.5 },
+  "claude-haiku-4-5":  { entree: 1, sortie: 5 },
 };
 
 function tarifDu(modele) {

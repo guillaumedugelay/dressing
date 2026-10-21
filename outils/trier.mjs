@@ -35,7 +35,8 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const args = process.argv.slice(2);
 const drapeau = (n) => args.includes(n);
-const MODELE = process.env.MODELE_TRI || "claude-haiku-4-5";
+/* Haiku 5.5 depuis le 21 octobre 2026 : dix fois moins cher que Haiku 4.5. */
+const MODELE = process.env.MODELE_TRI || "claude-haiku-5-5";
 const MONTRER = drapeau("--montrer");
 
 const SCHEMA = {
@@ -127,7 +128,8 @@ const manquants = corpus.articles.length - parIndice.size;
 process.stderr.write(`  ${gardes.length} gardés, ${rejetes.length} écartés` +
   (manquants > 0 ? `, ${manquants} sans verdict (gardés par défaut)` : "") + ".\n");
 
-const tarifs = { "claude-haiku-4-5": [1, 5], "claude-sonnet-5": [2, 10], "claude-opus-5": [5, 25] };
+const tarifs = { "claude-haiku-5-5": [0.1, 0.5], "claude-haiku-4-5": [1, 5], "claude-sonnet-5-5": [2, 10],
+                 "claude-sonnet-5": [2, 10], "claude-opus-5-5": [4, 20], "claude-opus-5": [5, 25] };
 const t = tarifs[MODELE];
 if (t) {
   const cout = (reponse.usage.input_tokens * t[0] + reponse.usage.output_tokens * t[1]) / 1e6;

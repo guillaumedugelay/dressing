@@ -138,8 +138,11 @@ const materiau = corpus.articles
 
    Économie : 18,52 $ par an contre 12,62 $. Moins que le rapport des prix ne
    le laissait attendre, Sonnet ayant produit plus de sortie qu'Opus.
+   Passé à Sonnet 5.5 le 21 octobre 2026, au même prix ; ses niveaux d'effort
+   ont été recalibrés, donc « high » n'y est pas tout à fait le « high » de
+   Sonnet 5.
    Se change au coup par coup avec MODELE= et EFFORT=, pour comparer. */
-const MODELE = process.env.MODELE || "claude-sonnet-5";
+const MODELE = process.env.MODELE || "claude-sonnet-5-5";
 const EFFORT = process.env.EFFORT || "high";
 
 if (!process.env.ANTHROPIC_API_KEY) {

@@ -36,7 +36,7 @@ if (!fichier) { console.error("Usage : node outils/banc-llm.mjs <export.json> [-
 
 const SITUATIONS_VOULUES = Number(option("--situations", 20));
 const PLAFOND_CANDIDATES = Number(option("--candidates", 50));
-const MODELE = process.env.MODELE || "claude-sonnet-5";
+const MODELE = process.env.MODELE || "claude-sonnet-5-5";
 const EFFORT = process.env.EFFORT || "high";
 const SIMULER = drapeau("--simuler");
 /* La seconde passe coûte 60 % de la première. On la déclenche à la demande,
@@ -45,9 +45,12 @@ const EXPLORER = drapeau("--exploration");
 
 /* Tarifs par million de jetons, repris de analyse-photos.mjs. */
 const TARIFS = {
-  "claude-opus-5":    { entree: 5, sortie: 25 },
-  "claude-sonnet-5":  { entree: 3, sortie: 15, lancement: { entree: 2, sortie: 10, jusquA: "2026-08-31" } },
-  "claude-haiku-4-5": { entree: 1, sortie: 5 },
+  "claude-opus-5-5":   { entree: 4, sortie: 20 },
+  "claude-opus-5":     { entree: 5, sortie: 25 },
+  "claude-sonnet-5-5": { entree: 2, sortie: 10 },
+  "claude-sonnet-5":   { entree: 2, sortie: 10 },
+  "claude-haiku-5-5":  { entree: 0.1, sortie: 0.5 },
+  "claude-haiku-4-5":  { entree: 1, sortie: 5 },
 };
 function tarifDu(m) {
   const t = TARIFS[m]; if (!t) return null;
