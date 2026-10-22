@@ -3214,7 +3214,7 @@ const SCHEMA_TENUES = {
 };
 
 /* La journée, et ce qu'elle a déjà dit de ses goûts. */
-function contexteDuJour(fiches, aEcarter) {
+function contexteDuJour(fiches, aEcarter, recentes = []) {
   const journee = ACTIVITES.find((a) => a.id === etat.activite);
   const lignes = [
     `La journée : ${journee.nom}${journee.detail ? ` (${journee.detail})` : ""}.`,
@@ -3234,6 +3234,18 @@ function contexteDuJour(fiches, aEcarter) {
     const t = TENDANCES.regles.filter((r) => r.type !== "descriptive").slice(0, 12).map((r) => r.note || r.valeur).filter(Boolean);
     if (t.length) lignes.push(`Ce qui se porte en ce moment, sans en faire une obsession : ${t.join(" ; ")}.`);
   }
+  /* Les tenues des trois derniers jours, portées ou non : sans elles, Opus
+     pouvait reproposer le lendemain la tenue de la veille. */
+  const dejaVuesIci = new Set(aEcarter.map((ids) => [...ids].sort().join("|")));
+  const passees = recentes.flatMap((d) => d.tenues.map((t, i) => ({ d, t, i })))
+    .filter(({ t }) => !dejaVuesIci.has([...t.pieces].sort().join("|")))
+    .map(({ d, t, i }) => {
+      const noms = t.pieces.map((id) => parId(id)?.nom).filter(Boolean);
+      if (!noms.length) return null;
+      const jour = new Date(d.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+      return `${jour} : ${noms.join(" + ")}${d.portee === i ? " (portée)" : ""}`;
+    }).filter(Boolean);
+  if (passees.length) lignes.push(`Tenues déjà proposées ces trois derniers jours — varie, sauf si l'une d'elles s'impose vraiment pour la journée : ${passees.join(" ; ")}.`);
   if (aEcarter.length) lignes.push(`Elle a déjà vu ces tenues aujourd'hui et en veut d'autres : ${aEcarter.map((ids) => ids.map((id) => presentes.get(id)?.nom).filter(Boolean).join(" + ")).join(" ; ")}. Propose-lui autre chose.`);
   lignes.push("Compose ses trois tenues.");
   return lignes.join("\n");
@@ -3285,6 +3297,10 @@ async function composerAvecOpus({ fiches, aEcarter = [], progres }) {
     if (++n % 20 === 0) progres?.(`Préparation des photos : ${n} / ${fiches.length}`);
   }
 
+  /* Les demandes des trois derniers jours, pour qu'Opus varie. */
+  const depuis = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10);
+  const recentes = (await lireDemandes()).filter((d) => d.date >= depuis);
+
   const demander = async (supplement) => {
     progres?.("Opus compose tes tenues… (30 secondes à une minute)");
     const flux = client.beta.messages.stream({
@@ -3294,7 +3310,7 @@ async function composerAvecOpus({ fiches, aEcarter = [], progres }) {
       fallbacks: "default",
       system: CONSIGNE_TENUES,
       output_config: { effort: "high", format: { type: "json_schema", schema: SCHEMA_TENUES } },
-      messages: [{ role: "user", content: [...garde, { type: "text", text: contexteDuJour(fiches, aEcarter) + (supplement || "") }] }],
+      messages: [{ role: "user", content: [...garde, { type: "text", text: contexteDuJour(fiches, aEcarter, recentes) + (supplement || "") }] }],
     });
     const reponse = await flux.finalMessage();
     /* Seul un appel qui a abouti compte dans les trois du jour : une clé
