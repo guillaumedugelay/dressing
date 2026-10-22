@@ -211,6 +211,18 @@
   }
 
   .filtres { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0 10px; }
+  .demande { border-top: 1px solid var(--trait); padding: 10px 0 4px; }
+  .demande:first-child { border-top: 0; padding-top: 0; }
+  .demande .quand { font-size: 12.5px; color: var(--texte-doux); margin-bottom: 6px; }
+  .proposee { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+  .proposee .minis { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .proposee .minis img, .proposee .minis > span:not(.titre) {
+    width: 34px; height: 42px; border-radius: 5px; object-fit: cover;
+    background: var(--lin-creux); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .proposee .titre { flex-basis: 100%; }
+  .proposee .titre { font-size: 12.5px; display: block; margin-bottom: 3px; }
+  .proposee button { flex: none; padding: 6px 10px; font-size: 12.5px; }
+  .proposee .portee { flex: none; font-size: 12.5px; color: var(--accent); font-weight: 600; }
   .recherche { width: 100%; padding: 12px 14px; border-radius: 11px; border: 1px solid var(--trait);
     background: var(--carte); font: inherit; font-size: 15px; margin-bottom: 10px; box-sizing: border-box; }
   .listes-filtres { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
@@ -404,6 +416,11 @@
 
   <!-- ============ JOURNAL ============ -->
   <section class="vue" id="vue-journal">
+    <div class="bloc">
+      <span class="legende">Tenues proposées</span>
+      <p style="margin:0;font-size:13px;color:var(--texte-doux)">Ce qu'Opus t'a proposé ces derniers jours. Tu peux noter après coup celle que tu as portée.</p>
+      <div id="proposees"></div>
+    </div>
     <div class="bloc">
       <span class="legende">Ce que j'ai porté</span>
       <div id="historique"></div>
@@ -2515,7 +2532,7 @@ function rendreJour() {
           `<p><b>${echapper(a.titre)}</b> — ${echapper(a.texte)}</p>`).join("")}
       </details>`}
       <div class="actions">
-        <button class="secondaire porte" data-porte="${i}">Je porte ça</button>
+        <button class="secondaire porte" data-porte="${i}" ${t.portee || etat.propositions.some((x) => x.portee) ? "disabled" : ""}>${t.portee ? "✓ Portée" : "Je porte ça"}</button>
         <button class="secondaire avis" data-avis="${i}" data-sens="1" aria-pressed="false" aria-label="J'aime">👍</button>
         <button class="secondaire avis" data-avis="${i}" data-sens="-1" aria-pressed="false" aria-label="Je n'aime pas">👎</button>
       </div>
@@ -2524,7 +2541,7 @@ function rendreJour() {
       Montre-moi autre chose
     </button>
     <p style="font-size:11.5px;color:var(--texte-doux);text-align:center;margin:10px 0 0">
-      ${etat.propositions[0]?.origine === "opus" ? "Composé par Opus · chaque nouvelle demande compte dans les trois du jour"
+      ${etat.propositions[0]?.origine === "opus" ? `Composé par Opus${etat.propositions[0].heure ? ` à ${etat.propositions[0].heure}` : ""} · chaque nouvelle demande compte dans les trois du jour`
         : TENDANCES.regles.length
         ? `Tendances du ${echapper(TENDANCES.revision)}${etat.poidsTendance ? "" : " — ignorées"}`
         : "Règles de composition seules"}
@@ -2655,6 +2672,7 @@ function rendreLacunes() {
 
 function rendreJournal() {
   rendreReglagesOpus();
+  rendreProposees();
   const histo = $("#historique");
   const recentes = [...etat.tenues].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
   histo.innerHTML = recentes.length ? recentes.map((t) => {
@@ -2719,6 +2737,7 @@ function rendre() {
 let enCours = false;
 async function lancer(relance) {
   if (enCours) return;
+  /* Ce qu'elle a déjà vu aujourd'hui, même avant d'avoir fermé l'appli. */
   const aEcarter = relance ? (etat.dejaVues || []) : [];
   if (!relance) etat.dejaVues = [];
   const { fiches } = piecesEligibles();
@@ -2728,7 +2747,8 @@ async function lancer(relance) {
   $("#btn-proposer").disabled = true;
   attente("Opus regarde ta garde-robe…");
   try {
-    etat.propositions = await composerAvecOpus({ fiches, aEcarter, progres: attente });
+    const demande = await garderDemande(await composerAvecOpus({ fiches, aEcarter, progres: attente }));
+    etat.propositions = depuisDemande(demande);
     etat.dejaVues = [...aEcarter, ...etat.propositions.map((t) => t.pieces.map((p) => p.id))];
     rendreJour();
     if (relance) hote.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2742,12 +2762,84 @@ async function lancer(relance) {
   }
 }
 
+async function rendreProposees() {
+  const demandes = (await lireDemandes()).slice(0, 15);
+  const hote = $("#proposees");
+  if (!demandes.length) { hote.innerHTML = `<div class="vide">Aucune demande pour l'instant.</div>`; return; }
+  const libelle = (d) => {
+    const jour = new Date(d.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+    return `${jour} à ${d.heure} · ${nomDe(ACTIVITES, d.activite)} · ${nomDe(METEOS, d.meteo).toLowerCase()} · ${nomDe(TEMPS, d.temp).toLowerCase()}`;
+  };
+  hote.innerHTML = demandes.map((d) => `<div class="demande"><div class="quand">${echapper(libelle(d))}</div>${
+    depuisDemande(d).map((t) => `<div class="proposee">
+      <span class="minis"><span class="titre">${echapper(t.titre || "Tenue " + (t.index + 1))}</span>${t.pieces.map((p) =>
+        p.photo ? `<img src="${p.photo}" alt="${echapper(p.nom)}">` : `<span>${pictoCat(p.categorie)}</span>`).join("")}</span>
+      ${t.portee ? `<span class="portee">✓ portée</span>`
+        : d.portee === undefined ? `<button class="secondaire" data-demande="${d.id}" data-index="${t.index}">Je l'ai portée</button>` : ""}
+    </div>`).join("")}</div>`).join("");
+  hote.querySelectorAll("[data-demande]").forEach((b) => {
+    b.onclick = async () => {
+      const d = demandes.find((x) => x.id === b.dataset.demande);
+      await enregistrerPort(depuisDemande(d)[+b.dataset.index]);
+    };
+  });
+}
+
+/* ═══════════ La mémoire des propositions ═══════════
+   Chaque demande à Opus est gardée, avec sa journée et ses trois tenues :
+   le 22 octobre 2026, la première vraie demande s'est perdue à la fermeture
+   de l'application, et la propriétaire n'a pas pu dire laquelle elle avait
+   portée. Les tenues du jour réapparaissent à la réouverture ; les
+   précédentes restent dans le Journal, où l'on peut noter après coup celle
+   qu'on a portée. On en garde soixante. Elles sont rangées dans les
+   réglages et partent avec la sauvegarde. */
+const MAX_DEMANDES = 60;
+async function lireDemandes() {
+  return (await DB.prendre("reglages", "propositions"))?.valeur || [];
+}
+async function ecrireDemandes(demandes) {
+  await DB.poser("reglages", { cle: "propositions", valeur: demandes.slice(0, MAX_DEMANDES) });
+}
+async function garderDemande(propositions) {
+  const maintenant = new Date();
+  const demande = {
+    id: idNeuf(), date: aujourdhui(),
+    heure: maintenant.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    meteo: etat.meteo, temp: etat.temp, activite: etat.activite, saison: etat.saison,
+    tenues: propositions.map((t) => ({ titre: t.titre, raison: t.raison, pieces: t.pieces.map((p) => p.id) })),
+  };
+  await ecrireDemandes([demande, ...(await lireDemandes())]);
+  return demande;
+}
+/* Une tenue gardée redevient une proposition affichable — sans les pièces
+   supprimées depuis. */
+const depuisDemande = (demande) => demande.tenues.map((t, index) => ({
+  titre: t.titre, raison: t.raison, origine: "opus", demande: demande.id, index, date: demande.date,
+  heure: demande.heure, portee: demande.portee === index,
+  pieces: t.pieces.map(parId).filter(Boolean),
+}));
+async function restaurerDuJour() {
+  const duJour = (await lireDemandes()).filter((d) => d.date === aujourdhui());
+  if (!duJour.length) return;
+  etat.propositions = depuisDemande(duJour[0]);
+  etat.dejaVues = duJour.flatMap((d) => d.tenues.map((t) => t.pieces));
+}
+
 async function enregistrerPort(tenue) {
-  const date = aujourdhui();
+  if (tenue.portee) return toast("Déjà notée");
+  const date = tenue.date || aujourdhui();
+  const demande = tenue.demande ? (await lireDemandes()).find((d) => d.id === tenue.demande) : null;
   await DB.poser("tenues", {
     id: idNeuf(), date, pieces: tenue.pieces.map((p) => p.id),
-    meteo: etat.meteo, temp: etat.temp, activite: etat.activite,
+    meteo: demande?.meteo ?? etat.meteo, temp: demande?.temp ?? etat.temp, activite: demande?.activite ?? etat.activite,
   });
+  /* La tenue portée est marquée dans sa demande : on ne la note qu'une fois. */
+  if (demande) {
+    demande.portee = tenue.index;
+    const demandes = await lireDemandes();
+    await ecrireDemandes(demandes.map((d) => (d.id === demande.id ? demande : d)));
+    for (const t of etat.propositions) if (t.demande === demande.id) t.portee = t.index === tenue.index;
+  }
   for (const p of tenue.pieces) {
     const piece = parId(p.id);
     piece.porteLe = [...(piece.porteLe || []), date];
@@ -2755,6 +2847,7 @@ async function enregistrerPort(tenue) {
   }
   etat.tenues = await DB.tout("tenues");
   toast("Tenue notée — c'est ce qui affine les suggestions");
+  rendre();
 }
 
 async function donnerAvis(tenue, sens) {
@@ -3297,9 +3390,10 @@ async function oublierCle() {
 
 /* ═══════════ Sauvegarde ═══════════ */
 
-function exporter() {
+async function exporter() {
+  etat.demandesExport = await lireDemandes();
   const donnees = { version: 5, exporteLe: new Date().toISOString(),
-                    pieces: etat.fiches, tenues: etat.tenues, avis: etat.avis };
+                    pieces: etat.fiches, tenues: etat.tenues, avis: etat.avis, propositions: etat.demandesExport };
   const url = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url; a.download = `dressing-${aujourdhui()}.json`;
@@ -3329,6 +3423,7 @@ async function importer(fichier, mode) {
     await Promise.all(["pieces", "tenues", "avis"].map((m) => DB.vider(m)));
     for (const t of donnees.tenues || []) await DB.poser("tenues", t);
     for (const a of donnees.avis || []) await DB.poser("avis", a);
+    if (donnees.propositions) await ecrireDemandes(donnees.propositions);
   } else {
     if (!confirm(`Fusionner ce fichier avec ta garde-robe ?\n\n`
       + `${majs} pièce${majs > 1 ? "s" : ""} mise${majs > 1 ? "s" : ""} à jour, ${neuves} ajoutée${neuves > 1 ? "s" : ""}.\n`
@@ -3512,6 +3607,7 @@ async function charger() {
 async function demarrer() {
   await DB.ouvrir();
   await charger();
+  await restaurerDuJour();
   /* Le corpus arrive du réseau ou du cache ; l'application ne l'attend pas
      pour s'afficher, elle se rafraîchit quand il est là. */
   chargerTendances().then(() => { if (etat.vue === "journal") rendreTendances(); });
