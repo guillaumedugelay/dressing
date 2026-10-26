@@ -1,10 +1,10 @@
 {
-  "revision": "2026-10-19",
+  "revision": "2026-10-26",
   "origine": "cumul-hebdomadaire",
   "fenetre": {
     "semaines": 8,
-    "de": "2026-08-31",
-    "a": "2026-10-19",
+    "de": "2026-09-07",
+    "a": "2026-10-26",
     "demiVie": 4
   },
   "sources": [
@@ -18,82 +18,101 @@
     "Refinery29",
     "Glamour"
   ],
-  "resume": "Cette semaine, le violet s'impose comme la couleur dominante de la saison, porté par les podiums comme par la rue, tandis que le cuir et la laine réchauffent les silhouettes d'automne. Les vestes structurées reprennent le dessus sur l'oversize, les pantalons s'élargissent, et une vague de transparence et de découpes réintroduit la peau au cœur des tendances.",
+  "resume": "Cette semaine, le violet s'impose, surtout en pull, avec le marron, la maille et le cuir pour l'automne, et les sacs et manteaux font aussi parler. Côté détails, les jupes midi, les jeans bootcut, les mocassins et les bottes montantes à lacets reviennent souvent, mais ils sortent du cadre des coupes habituelles.",
   "regles": [
     {
       "type": "categorie",
       "valeur": "accessoire",
-      "poids": 1.11,
-      "note": "sacs et bijoux affirmés mis en avant",
+      "poids": 1.08,
+      "note": "Sacs en tête, écharpes et gants aussi",
       "texte": "",
       "vuSur": 8,
-      "depuis": "2026-08-31"
+      "depuis": "2026-09-07"
     },
     {
       "type": "couleur",
       "valeur": "violet",
-      "poids": 0.93,
-      "note": "violet domine podiums et rues cette saison",
+      "poids": 1.06,
+      "note": "Le violet profond gagne les pulls",
       "texte": "",
-      "vuSur": 4,
+      "vuSur": 5,
       "depuis": "2026-09-14"
     },
     {
       "type": "couleur",
       "valeur": "marron",
-      "poids": 0.79,
-      "note": "marron s'impose sur sacs et chaussures",
+      "poids": 0.83,
+      "note": "Tons terre et jean marron",
       "texte": "",
-      "vuSur": 6,
+      "vuSur": 7,
+      "depuis": "2026-09-07"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 0.62,
+      "note": "Trench, manteaux sobres et vestes d'automne",
+      "texte": "",
+      "vuSur": 4,
+      "depuis": "2026-09-07"
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 0.59,
+      "note": "Cuir sombre, du jour au soir",
+      "texte": "",
+      "vuSur": 4,
       "depuis": "2026-09-07"
     },
     {
       "type": "silhouette",
       "haut": "ajuste",
       "bas": "ample",
-      "poids": 0.76,
+      "poids": 0.56,
       "note": "pantalon ample, haut près du corps",
-      "vuSur": 4,
-      "depuis": "2026-08-31"
+      "vuSur": 3,
+      "depuis": "2026-09-21"
     },
     {
       "type": "categorie",
-      "valeur": "manteau",
-      "poids": 0.53,
-      "note": "manteaux et doudounes pièce forte",
+      "valeur": "pull",
+      "poids": 0.46,
+      "note": "Le pull est la pièce de saison",
+      "texte": "",
       "vuSur": 3,
-      "depuis": "2026-09-07"
+      "depuis": "2026-09-14"
     },
     {
       "type": "motif",
       "valeur": "carreaux",
-      "poids": 0.52,
+      "poids": 0.43,
       "note": "carreaux et tartan réhaussés cet automne",
       "texte": "",
       "vuSur": 4,
       "depuis": "2026-09-14"
     },
     {
-      "type": "matiere",
-      "valeur": "cuir",
-      "poids": 0.51,
-      "note": "cuir partout : pantalons, vestes, bottes",
-      "texte": "",
-      "vuSur": 3,
-      "depuis": "2026-09-07"
-    },
-    {
       "type": "motif",
       "valeur": "imprime",
-      "poids": 0.41,
+      "poids": 0.34,
       "note": "imprimés animaliers en forte hausse",
       "vuSur": 4,
       "depuis": "2026-09-07"
     },
     {
       "type": "matiere",
+      "valeur": "maille",
+      "poids": 0.34,
+      "note": "Maille et cachemire en vedette",
+      "texte": "",
+      "vuSur": 2,
+      "depuis": "2026-09-28"
+    },
+    {
+      "type": "matiere",
       "valeur": "laine",
-      "poids": 0.39,
+      "poids": 0.33,
       "note": "mailles et tweed chauds pour l'automne",
       "texte": "",
       "vuSur": 2,
@@ -103,79 +122,83 @@
       "type": "categorie",
       "valeur": "pull",
       "coupe": "ample",
-      "poids": 0.37,
+      "poids": 0.31,
       "note": "pulls et mailles très recherchés",
       "vuSur": 2,
       "depuis": "2026-09-28"
     },
     {
+      "type": "association",
+      "couleurs": [
+        "violet",
+        "rouge"
+      ],
+      "poids": 0.28,
+      "note": "Violet et rouge vif ensemble",
+      "texte": "",
+      "vuSur": 2,
+      "depuis": "2026-09-28"
+    },
+    {
       "type": "descriptive",
-      "poids": 0.32,
+      "poids": 0.27,
       "note": "transparence et découpes dénudent le corps",
       "texte": "Les tissus transparents, la dentelle et les découpes dévoilent la peau, dans la lignée de la tendance 'naked'.",
       "vuSur": 1,
       "depuis": "2026-10-19"
     },
     {
-      "type": "matiere",
-      "valeur": "denim",
-      "poids": 0.29,
-      "note": "le jean reste une valeur sûre incontournable",
-      "vuSur": 3,
-      "depuis": "2026-08-31"
-    },
-    {
-      "type": "categorie",
-      "valeur": "pull",
-      "poids": 0.28,
-      "note": "pulls et mailles très recherchés cet hiver",
-      "vuSur": 3,
-      "depuis": "2026-08-31"
-    },
-    {
-      "type": "longueur",
-      "valeur": "court",
-      "poids": 0.27,
-      "note": "les longueurs courtes reviennent en force",
-      "vuSur": 3,
-      "depuis": "2026-08-31"
-    },
-    {
       "type": "descriptive",
-      "poids": 0.27,
+      "poids": 0.23,
       "note": "duo jupe crayon et escarpin pointu",
       "texte": "jupe crayon portée avec des escarpins à bout pointu",
       "vuSur": 1,
       "depuis": "2026-10-12"
     },
     {
+      "type": "descriptive",
+      "poids": 0.21,
+      "note": "La jupe midi, ni maxi ni mini",
+      "texte": "jupe midi, ni mini ni maxi",
+      "vuSur": 1,
+      "depuis": "2026-10-26"
+    },
+    {
+      "type": "longueur",
+      "valeur": "court",
+      "poids": 0.2,
+      "note": "les longueurs courtes reviennent en force",
+      "vuSur": 2,
+      "depuis": "2026-09-21"
+    },
+    {
+      "type": "couleur",
+      "valeur": "denim",
+      "poids": 0.2,
+      "note": "bleu denim profond très recherché",
+      "vuSur": 1,
+      "depuis": "2026-10-12"
+    },
+    {
       "type": "longueur",
       "valeur": "genoux",
-      "poids": 0.23,
+      "poids": 0.19,
       "note": "jupes genoux dominent les podiums",
       "vuSur": 1,
       "depuis": "2026-10-05"
     },
     {
       "type": "descriptive",
-      "poids": 0.23,
+      "poids": 0.19,
       "note": "chaussures plates détrônent les talons",
       "texte": "Les chaussures plates - ballerines, mocassins et variantes hybrides - s'imposent pour l'automne au détriment des talons.",
       "vuSur": 1,
       "depuis": "2026-10-05"
     },
     {
-      "type": "couleur",
-      "valeur": "denim",
-      "poids": 0.23,
-      "note": "bleu denim profond très recherché",
-      "vuSur": 1,
-      "depuis": "2026-10-12"
-    },
-    {
       "type": "categorie",
       "valeur": "robe",
-      "poids": 0.22,
+      "poids": 0.18,
       "note": "robe slip et robe élégante",
       "vuSur": 2,
       "depuis": "2026-09-07"
@@ -184,7 +207,7 @@
       "type": "silhouette",
       "haut": "droit",
       "bas": "ample",
-      "poids": 0.21,
+      "poids": 0.18,
       "note": "pantalons larges et volumineux tendance",
       "texte": "",
       "vuSur": 1,
@@ -192,84 +215,88 @@
     },
     {
       "type": "descriptive",
-      "poids": 0.21,
+      "poids": 0.18,
       "note": "chaussures plates portées en toute occasion",
       "texte": "Les ballerines et chaussures plates se portent du bureau à la soirée, remplaçant les talons au quotidien.",
       "vuSur": 1,
       "depuis": "2026-10-19"
     },
     {
+      "type": "descriptive",
+      "poids": 0.17,
+      "note": "Le jean évasé bootcut revient",
+      "texte": "jean bootcut évasé en bas de jambe",
+      "vuSur": 1,
+      "depuis": "2026-10-26"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.17,
+      "note": "Bottes hautes lacées aperçues partout",
+      "texte": "bottes montantes à lacets",
+      "vuSur": 1,
+      "depuis": "2026-10-26"
+    },
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": 0.16,
+      "note": "le jean reste une valeur sûre incontournable",
+      "vuSur": 2,
+      "depuis": "2026-09-07"
+    },
+    {
       "type": "couleur",
       "valeur": "rouge",
-      "poids": 0.18,
+      "poids": 0.15,
       "note": "rouge, teinte incontournable de l'automne",
       "vuSur": 1,
       "depuis": "2026-10-12"
     },
     {
       "type": "descriptive",
-      "poids": 0.18,
+      "poids": 0.15,
       "note": "chaussures plates chics en hausse",
       "texte": "ballerines et mocassins remplacent les baskets épaisses pour l'automne",
       "vuSur": 1,
       "depuis": "2026-10-12"
-    },
-    {
-      "type": "descriptive",
-      "poids": 0.16,
-      "note": "la brassière portée comme haut s'impose",
-      "texte": "bralette ou brassière portée seule ou sous une veste ouverte, en guise de haut",
-      "vuSur": 1,
-      "depuis": "2026-09-28"
-    },
-    {
-      "type": "descriptive",
-      "poids": 0.15,
-      "note": "ourlets asymétriques type mulet",
-      "texte": "Les robes et jupes à ourlet 'mulet', courtes devant et longues derrière, reviennent sur les podiums.",
-      "vuSur": 1,
-      "depuis": "2026-10-05"
-    },
-    {
-      "type": "silhouette",
-      "bas": "ample",
-      "poids": 0.15,
-      "note": "pantalons amples type barrel en hausse",
-      "vuSur": 1,
-      "depuis": "2026-10-05"
-    },
-    {
-      "type": "descriptive",
-      "poids": 0.15,
-      "note": "retour marqué des chaussures compensées",
-      "texte": "Les chaussures compensées (wedges) reviennent en force après des années d'éclipse.",
-      "vuSur": 1,
-      "depuis": "2026-10-05"
     }
   ],
   "vocabulaire": [
     {
-      "terme": "coupe barrel",
-      "axe": "coupe",
-      "occurrences": 8,
+      "terme": "franges",
+      "axe": "détail",
+      "occurrences": 9,
+      "semaines": 4
+    },
+    {
+      "terme": "paillettes",
+      "axe": "détail",
+      "occurrences": 5,
+      "semaines": 4
+    },
+    {
+      "terme": "dentelle",
+      "axe": "texture",
+      "occurrences": 7,
       "semaines": 3
     },
     {
-      "terme": "franges",
-      "axe": "detail",
-      "occurrences": 6,
+      "terme": "daim",
+      "axe": "matière",
+      "occurrences": 7,
+      "semaines": 3
+    },
+    {
+      "terme": "manches bouffantes",
+      "axe": "manche",
+      "occurrences": 4,
       "semaines": 3
     },
     {
       "terme": "plissé",
       "axe": "texture",
       "occurrences": 4,
-      "semaines": 3
-    },
-    {
-      "terme": "paillettes",
-      "axe": "texture",
-      "occurrences": 3,
       "semaines": 3
     },
     {
@@ -285,21 +312,15 @@
       "semaines": 2
     },
     {
-      "terme": "daim",
-      "axe": "matiere",
-      "occurrences": 6,
-      "semaines": 2
-    },
-    {
-      "terme": "dentelle",
-      "axe": "matiere",
-      "occurrences": 5,
-      "semaines": 2
-    },
-    {
       "terme": "chaussures Mary Jane",
       "axe": "chaussure",
       "occurrences": 5,
+      "semaines": 2
+    },
+    {
+      "terme": "coupe barrel",
+      "axe": "coupe",
+      "occurrences": 4,
       "semaines": 2
     },
     {
@@ -312,24 +333,6 @@
       "terme": "jean barrel",
       "axe": "coupe",
       "occurrences": 4,
-      "semaines": 2
-    },
-    {
-      "terme": "bout carré",
-      "axe": "chaussure",
-      "occurrences": 3,
-      "semaines": 2
-    },
-    {
-      "terme": "frange",
-      "axe": "detail",
-      "occurrences": 3,
-      "semaines": 2
-    },
-    {
-      "terme": "manches bouffantes",
-      "axe": "manche",
-      "occurrences": 3,
       "semaines": 2
     },
     {
@@ -353,6 +356,12 @@
     {
       "terme": "corset",
       "axe": "haut",
+      "occurrences": 3,
+      "semaines": 2
+    },
+    {
+      "terme": "mocassins",
+      "axe": "chaussure",
       "occurrences": 3,
       "semaines": 2
     },
@@ -393,6 +402,18 @@
       "semaines": 2
     },
     {
+      "terme": "découpes",
+      "axe": "détail",
+      "occurrences": 2,
+      "semaines": 2
+    },
+    {
+      "terme": "veste barn",
+      "axe": "coupe",
+      "occurrences": 2,
+      "semaines": 2
+    },
+    {
       "terme": "bout fendu",
       "axe": "chaussure",
       "occurrences": 2,
@@ -401,6 +422,12 @@
     {
       "terme": "chaussure bateau",
       "axe": "chaussure",
+      "occurrences": 2,
+      "semaines": 2
+    },
+    {
+      "terme": "jean bootcut",
+      "axe": "coupe",
       "occurrences": 2,
       "semaines": 2
     },
@@ -489,21 +516,9 @@
       "semaines": 1
     },
     {
-      "terme": "manches volumineuses",
-      "axe": "manche",
-      "occurrences": 2,
-      "semaines": 1
-    },
-    {
-      "terme": "taille cordon",
-      "axe": "taille",
-      "occurrences": 2,
-      "semaines": 1
-    },
-    {
-      "terme": "bermuda",
-      "axe": "coupe",
-      "occurrences": 2,
+      "terme": "col roulé",
+      "axe": "encolure",
+      "occurrences": 3,
       "semaines": 1
     },
     {
@@ -597,6 +612,12 @@
       "semaines": 1
     },
     {
+      "terme": "frange",
+      "axe": "detail",
+      "occurrences": 2,
+      "semaines": 1
+    },
+    {
       "terme": "tartan",
       "axe": "imprime",
       "occurrences": 2,
@@ -627,87 +648,45 @@
       "semaines": 1
     },
     {
-      "terme": "brides en T",
+      "terme": "bottes montantes",
       "axe": "chaussure",
-      "occurrences": 1,
+      "occurrences": 2,
       "semaines": 1
     },
     {
-      "terme": "effet peau de serpent",
-      "axe": "motif",
-      "occurrences": 1,
+      "terme": "transparence",
+      "axe": "texture",
+      "occurrences": 2,
       "semaines": 1
     },
     {
-      "terme": "épaules dénudées",
-      "axe": "encolure",
-      "occurrences": 1,
+      "terme": "imprimé léopard",
+      "axe": "imprimé",
+      "occurrences": 2,
       "semaines": 1
     },
     {
-      "terme": "jupe style granny",
+      "terme": "jupe midi",
       "axe": "longueur",
-      "occurrences": 1,
+      "occurrences": 2,
       "semaines": 1
     },
     {
-      "terme": "ballerines à talon",
-      "axe": "chaussure",
-      "occurrences": 1,
+      "terme": "taille haute",
+      "axe": "taille",
+      "occurrences": 2,
       "semaines": 1
     },
     {
-      "terme": "semelle plate",
-      "axe": "chaussure",
-      "occurrences": 1,
+      "terme": "polaire épaisse",
+      "axe": "texture",
+      "occurrences": 2,
       "semaines": 1
     },
     {
-      "terme": "bottes façon 70s",
-      "axe": "chaussure",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "sac ouvert",
-      "axe": "accessoire",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "broches",
-      "axe": "bijou",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "bijoux bohèmes",
-      "axe": "bijou",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "veste cirée",
-      "axe": "matiere",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "jupe portefeuille",
+      "terme": "pantalon de jogging",
       "axe": "coupe",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "jambières",
-      "axe": "accessoire",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "chaussettes découpées",
-      "axe": "detail",
-      "occurrences": 1,
+      "occurrences": 2,
       "semaines": 1
     },
     {
@@ -737,6 +716,12 @@
     {
       "terme": "pois",
       "axe": "imprime",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "bout carré",
+      "axe": "chaussure",
       "occurrences": 1,
       "semaines": 1
     },
@@ -851,12 +836,6 @@
     {
       "terme": "jupe bulle",
       "axe": "silhouette",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "découpes",
-      "axe": "detail",
       "occurrences": 1,
       "semaines": 1
     },
@@ -1089,12 +1068,6 @@
       "semaines": 1
     },
     {
-      "terme": "veste barn",
-      "axe": "categorie",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
       "terme": "imprimé zébré",
       "axe": "imprime",
       "occurrences": 1,
@@ -1121,12 +1094,6 @@
     {
       "terme": "bottine façon cavalière",
       "axe": "chaussure",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "jean bootcut",
-      "axe": "coupe",
       "occurrences": 1,
       "semaines": 1
     },
@@ -1181,12 +1148,6 @@
     {
       "terme": "taille empire",
       "axe": "taille",
-      "occurrences": 1,
-      "semaines": 1
-    },
-    {
-      "terme": "mocassins",
-      "axe": "chaussure",
       "occurrences": 1,
       "semaines": 1
     },
@@ -1258,6 +1219,84 @@
     },
     {
       "terme": "tweed",
+      "axe": "texture",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "bottines plates",
+      "axe": "chaussure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "escarpins à plumes",
+      "axe": "chaussure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "chaussettes montantes",
+      "axe": "chaussure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "col bateau",
+      "axe": "encolure",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "demi-zip",
+      "axe": "détail",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "motif argyle",
+      "axe": "imprimé",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "gilet sans manches",
+      "axe": "coupe",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "jupe portée sur pantalon",
+      "axe": "superposition",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "velours",
+      "axe": "matière",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "doré",
+      "axe": "couleur",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "cagoule",
+      "axe": "accessoire",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "veste universitaire",
+      "axe": "coupe",
+      "occurrences": 1,
+      "semaines": 1
+    },
+    {
+      "terme": "maille métallique",
       "axe": "texture",
       "occurrences": 1,
       "semaines": 1
