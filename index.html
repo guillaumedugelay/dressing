@@ -2735,6 +2735,12 @@ function rendre() {
 /* C'est Opus qui compose, et lui seul : s'il n'est pas joignable, rien
    n'est proposé — consigne de la propriétaire, 21 octobre 2026. */
 let enCours = false;
+/* L'écran reste allumé pendant la composition : en veille, le téléphone
+   suspend la page et la réponse d'Opus se perd. Sans prise en charge du
+   verrou d'écran, on s'en passe — le message d'attente le rappelle. */
+async function garderEcranAllume() {
+  try { return await navigator.wakeLock?.request("screen"); } catch { return null; }
+}
 async function lancer(relance) {
   if (enCours) return;
   /* Ce qu'elle a déjà vu aujourd'hui, même avant d'avoir fermé l'appli. */
@@ -2742,9 +2748,13 @@ async function lancer(relance) {
   if (!relance) etat.dejaVues = [];
   const { fiches } = piecesEligibles();
   const hote = $("#propositions");
-  const attente = (texte) => { hote.innerHTML = `<div class="vide"><strong>Un instant</strong>${echapper(texte)}</div>`; };
+  let attente = (texte) => { hote.innerHTML = `<div class="vide"><strong>Un instant</strong>${echapper(texte)}</div>`; };
   enCours = true;
   $("#btn-proposer").disabled = true;
+  const verrou = await garderEcranAllume();
+  const attenteBase = attente;
+  const rappel = verrou ? "" : " Garde l'appli ouverte et l'écran allumé jusqu'à la réponse.";
+  attente = (texte) => attenteBase(texte + rappel);
   attente("Opus regarde ta garde-robe…");
   try {
     const demande = await garderDemande(await composerAvecOpus({ fiches, aEcarter, progres: attente }));
@@ -2757,6 +2767,7 @@ async function lancer(relance) {
     hote.innerHTML = `<div class="vide"><strong>Opus n'est pas disponible</strong>${echapper(motifIndisponible(e))}.
       <span style="display:block;margin-top:8px;font-size:12.5px">Rien n'est proposé.</span></div>`;
   } finally {
+    verrou?.release?.().catch(() => {});
     enCours = false;
     $("#btn-proposer").disabled = false;
   }
@@ -3111,7 +3122,12 @@ function motifIndisponible(e) {
   if (s === 429) return "trop de demandes d'un coup chez Anthropic — réessaie dans une minute";
   if (s === 402 || /credit|billing/i.test(e?.message || "")) return "le crédit du compte Anthropic est épuisé ou le plafond mensuel atteint";
   if (s >= 500) return "Anthropic ne répond pas pour l'instant";
-  if (!navigator.onLine) return "pas de connexion";
+  /* « Load failed » sur iPhone, « Failed to fetch » ailleurs : la réponse
+     s'est perdue en route. Le 1er novembre 2026, c'était le téléphone parti
+     en veille pendant l'attente — la page suspendue, la connexion coupée. */
+  if (/load failed|failed to fetch|network|connection error|aborted/i.test(e?.message || "") || e?.name === "APIConnectionError")
+    return navigator.onLine === false ? "pas de connexion"
+      : "la connexion a été coupée pendant la demande — garde l'appli ouverte et l'écran allumé jusqu'à la réponse, de préférence en wifi, puis réessaie";
   return "erreur inattendue (" + (e?.message || e) + ")";
 }
 
