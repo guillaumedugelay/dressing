@@ -1,0 +1,232 @@
+{
+  "revision": "2026-11-02",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, la mode s'habille de pulls, de manteaux marqués aux épaules et de jupes aux genoux. Le satin et la soie remplacent le jean, et le rose poudré, les carreaux et le léopard s'invitent dans la garde-robe d'automne.",
+  "regles": [
+    {
+      "type": "matiere",
+      "valeur": "soie",
+      "poids": 1,
+      "note": "pantalons satinés à la place du jean"
+    },
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "poids": 1.2,
+      "note": "pulls et cardigans omniprésents cet automne"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1.2,
+      "note": "manteaux d'automne, gros effet de silhouette"
+    },
+    {
+      "type": "longueur",
+      "valeur": "genoux",
+      "poids": 1,
+      "note": "jupes mi-longues et jupes crayon"
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 1,
+      "note": "tartan, flanelle et plaid un peu partout"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rose",
+      "poids": 1,
+      "note": "chemise rose poudré à la place du blanc"
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 0.7,
+      "note": "jupe crayon et vestes en cuir"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 0.7,
+      "note": "léopard traité comme un neutre"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 0.7,
+      "note": "sacs sculpturaux mis en avant"
+    },
+    {
+      "type": "matiere",
+      "valeur": "denim",
+      "poids": -0.5,
+      "note": "lassitude du jean, pantalons souples préférés"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "pantalon en velours côtelé partout",
+      "texte": "pantalon en velours côtelé"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.8,
+      "note": "manteau aux épaules très marquées",
+      "texte": "manteau à épaules structurées, effet power shoulders"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "velours côtelé",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "velours",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "satin",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "flanelle",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "jacquard",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "cachemire",
+      "axe": "matière",
+      "occurrences": 3
+    },
+    {
+      "terme": "fausse fourrure",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "shearling",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "dentelle",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "taffetas",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "paillettes",
+      "axe": "détail",
+      "occurrences": 3
+    },
+    {
+      "terme": "épaules structurées",
+      "axe": "épaule",
+      "occurrences": 1
+    },
+    {
+      "terme": "manchettes exagérées",
+      "axe": "manche",
+      "occurrences": 1
+    },
+    {
+      "terme": "col cheminée",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "col cape",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe crayon",
+      "axe": "type",
+      "occurrences": 2
+    },
+    {
+      "terme": "pantalon de survêtement",
+      "axe": "type",
+      "occurrences": 2
+    },
+    {
+      "terme": "ensemble assorti",
+      "axe": "genre",
+      "occurrences": 3
+    },
+    {
+      "terme": "veste universitaire",
+      "axe": "type",
+      "occurrences": 1
+    },
+    {
+      "terme": "frange",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "doublure contrastée",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "ceinture à la taille",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "talons bicolores",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "mocassins penny",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "ballerines",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes",
+      "axe": "chaussure",
+      "occurrences": 5
+    },
+    {
+      "terme": "baskets à semelle fine",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussettes montantes",
+      "axe": "accessoire",
+      "occurrences": 1
+    }
+  ]
+}
