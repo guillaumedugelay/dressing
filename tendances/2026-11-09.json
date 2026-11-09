@@ -1,0 +1,245 @@
+{
+  "revision": "2026-11-09",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, la garde-robe d'automne mise sur les mailles et le cuir, avec du rouge et du marron, des carreaux et des jupes longues. Les accessoires (foulard, perles, broche) reviennent aussi, ainsi que les bottes d'équitation et les gilets façon années 70.",
+  "regles": [
+    {
+      "type": "couleur",
+      "valeur": "rouge",
+      "poids": 1,
+      "note": "Rouge franc, chaussures et mailles",
+      "texte": ""
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 0.9,
+      "note": "Jean, daim et vestes marron",
+      "texte": ""
+    },
+    {
+      "type": "motif",
+      "valeur": "carreaux",
+      "poids": 1,
+      "note": "Jupes à carreaux, pied-de-poule et tweed",
+      "texte": ""
+    },
+    {
+      "type": "longueur",
+      "valeur": "long",
+      "poids": 0.7,
+      "note": "Jupes maxi et cardigans longs",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 1.2,
+      "note": "Manteaux, vestes et jupes en cuir",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 1.2,
+      "note": "Pulls et cardigans, la maille domine",
+      "texte": ""
+    },
+    {
+      "type": "matiere",
+      "valeur": "soie",
+      "poids": 0.7,
+      "note": "Pantalons satinés, foulard en soie",
+      "texte": ""
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 0.8,
+      "note": "Manteaux en cuir, grands manteaux",
+      "texte": ""
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1,
+      "note": "Foulard, broche, perles, sacs",
+      "texte": ""
+    },
+    {
+      "type": "association",
+      "couleurs": [
+        "marron",
+        "noir"
+      ],
+      "poids": 0.7,
+      "note": "Veste marron, bottes noires",
+      "texte": ""
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.8,
+      "note": "Bottes d'équitation en retour",
+      "texte": "bottes d'équitation"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.6,
+      "note": "Gilets sans manches style années 70",
+      "texte": "gilet sans manches années 70"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "daim",
+      "axe": "matière",
+      "occurrences": 4
+    },
+    {
+      "terme": "cachemire",
+      "axe": "matière",
+      "occurrences": 3
+    },
+    {
+      "terme": "velours",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "taffetas",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "satin",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "tweed",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "polaire",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "fourrure synthétique",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "shearling",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "bordeaux",
+      "axe": "couleur",
+      "occurrences": 3
+    },
+    {
+      "terme": "bottes d'équitation",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes à talon",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "ballerines",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "mocassins",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "baskets",
+      "axe": "chaussure",
+      "occurrences": 4
+    },
+    {
+      "terme": "jupe",
+      "axe": "type de bas",
+      "occurrences": 5
+    },
+    {
+      "terme": "pantalon fluide",
+      "axe": "type de bas",
+      "occurrences": 2
+    },
+    {
+      "terme": "cardigan",
+      "axe": "type de haut",
+      "occurrences": 4
+    },
+    {
+      "terme": "gilet sans manches",
+      "axe": "type de haut",
+      "occurrences": 1
+    },
+    {
+      "terme": "col cheminée",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "col roulé",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "col cape",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "blouse à lavallière",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "dos nu",
+      "axe": "découpe",
+      "occurrences": 1
+    },
+    {
+      "terme": "jupe plissée",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "volants",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "losanges",
+      "axe": "imprimé",
+      "occurrences": 1
+    },
+    {
+      "terme": "pois",
+      "axe": "imprimé",
+      "occurrences": 1
+    }
+  ]
+}
