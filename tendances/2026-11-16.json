@@ -1,0 +1,233 @@
+{
+  "revision": "2026-11-16",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, l'hiver s'habille de marron chocolat, de violet et de bleu cobalt, avec beaucoup de maille et de manteaux affirmés. Les collants de couleur et les jupes reviennent, et les pantalons restent amples.",
+  "regles": [
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 1,
+      "note": "Le marron chocolat s'installe"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 0.9,
+      "note": "Prune, lilas et violet partout"
+    },
+    {
+      "type": "couleur",
+      "valeur": "bleu",
+      "poids": 0.8,
+      "note": "Bleu cobalt, même en total look"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rose",
+      "poids": 0.7,
+      "note": "Rose vif jusqu'au costume"
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 1.2,
+      "note": "Mailles douillettes et cachemire en tête"
+    },
+    {
+      "type": "matiere",
+      "valeur": "cuir",
+      "poids": 0.9,
+      "note": "Vestes et pièces en cuir"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1.2,
+      "note": "Le manteau marque la tenue"
+    },
+    {
+      "type": "silhouette",
+      "haut": "droit",
+      "bas": "ample",
+      "poids": 0.8,
+      "note": "Pantalons amples, haut plus net"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 0.6,
+      "note": "Imprimés animaux et mélanges de motifs"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "Collants colorés au lieu du noir",
+      "texte": "collants de couleur (cobalt, rouge, lavande, gris)"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "La jupe revient en force",
+      "texte": "jupe, portée avec bottes, jean ou collants"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.5,
+      "note": "Bottes pointues, confortables au quotidien",
+      "texte": "bottes à bout pointu"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "bottes",
+      "axe": "chaussure",
+      "occurrences": 8
+    },
+    {
+      "terme": "talons",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "baskets",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "cuissardes",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bout pointu",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes de pluie",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussons",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "collants",
+      "axe": "pièce",
+      "occurrences": 5
+    },
+    {
+      "terme": "jupe",
+      "axe": "pièce",
+      "occurrences": 7
+    },
+    {
+      "terme": "cardigan",
+      "axe": "pièce",
+      "occurrences": 2
+    },
+    {
+      "terme": "costume",
+      "axe": "pièce",
+      "occurrences": 3
+    },
+    {
+      "terme": "pantalon cargo",
+      "axe": "pièce",
+      "occurrences": 2
+    },
+    {
+      "terme": "manteau couverture",
+      "axe": "pièce",
+      "occurrences": 1
+    },
+    {
+      "terme": "cachemire",
+      "axe": "matière",
+      "occurrences": 3
+    },
+    {
+      "terme": "taffetas",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "jacquard",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "polaire",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "daim",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "poil de veau",
+      "axe": "texture",
+      "occurrences": 1
+    },
+    {
+      "terme": "fausse fourrure",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "flanelle",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "bordé de fourrure",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "dentelle",
+      "axe": "texture",
+      "occurrences": 2
+    },
+    {
+      "terme": "paillettes",
+      "axe": "texture",
+      "occurrences": 3
+    },
+    {
+      "terme": "épaules structurées",
+      "axe": "découpe",
+      "occurrences": 2
+    },
+    {
+      "terme": "col cheminée",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "casquette gavroche",
+      "axe": "accessoire",
+      "occurrences": 1
+    },
+    {
+      "terme": "sac bowling",
+      "axe": "accessoire",
+      "occurrences": 1
+    }
+  ]
+}
