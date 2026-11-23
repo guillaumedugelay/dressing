@@ -1,0 +1,243 @@
+{
+  "revision": "2026-11-23",
+  "origine": "synthese-automatique",
+  "sources": [
+    "Vogue",
+    "Hypebeast",
+    "Who What Wear",
+    "WWD",
+    "Fashionista",
+    "Harper's Bazaar",
+    "Elle",
+    "Refinery29",
+    "Glamour"
+  ],
+  "resume": "Cette semaine, on s'habille chaud et en volume : pulls en maille épaisse, manteaux structurés ou façon robe de chambre, jeans amples, avec des touches de rouge, de violet et de marron. Côté chaussures, les bottes dominent (bottines en daim, bottes western, bouts pointus) et les sacs prennent de la place.",
+  "regles": [
+    {
+      "type": "categorie",
+      "valeur": "pull",
+      "poids": 1.2,
+      "note": "Pulls et mailles épais partout"
+    },
+    {
+      "type": "matiere",
+      "valeur": "maille",
+      "poids": 1,
+      "note": "Maille douillette, alpaga, laine mérinos"
+    },
+    {
+      "type": "categorie",
+      "valeur": "manteau",
+      "poids": 1.2,
+      "note": "Manteaux structurés et longs en vedette"
+    },
+    {
+      "type": "categorie",
+      "valeur": "accessoire",
+      "poids": 1,
+      "note": "Grands sacs et sacs à chaîne"
+    },
+    {
+      "type": "couleur",
+      "valeur": "rouge",
+      "poids": 1,
+      "note": "Touche de rouge sur jean ou manteau"
+    },
+    {
+      "type": "couleur",
+      "valeur": "violet",
+      "poids": 0.8,
+      "note": "Prune et violet pour l'hiver"
+    },
+    {
+      "type": "couleur",
+      "valeur": "marron",
+      "poids": 0.8,
+      "note": "Marron chocolat et daim en accents"
+    },
+    {
+      "type": "silhouette",
+      "haut": "droit",
+      "bas": "ample",
+      "poids": 1,
+      "note": "Pull posé sur jean ample"
+    },
+    {
+      "type": "motif",
+      "valeur": "imprime",
+      "poids": 0.7,
+      "note": "Imprimés animaliers et graphiques pour la fête"
+    },
+    {
+      "type": "longueur",
+      "valeur": "genoux",
+      "poids": 0.6,
+      "note": "Jupes mi-longues portées avec bottes"
+    },
+    {
+      "type": "descriptive",
+      "poids": 1,
+      "note": "Bottines en daim marron, effet années 70",
+      "texte": "bottines en daim marron"
+    },
+    {
+      "type": "descriptive",
+      "poids": 0.8,
+      "note": "Bottes de cow-boy pour l'hiver",
+      "texte": "bottes de cow-boy"
+    }
+  ],
+  "vocabulaire": [
+    {
+      "terme": "bottines",
+      "axe": "chaussure",
+      "occurrences": 3
+    },
+    {
+      "terme": "bout pointu",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "talon aiguille",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "bottes de cow-boy",
+      "axe": "chaussure",
+      "occurrences": 2
+    },
+    {
+      "terme": "bottes souples slouchy",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "chaussons",
+      "axe": "chaussure",
+      "occurrences": 1
+    },
+    {
+      "terme": "jean tonneau",
+      "axe": "tombé",
+      "occurrences": 1
+    },
+    {
+      "terme": "jean taille basse",
+      "axe": "taille",
+      "occurrences": 2
+    },
+    {
+      "terme": "manteau robe de chambre",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "manteau portefeuille",
+      "axe": "coupe",
+      "occurrences": 1
+    },
+    {
+      "terme": "fausse fourrure",
+      "axe": "matière",
+      "occurrences": 3
+    },
+    {
+      "terme": "daim",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "satin",
+      "axe": "matière",
+      "occurrences": 2
+    },
+    {
+      "terme": "polaire",
+      "axe": "matière",
+      "occurrences": 3
+    },
+    {
+      "terme": "dentelle",
+      "axe": "matière",
+      "occurrences": 1
+    },
+    {
+      "terme": "dos nu",
+      "axe": "découpe",
+      "occurrences": 3
+    },
+    {
+      "terme": "corset",
+      "axe": "détail",
+      "occurrences": 2
+    },
+    {
+      "terme": "plumes",
+      "axe": "détail",
+      "occurrences": 3
+    },
+    {
+      "terme": "ourlet festonné",
+      "axe": "détail",
+      "occurrences": 1
+    },
+    {
+      "terme": "col rond",
+      "axe": "encolure",
+      "occurrences": 2
+    },
+    {
+      "terme": "col roulé",
+      "axe": "encolure",
+      "occurrences": 1
+    },
+    {
+      "terme": "col montant",
+      "axe": "col",
+      "occurrences": 1
+    },
+    {
+      "terme": "demi-zip",
+      "axe": "fermeture",
+      "occurrences": 2
+    },
+    {
+      "terme": "bonnet",
+      "axe": "accessoire",
+      "occurrences": 2
+    },
+    {
+      "terme": "sac à chaîne",
+      "axe": "sac",
+      "occurrences": 1
+    },
+    {
+      "terme": "cabas à ceinture",
+      "axe": "sac",
+      "occurrences": 1
+    },
+    {
+      "terme": "pochette",
+      "axe": "sac",
+      "occurrences": 1
+    },
+    {
+      "terme": "jogging",
+      "axe": "bas",
+      "occurrences": 2
+    },
+    {
+      "terme": "ensemble assorti",
+      "axe": "genre de tenue",
+      "occurrences": 2
+    },
+    {
+      "terme": "paillettes",
+      "axe": "détail",
+      "occurrences": 1
+    }
+  ]
+}
